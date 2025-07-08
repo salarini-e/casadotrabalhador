@@ -1,0 +1,589 @@
+{% extends 'template.html' %}
+{% load static %}
+{% block title %}Vagas Ofertadas{% endblock %}
+{% block css %} {{block.super}} {% endblock%}
+{% block main %}
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+  crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/static/css/template.css">
+<div class="row">
+  <div class="col d-flex flex-column">
+    {% include 'slide.html' %}
+
+    <div class="">
+      <div class="row">
+        <div class="col pt-5 text-center">
+          <p style="margin-bottom: 10px">
+            Temos no total
+            <b>{{qnt_cargos}} {% if qnt_cargos > 1 %}cargos{% else %}cargo{% endif %}</b>
+            e
+            <b>{{qnt_vagas}} {% if qnt_vagas > 1 %}vagas disponiveis{% else %}vaga
+              disponivel{% endif %}</b>! Veja nossas vagas agora!
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col d-flex div-vaga-container">
+          <div class="div-vaga-container-links d-flex mt-3">
+            {% if request.user.is_authenticated %}
+            <a class="btn btn-btfl ms-auto my-auto" style="width: auto !important;"
+              href="{% url 'vagas:meus_encaminhamentos' %}">
+              Encaminhamentos
+            </a>
+            <a class="btn btn-btfl ms-1 me-1 my-auto" href="{% url 'cv:index' %}">
+              Currículo
+            </a>
+            {% endif %}
+            {% if request.user.is_staff %}
+
+            <span>
+              <a class="btn btn-btfl me-2" href="{% url 'vagas:imprimir' %}"><i class="fas fa-print"></i></a>
+              {% if request.user.is_superuser %}
+              <span class="ms-0">
+                <a class="ms-0 btn btn-success text-light me-2" href="{% url 'vagas:exportar_vagas' %}">
+                  <i class="fa-solid fa-file-excel"></i>
+                </a>
+              </span>
+              {% endif %}
+            </span>
+
+            <a class="btn btn-btfl" style="width: auto !important;" href="{% url 'vagas:cadastrar' %}">CADASTRAR</a>
+
+            {% endif %}
+
+          </div>
+        </div>
+        <div class="opcoes-filtros filter-hidden" id="opcoes-filtros">
+          <div class="escolaridades">
+            <h5 class="text-start">Escolaridade</h5>
+
+            <select class="form-select" id="escolaridade">
+              <option disabled selected value="" id="defaultSelect">
+                -- Selecione uma escolaridade --
+              </option>
+              {% for escolaridade in escolaridades %}
+              <option name="escolaridade" id="escolaridade-{{escolaridade.nome}}" value="{{escolaridade.nome}}">
+                {{escolaridade.nome}}</option>
+              {% endfor %}
+            </select>
+
+
+          </div>
+
+          <div class="bairros ">
+            <h5 class="text-start">Bairros</h5>
+
+            <select class="form-select" id="bairro">
+
+              <option disabled selected value="" id="defaultSelect">
+                -- Selecione um bairro --
+              </option>
+
+              {% for bairro in bairros %}
+              <option name="bairro" id="bairro-{{bairro.0}}" value="{{bairro.0}}"> {{bairro.0}}</option>
+
+              {% endfor %}
+            </select>
+
+
+
+          </div>
+
+          <div class="tipos_de_vaga">
+            {% comment %} !!! SE ISSO MUDAR NO MODEL, TEM QUE MUDAR AQUI TBM !!!!
+            TIPO_DE_VAGA_CHOICES=( ('NML', 'Padrão'), ('JAP', 'Jovem aprendiz'),
+            ('PED', 'Pessoa com deficiência') ('EST', 'Estágio') ) {% endcomment %}
+            <h5 class="text-start">Tipo de Vaga</h5>
+            <select class="form-select" id="tipo_de_vaga">
+
+              <option disabled selected value="" id="defaultSelect">
+                -- Selecione um tipo de vaga --
+              </option>
+
+              <option name="tipos_de_vaga" id="tipos_de_vaga-padrao" value="NML">Padrão</option>
+
+              <option name="tipos_de_vaga" id="tipos_de_vaga-jovem_aprendiz" value="JAP">Jovem aprendiz</option>
+
+              <option name="tipos_de_vaga" id="tipos_de_vaga-estagio" value="EST">Estágio</option>
+
+              <option type="radio" name="tipos_de_vaga" id="tipos_de_vaga-pessoa_com_deficiencia" value="PED">Pessoa com
+                deficiência</option>
+
+            </select>
+
+          </div>
+
+          <div class="removeFiltersContainer">
+            <button class="btn btn-primary ms-auto" id="removeFilters">
+              Remover Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+      {% if destaque %}
+      <h1 class="pb-3">Vaga(s) em destaque</h1>
+      <table class="table table-hover">
+        <tbody>
+          {% for vaga in vagas_destaque %}
+          <tr id="{{forloop.counter}}" data-tipo="{{vaga.tipo_de_vaga}}" data-escolaridade="{{vaga.escolaridade}}"
+            data-cargo="{{vaga.cargo}}" data-bairro="{{vaga.empresa.bairro}}" data-empresa="{{vaga.empresa.nome}}"
+            style="background-color: rgba(230, 230, 230, 0.274)">
+            <div id="{{forloop.counter}}-div" class="div-vaga">
+              <div class="row">
+                <div class="col">
+                  <div>
+                    <div>
+                      <h4 id="{{forloop.counter}}-cargo" class="cargo" style="font-size: 3vh;">
+                        {% if request.user.is_staff %}{{vaga.empresa}} - {% endif%}{{vaga.cargo}}
+                      </h4>
+                    </div>
+
+                    <div class="d-flex">
+                      <p class="my-auto">
+                        {% if vaga.tipo_de_vaga != 'NML' %}
+                        <b class="text-secondary text-uppercase">[ {{vaga.get_tipo_de_vaga_display}} ]</b>
+                        {% endif %}
+                        {% if vaga.experiencia == 'Não' %}
+                        {% endif %}
+                        {% if vaga.experiencia == 'Sim' %}
+                        <span class="{% if vaga.tipo_de_vaga != 'NML' %}{% endif %} text-gray"><i>Requer
+                            experiência!</i>
+                        </span>
+                        {% else %}
+                        {% if vaga.tipo_de_vaga == 'NML' %}
+                        {% if request.user.is_staff %}
+                        {% else %}
+                        <br>
+                        {% endif %}
+                        {% endif %}
+                        {% endif %}
+
+                      </p>
+                      {% if request.user.is_staff %}
+                      <span class="ms-auto me-3 span-date">
+                        {{vaga.dt_inclusao | date:"d/m/Y"}}
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col pt-1 div-detalhes-vaga">
+                  <div class="detalhamento-vaga d-flex justify-content-between flex-wrap">
+                    <div><b>Vagas:</b><br>{{vaga.quantidadeVagas}}</div>
+                    <div><b>Escolaridade:</b><br>{{vaga.escolaridade}}</div>
+                    <div><b>Carga hóraria:</b><br>{{vaga.carga_horaria}}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col d-flex justify-content-between flex-wrap">
+                  <div>
+                    {% if vaga.regime != '' %}
+                    <b>Regime:</b> <br>{{vaga.regime}}
+                    {% endif %}
+                  </div>
+                  <div><b>Bairro:</b> <br>{{vaga.empresa.bairro}}</div>
+                  <div class="mt-auto" id="detalhes_vaga">
+                    <a href="{% url 'vagas:visualizar_vaga' vaga.id %}" class="btn btn-success">
+                      DETALHES DA VAGA
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      <h1>Todas as vagas</h1>
+      <div class="row mt-4 mb-4">
+        <div class="col d-flex">
+          <input type="text" id="buscador" class="w-100" placeholder="Procurar..."
+            style="border-radius: 30px !important; border-color: white;" />
+        </div>
+      </div>
+      <!-- {% for cargo, vagas in vagas_por_cargo.items %}
+      <div class="row px-2 mb-3">
+        <div class="col border px-4 py-3" style="border-radius: 30px; background-color: white;">
+          <h4 id="{{forloop.counter}}-cargo" class="cargo">{% if request.user.is_staff %}{{vaga.empresa}} - {% endif%}{{vaga.cargo}}</h4>
+          <div class="row">
+            <div class="col d-flex justify-content-between flex-wrap">
+              <div class="d-flex flex-column">
+                <strong>Vagas:</strong><span>{{vaga.quantidadeVagas}}</span>
+              </div>
+              <div class="d-flex flex-column">
+                <strong>Escolaridade:</strong><span>{{vaga.escolaridade}}</span>
+              </div>
+              <div class="d-flex flex-column">
+                <strong>Carga hóraria:</strong><span>{{vaga.carga_horaria}}</span>
+              </div>
+              {% if vaga.regime != '' %}
+              <div class="d-flex flex-column">
+                <strong>Regime:</strong><span>{{vaga.regime}}</span>
+              </div>
+              {% endif %}
+              <div class="d-flex flex-column">
+                <strong>Bairro:</strong><span>{{vaga.empresa.bairro}}</span>
+              </div>
+          
+            </div>
+          </div>
+          <div class="row">
+            <div class="col d-flex pt-3">
+              <div class="d-flex">
+                <p class="my-auto">
+                  {% if request.user.is_staff %}
+                  <span class="me-3 span-date">
+                    {{vaga.dt_inclusao | date:"d/m/Y"}}
+                  </span>
+                  {% endif %}
+                  {% if vaga.tipo_de_vaga != 'NML' %}
+                  <b class="text-secondary text-uppercase">[ {{vaga.get_tipo_de_vaga_display}} ]</b>
+                  {% endif %}
+                  {% if vaga.experiencia == 'Não' %}
+                  {% endif %}
+                  {% if vaga.experiencia == 'Sim' %}
+                  <span class="{% if vaga.tipo_de_vaga != 'NML' %}ms-3{% endif %} text-gray"><i>Requer experiência!</i>
+                  </span>
+                  {% else %}
+                  {% if vaga.tipo_de_vaga == 'NML' %}
+                  {% if request.user.is_staff %}
+                  {% else %}
+                  {% endif %}
+                  {% endif %}
+                  {% endif %}
+                  
+                </p>
+              </div>
+              <a href="" class="btn btn-success ms-auto">
+                DETALHES DA VAGA
+              </a>  
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %} -->
+      <!-- <table class="table table-hover">
+        <tbody id="busca">
+          {% for cargo, vagas in vagas_por_cargo.items %}
+          {% for vaga in vagas %}
+          <tr
+            id="{{forloop.counter}}"
+            data-tipo="{{vaga.tipo_de_vaga}}"
+            data-escolaridade="{{vaga.escolaridade}}"
+            data-cargo="{{vaga.cargo}}"
+            data-bairro="{{vaga.empresa.bairro}}"
+    
+            style="background-color: rgba(230, 230, 230, 0.274)">
+            <div id="{{forloop.counter}}-div" class="div-vaga">
+              <div class="row">
+                <div class="col">
+                  <div>
+                    <div>
+                      <h4 id="{{forloop.counter}}-cargo" class="cargo" style="font-size: 3vh;">
+                        {% if request.user.is_staff %}{{vaga.empresa}} - {% endif%}{{vaga.cargo}}
+                      </h4>
+                    </div>
+    
+                    <div class="d-flex">
+                      <p class="my-auto">
+                        {% if vaga.tipo_de_vaga != 'NML' %}
+                        <b class="text-secondary text-uppercase">[ {{vaga.get_tipo_de_vaga_display}} ]</b>
+                        {% endif %}
+                        {% if vaga.experiencia == 'Não' %}
+                        {% endif %}
+                        {% if vaga.experiencia == 'Sim' %}
+                        <span class="{% if vaga.tipo_de_vaga != 'NML' %}ms-3{% endif %} text-gray"><i>Requer experiência!</i>
+                        </span>
+                        {% else %}
+                        {% if vaga.tipo_de_vaga == 'NML' %}
+                        {% if request.user.is_staff %}
+                        {% else %}
+                        <br>
+                        {% endif %}
+                        {% endif %}
+                        {% endif %}
+                        
+                      </p>
+                      {% if request.user.is_staff %}
+                        <span class="ms-auto me-3 span-date">
+                          {{vaga.dt_inclusao | date:"d/m/Y"}}
+                        </span>
+                        {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col pt-1 div-detalhes-vaga">
+                  <div class="detalhamento-vaga d-flex justify-content-between flex-wrap">
+                    <div><b>Vagas:</b><br>{{vaga.quantidadeVagas}}</div>
+                    <div><b>Escolaridade:</b><br>{{vaga.escolaridade}}</div>
+                    <div><b>Carga hóraria:</b><br>{{vaga.carga_horaria}}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col d-flex justify-content-between flex-wrap">
+                  <div>
+                    {% if vaga.regime != '' %}
+                    <b>Regime:</b> <br>{{vaga.regime}}
+                    {% endif %}
+                  </div>
+                  <div><b>Bairro:</b> <br>{{vaga.empresa.bairro}}</div>
+                  <div class="mt-auto" id="detalhes_vaga">
+                    <a
+                      href="# "
+                      class="btn btn-success"
+                    >
+                      DETALHES DA VAGA
+                    </a>  
+                  </div>
+                </div>
+              </div>
+            </div>
+          </tr>
+          {% endfor %}
+          {% endfor %}          
+        </tbody>
+      </table> -->
+      <table class="table">
+        <tbody id="busca">
+          {% for cargo, vagas in vagas_por_cargo.items %}
+          <tr data-cargo-title="{{ cargo }}">
+            <td>                              
+              <div class="div-vaga" style="background-color: #507b9b;">                
+                <div class="row">
+                  <div class="col">
+                    <h4 class="cargo text-center" style="font-size: 3vh; color: white;">
+                      {{ cargo }}
+                    </h4>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% for vaga in vagas %}
+          <tr data-tipo="{{vaga.tipo_de_vaga}}" data-escolaridade="{{vaga.escolaridade}}" data-cargo="{{vaga.cargo}}"
+            data-bairro="{{vaga.empresa.bairro}}" data-empresa="{{vaga.empresa.nome}}">
+            <td>
+              <div class="div-vaga">
+                <div class="row">
+                  <div class="col">
+                    <h4 class="cargo" style="font-size: 3vh;">
+                      {% if request.user.is_staff %}{{ vaga.empresa }} - {% endif %} Vaga {{forloop.counter}} <span
+                        style="opacity: 0; font-size: 1pt;">{{vaga.cargo}} {% if request.user.is_staff %}{{ vaga.empresa }}{% endif %}</span>
+                    </h4>
+                    <div class="d-flex">
+                      <p class="my-auto">
+                        {% if vaga.tipo_de_vaga != 'NML' %}
+                        <b class="text-secondary text-uppercase">[ {{ vaga.get_tipo_de_vaga_display }} ]</b>
+                        {% endif %}
+                        {% if vaga.experiencia == 'Sim' %}
+                        <span class="text-gray"><i>Requer experiência!</i></span>
+                        {% endif %}
+                      </p>
+                      {% if request.user.is_staff %}
+                      <span class="ms-auto me-3 span-date">
+                        {{ vaga.dt_inclusao | date:"d/m/Y" }}
+                      </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col pt-1 div-detalhes-vaga">
+                    <div class="detalhamento-vaga d-flex justify-content-between flex-wrap">
+                      <div><b>Nº vagas:</b><br>{{ vaga.quantidadeVagas }}</div>
+                      <div><b>Escolaridade:</b><br>{{ vaga.escolaridade }}</div>
+                      <div><b>Carga horária:</b><br>{{ vaga.carga_horaria }}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mt-3">
+                  <div class="col d-flex justify-content-between flex-wrap">
+                    <div>
+                      {% if vaga.regime %}
+                      <b>Regime:</b> <br>{{ vaga.regime }}
+                      {% endif %}
+                    </div>
+                    <div><b>Bairro:</b> <br>{{ vaga.empresa.bairro }}</div>
+                    <div class="mt-auto">
+                      <a href="{% url 'vagas:visualizar_vaga' vaga.id %}" class="btn btn-success">
+                        DETALHES DA VAGA
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}          
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <style>
+        #buscador {
+          background-image: url("/static/images/search.png");
+          background-position: 10px 8px;
+          background-repeat: no-repeat;
+          font-size: 16px;
+          padding: 12px 0px 12px 50px;
+          border: 1px solid #ddd;
+          margin-bottom: 12px;
+        }
+
+        td img {
+          visibility: hidden;
+        }
+
+        table {
+          font-size: 0.9em;
+        }
+
+        h4 {
+          color: #507b9b;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .text-gray {
+          color: gray;
+        }
+
+        .filter-hidden {
+          display: none !important;
+        }
+
+        .opcoes-filtros {
+          margin-top: 48px;
+          width: 100%;
+          display: grid;
+          gap: 0 20px;
+          grid-template-columns: repeat(4, 1fr);
+        }
+
+        .removeFiltersContainer {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          align-items: center;
+        }
+      </style>
+      <script>
+        const activeFilters = {
+          tipo_de_vaga: "",
+          bairro: "",
+          escolaridade: "",
+          name: "",
+        };
+      
+        function filtrar() {
+          document.querySelectorAll("#busca tr[data-cargo]").forEach((tr) => {
+            const cargo = tr.dataset.cargo.toLowerCase();
+            const empresa = tr.dataset.empresa.toLowerCase();
+            const escolaridade = tr.dataset.escolaridade.toLowerCase();
+            const tipo = tr.dataset.tipo.toLowerCase();
+            const bairro = tr.dataset.bairro.toLowerCase();
+      
+            if (
+              escolaridade.indexOf(activeFilters.escolaridade) >= 0 &&
+              tipo.indexOf(activeFilters.tipo_de_vaga) >= 0 &&
+              bairro.indexOf(activeFilters.bairro) >= 0 &&
+              (cargo.indexOf(activeFilters.name) >= 0 || empresa.indexOf(activeFilters.name) >= 0)
+            ) {
+              tr.style.display = "table-row";
+            } else {
+              tr.style.display = "none";
+            }
+          });
+      
+          // Mostrar ou ocultar títulos de cargos
+          document.querySelectorAll("#busca tr[data-cargo-title]").forEach((tr) => {
+            const cargoTitle = tr.dataset.cargoTitle.toLowerCase();
+            const nextSiblings = [];
+            let nextSibling = tr.nextElementSibling;
+      
+            while (nextSibling && !nextSibling.hasAttribute('data-cargo-title')) {
+              nextSiblings.push(nextSibling);
+              nextSibling = nextSibling.nextElementSibling;
+            }
+      
+            const hasVisibleVagas = nextSiblings.some((sibling) => sibling.style.display !== 'none');
+      
+            if (cargoTitle.indexOf(activeFilters.name) >= 0 || hasVisibleVagas) {
+              tr.style.display = "table-row";
+            } else {
+              tr.style.display = "none";
+            }
+          });
+        }
+      
+        function filterName() {
+          $("#buscador").on("keyup", function () {
+            activeFilters.name = $(this).val().toLowerCase();
+            filtrar();
+          });
+        }
+      
+        $(document).ready(filterName);
+      
+        window.onload = function () {
+          const escolaridadeInput = document.querySelector("#escolaridade");
+          const bairrosInput = document.querySelector("#bairro");
+          const tipos_de_vagaInput = document.querySelector("#tipo_de_vaga");
+      
+          function clear() {
+            activeFilters.tipo_de_vaga = "";
+            activeFilters.bairro = "";
+            activeFilters.escolaridade = "";
+            activeFilters.name = "";
+      
+            escolaridadeInput.querySelector("#defaultSelect").selected = true;
+            tipos_de_vagaInput.querySelector("#defaultSelect").selected = true;
+            bairrosInput.querySelector("#defaultSelect").selected = true;
+      
+            filtrar();
+          }
+      
+          document.querySelector("#removeFilters").addEventListener("click", clear);
+      
+          document.querySelector("#filtros").addEventListener("click", () => {
+            const filtros = document.getElementById("opcoes-filtros");
+      
+            if (filtros.classList.contains("filter-hidden")) {
+              filtros.classList.remove("filter-hidden");
+            } else {
+              filtros.classList.add("filter-hidden");
+            }
+          });
+      
+          escolaridadeInput.addEventListener("change", (e) => {
+            activeFilters.escolaridade = e.target.value.toLowerCase();
+            filtrar();
+          });
+      
+          bairrosInput.addEventListener("change", (e) => {
+            activeFilters.bairro = e.target.value.toLowerCase();
+            filtrar();
+          });
+      
+          tipos_de_vagaInput.addEventListener("change", (e) => {
+            activeFilters.tipo_de_vaga = e.target.value.toLowerCase();
+            filtrar();
+          });
+        };
+      </script>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-J1XYYXN5V6"></script>
+    </div>
+  </div>
+</div>
+<script>
+  document.getElementById('s-vagas').classList.add('s-nav-active');
+</script>
+{% endblock %}

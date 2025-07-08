@@ -9,115 +9,127 @@
   <title>
     {% block title %}{{titulo}}{% endblock %}
   </title>
+  
   <!-- GOOGLE FONTS -->
-  <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&family=Montserrat&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
-   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;700&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <!-- BOOTSTRAP 5 -->
   <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" rel="stylesheet">
   <script crossorigin="anonymous" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  
   <!-- FONTAWESOME -->
   <link href="{% static 'fontawesomefree/css/fontawesome.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'fontawesomefree/css/brands.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'fontawesomefree/css/solid.css' %}" rel="stylesheet" type="text/css">
+  
   <!-- CUSTOM CSS -->
   <link rel="stylesheet" href="/static/css/template.css">
 
   {% block css %}{% endblock%}
 </head>
 
-<body id="body" class="container-fluid d-flex flex-column">
-  <div id="preloading" style="background-color: white;">
-    <img class="mx-auto mt-auto img-fluid logo" src="/static/images/logo_branco.png" alt="">
-    <div class="mx-auto mb-auto lds-ellipsis">
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
+<body id="body" class="modern-body">
+  <!-- Modern Loading Screen -->
+  <div id="preloading" class="modern-preloader">
+    <div class="preloader-content">
+      <div class="preloader-logo">
+        <img src="/static/images/logo_branco.png" alt="Logo" class="preloader-img">
+      </div>
+      <div class="preloader-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="preloader-text">Carregando...</p>
     </div>
   </div>
-  <style>
-    #preloading{
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100000;
-    }
-    .div-nav-superior{
-      align-items: start !important;
-    }
-  </style>
-  <header class="row fixed-top">
-    <div class="col" style="border-bottom: 1px solid rgb(255, 255, 255);">
-      <div class="row" id="nav-superior">
-        <div class="col text-light div-nav-superior">
-          <div class="logo-nf nv-sp pt-1">
-            <a href="#" class="ms-2">
-              <img src="{% static 'images/brasao-nf.png' %}" class="img-fluid">
-            </a>
-          </div>
-          <p class="texto-nf mt-2">PREFEITURA DE NOVA FRIBURGO</p>
-          
-          <div class="linkLogin nv-login">
-            {% if not request.user.is_authenticated %}
-            <a href="{% url 'autenticacao:login' %}" class="btn my-auto btn-acesso mt-2" type="submit">
-              <i class="fa-solid fa-user me-2"></i>LOGIN
-            </a>
-            {% else %}
-            <div class="dropdown">
-              <button class="btn btn-acesso my-auto" type="button" id="dropdownMenuPerfil" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                <i class="fa-solid fa-user-check"></i>
-                {{ request.user.first_name }}
-              </button>
-              <ul id="menu-perfil" class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton1">
-                {% if request.user.is_staff %}
-                <li><a class="dropdown-item py-2 text-center" href="{% url 'vagas:painel_administrativo' %}">Painel</a></li>
-                {% endif %}
-                {% if request.user.is_superuser %}
-                <li><a class="dropdown-item py-2 text-center" href="/admin/">Administração</a></li>
-                {% endif %}
-                <!-- <li><a class="dropdown-item py-2 text-center" href="#">Meu perfil</a></li> -->
-                <!-- <li><a class="dropdown-item py-2" href="#">Meu perfil</a></li> -->
-                <li>
-                  <a class="dropdown-item text-center py-2" href="{% url 'autenticacao:logout' %}">
-                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i></i> Logout
-                  </a>
-                </li>
-              </ul>
+
+  <!-- Modern Header -->
+  <header class="modern-header">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <div class="top-bar-left">
+              <div class="government-logo">
+                <img src="{% static 'images/brasao-nf.png' %}" alt="Brasão Nova Friburgo" class="brasao-img">
+                <span class="government-text">PREFEITURA DE NOVA FRIBURGO</span>
+              </div>
             </div>
-            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <div class="top-bar-right">
+              <div class="user-actions">
+                {% if not request.user.is_authenticated %}
+                <a href="{% url 'autenticacao:login' %}" class="btn btn-login">
+                  <i class="fas fa-user"></i>
+                  <span>Entrar</span>
+                </a>
+                {% else %}
+                <div class="dropdown user-dropdown">
+                  <button class="btn btn-user-menu" type="button" id="dropdownMenuPerfil" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ request.user.first_name }}</span>
+                    <i class="fas fa-chevron-down"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end modern-dropdown" aria-labelledby="dropdownMenuPerfil">
+                    {% if request.user.is_staff %}
+                    <li>
+                      <a class="dropdown-item" href="{% url 'vagas:painel_administrativo' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Painel</span>
+                      </a>
+                    </li>
+                    {% endif %}
+                    {% if request.user.is_superuser %}
+                    <li>
+                      <a class="dropdown-item" href="/admin/">
+                        <i class="fas fa-cog"></i>
+                        <span>Administração</span>
+                      </a>
+                    </li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <a class="dropdown-item text-danger" href="{% url 'autenticacao:logout' %}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                {% endif %}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="row" id="nav-inferior">
-        <div class="col d-flex">
-          <!-- <div class="img-logo my-auto">
-            <a href="/">
-              <img src="https://desenvolve.novafriburgo.rj.gov.br/static/images/logo_desenvolvenf_white.png" class="img-fluid">
-            </a>
-          </div> -->
-          <div class="nv-titulo my-auto ms-4 pt-2">
-            <h1>Subsecretaria de Trabalho e Renda (Casa do Trabalhador) </h1>
-          </div>
-          <div class="nv-social ms-auto d-flex">
-            <div class="d-flex my-auto me-3">
-              <!-- <i class="fa-solid fa-magnifying-glass"></i> -->
+    </div>
+
+    <!-- Main Header -->
+    <div class="main-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <div class="brand-section">
+              <div class="brand-content">
+                <h1 class="brand-title">Casa do Trabalhador</h1>
+                <p class="brand-subtitle">Subsecretaria de Trabalho e Renda</p>
+              </div>
             </div>
-            <div class="d-flex my-auto">
-              <div class="d-social d-flex ms-2 me-4">
-                <a href="https://www.instagram.com/cienciaetecnologianf/" class="a-social m-auto">
-                <i class="fa-brands fa-instagram"></i></a>
-                  </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="header-actions">
+              <div class="social-links">
+                <a href="https://www.instagram.com/cienciaetecnologianf/" class="social-link" target="_blank">
+                  <i class="fab fa-instagram"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -126,21 +138,396 @@
   </header>  
   {% block nav %}{% endblock %}
 
-  <div id="mainBlock" class="main-content">
-   {% block main %}{% endblock %}
-  </div>
-  {% block footer %}
+  <!-- Main Content -->
+  <main id="mainBlock" class="main-content">
+    <div class="container-fluid">
+      {% block main %}{% endblock %}
+    </div>
+  </main>
   
-  {% endblock %}
+  {% block footer %}{% endblock %}
   {% include 'footer.html' %}
-  <!-- CUSTOM JS -->
-  <script>
-    window.onload = () => {
-      document.getElementById('body').style.overflow = 'auto'
-      document.getElementById('preloading').style.display = 'none'
-    }
-  </script>
-  
-</body>
 
+  <!-- Modern Styles -->
+  <style>
+    /* Modern Design Variables */
+    :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --secondary-color: #64748b;
+      --accent-color: #f59e0b;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --background-color: #f8fafc;
+      --surface-color: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --spacing-xs: 0.25rem;
+      --spacing-sm: 0.5rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+    }
+
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .modern-body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background-color: var(--background-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Modern Preloader */
+    .modern-preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      transition: opacity 0.5s ease;
+    }
+
+    .preloader-content {
+      text-align: center;
+      color: white;
+    }
+
+    .preloader-logo {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .preloader-img {
+      max-width: 200px;
+      height: auto;
+      filter: brightness(0) invert(1);
+    }
+
+    .preloader-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .spinner-ring {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.3);
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .spinner-ring:nth-child(1) { animation-delay: -0.32s; }
+    .spinner-ring:nth-child(2) { animation-delay: -0.16s; }
+    .spinner-ring:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    .preloader-text {
+      font-size: 1rem;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    /* Modern Header */
+    .modern-header {
+      background-color: var(--surface-color);
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .top-bar {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+      padding: var(--spacing-sm) 0;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .government-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .brasao-img {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1);
+    }
+
+    .government-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.025em;
+    }
+
+    .top-bar-right {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .user-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+    }
+
+    .btn-login {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .btn-login:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .btn-user-menu {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .btn-user-menu:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .modern-dropdown {
+      border: none;
+      box-shadow: var(--shadow-lg);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+
+    .modern-dropdown .dropdown-item {
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-weight: 500;
+    }
+
+    .modern-dropdown .dropdown-item:hover {
+      background-color: var(--background-color);
+      transform: translateX(2px);
+    }
+
+    .modern-dropdown .dropdown-item.text-danger:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger-color);
+    }
+
+    .main-header {
+      padding: var(--spacing-lg) 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand-content h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .brand-content p {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .social-links {
+      display: flex;
+      gap: var(--spacing-md);
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      font-size: 1.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .social-link:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      color: white;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding-top: var(--spacing-lg);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .brand-content h1 {
+        font-size: 2rem;
+      }
+      
+      .brand-content p {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-header {
+        padding: var(--spacing-md) 0;
+      }
+      
+      .brand-content h1 {
+        font-size: 1.75rem;
+      }
+      
+      .brand-content p {
+        font-size: 0.875rem;
+      }
+      
+      .header-actions {
+        justify-content: flex-start;
+        margin-top: var(--spacing-md);
+      }
+      
+      .government-text {
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .brand-content h1 {
+        font-size: 1.5rem;
+      }
+      
+      .social-link {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+
+  <!-- Modern JavaScript -->
+  <script>
+    // Modern loading screen
+    window.addEventListener('load', function() {
+      const preloader = document.getElementById('preloading');
+      const body = document.getElementById('body');
+      
+      if (preloader) {
+        setTimeout(() => {
+          preloader.style.opacity = '0';
+          setTimeout(() => {
+            preloader.style.display = 'none';
+            body.style.overflow = 'auto';
+          }, 500);
+        }, 1000);
+      }
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add scroll effect to header
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('.modern-header');
+      if (window.scrollY > 100) {
+        header.style.boxShadow = 'var(--shadow-md)';
+      } else {
+        header.style.boxShadow = 'var(--shadow-sm)';
+      }
+    });
+  </script>
+</body>
 </html>

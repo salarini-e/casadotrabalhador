@@ -1,48 +1,282 @@
-<footer class="row f-principal mt-auto" style="border-top: 1px solid rgb(184, 184, 184);">        
-    <div class="col">
-      <div class="row  pt-5 pb-4 mobile-flex-column footer-sup text-light">
-        <div class="col d-flex justify-content-center">
-          <img class="img-fluid logo m-auto" style="height: 400px;" src="/static/images/logo_sem_fundo.png" alt="">
-          <div class="d-flex flex-column">
-            <p class="mx-auto mt-auto text-f">
-              Av. Alberto Braune, 223 - Centro, Nova Friburgo - RJ, 28613-001<br>
-              09:00 às 17:00 de Seg. à Sex. <br>
-              (22) 2525-9205</p>
-            <p class="mx-auto mt-4 mb-auto text-light">              
-              <a class="text-light" target="_blank" href="https://www.instagram.com/cienciaetecnologianf/">
-                <i class="fa-brands fa-instagram me-4 mb-2"></i>
-              </a>
-            </p>
+<footer class="modern-footer">
+  <div class="container-fluid">
+    <div class="footer-content">
+      <div class="row">
+        <div class="col-lg-4 col-md-6 mb-4">
+          <div class="footer-brand">
+            <div class="footer-logo">
+              <img src="/static/images/logo_sem_fundo.png" alt="Logo" class="footer-logo-img">
+            </div>
+            <div class="footer-info">
+              <h5 class="footer-title">Casa do Trabalhador</h5>
+              <p class="footer-subtitle">Subsecretaria de Trabalho e Renda</p>
+              
+              <div class="contact-info">
+                <div class="contact-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>Av. Alberto Braune, 223 - Centro<br>Nova Friburgo - RJ, 28613-001</span>
+                </div>
+                <div class="contact-item">
+                  <i class="fas fa-clock"></i>
+                  <span>09:00 às 17:00 de Seg. à Sex.</span>
+                </div>
+                <div class="contact-item">
+                  <i class="fas fa-phone"></i>
+                  <span>(22) 2525-9205</span>
+                </div>
+              </div>
+              
+              <div class="social-links-footer">
+                <a href="https://www.instagram.com/cienciaetecnologianf/" target="_blank" class="social-link-footer">
+                  <i class="fab fa-instagram"></i>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="col d-flex justify-content-center">
-          <div class="me-5 my-auto">
-            <p class="text-light pb-3 text-center">Plataformas</p>
-            <ul>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+          <div class="footer-section">
+            <h5 class="footer-section-title">Plataformas</h5>
+            <ul class="footer-links">
               <li><a href="#">Capacitação Profissional</a></li>
               <li><a href="#">Cidade Inteligente</a></li>
               <li><a href="#">Eventos</a></li>
               <li><a href="#">Finanças</a></li>
             </ul>
           </div>
-          <div class="my-auto">
-            <p class="text-light pb-3 text-center">Sistemas</p>
-            <ul>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+          <div class="footer-section">
+            <h5 class="footer-section-title">Sistemas</h5>
+            <ul class="footer-links">
               <li><a href="#">Bem Estar Animal</a></li>
               <li><a href="https://casadotrabalhador.pmnf.rj.gov.br/">Casa do Trabalhador</a></li>
               <li><a href="#">Iluminação Pública</a></li>
-              <li><a href="https://senhas.novafriburgo.rj.gov.br/login/?next=/">Senhas de Turismo</a></li>              
+              <li><a href="https://senhas.novafriburgo.rj.gov.br/login/?next=/">Senhas de Turismo</a></li>
               <li><a href="https://culturanf.novafriburgo.rj.gov.br/">Mapeamento Cultural</a></li>
             </ul>
           </div>
         </div>
       </div>
+    </div>
+    
+    <div class="footer-bottom">
       <div class="row">
-        <div class="col text-center py-2 bg-f">
-          <a href="#">
-            &copy SECRETARIA DE CIÊNCIA, TECNOLOGIA, INOVAÇÃO E EDUCAÇÃO PROFISSIONALIZANTE E SUPERIOR - 2023.
-          </a>
+        <div class="col text-center">
+          <p class="footer-copyright">
+            &copy; 2025 SECRETARIA DE CIÊNCIA, TECNOLOGIA, INOVAÇÃO E EDUCAÇÃO PROFISSIONALIZANTE E SUPERIOR
+          </p>
         </div>
       </div>
     </div>
-</footer> 
+  </div>
+</footer>
+
+<style>
+  /* Modern Footer Styles */
+  .modern-footer {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    margin-top: auto;
+    padding: var(--spacing-2xl) 0 0 0;
+  }
+
+  .footer-content {
+    padding-bottom: var(--spacing-xl);
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+  }
+
+  .footer-logo {
+    flex-shrink: 0;
+  }
+
+  .footer-logo-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+
+  .footer-info {
+    flex: 1;
+  }
+
+  .footer-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-xs);
+    color: white;
+  }
+
+  .footer-subtitle {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: var(--spacing-lg);
+    font-weight: 500;
+  }
+
+  .contact-info {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .contact-item i {
+    color: rgba(255, 255, 255, 0.7);
+    width: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .social-links-footer {
+    display: flex;
+    gap: var(--spacing-md);
+  }
+
+  .social-link-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .social-link-footer:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .footer-section {
+    height: 100%;
+  }
+
+  .footer-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-lg);
+    color: white;
+    position: relative;
+  }
+
+  .footer-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .footer-links li {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .footer-links a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    display: inline-block;
+  }
+
+  .footer-links a:hover {
+    color: white;
+    transform: translateX(4px);
+  }
+
+  .footer-bottom {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: var(--spacing-lg) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-copyright {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 992px) {
+    .footer-brand {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .footer-logo {
+      align-self: center;
+    }
+
+    .footer-section-title::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modern-footer {
+      padding: var(--spacing-xl) 0 0 0;
+    }
+
+    .footer-content {
+      padding-bottom: var(--spacing-lg);
+    }
+
+    .footer-brand {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .footer-logo-img {
+      width: 60px;
+      height: 60px;
+    }
+
+    .footer-title {
+      font-size: 1.25rem;
+    }
+
+    .footer-section {
+      text-align: center;
+    }
+
+    .footer-section-title {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .contact-item {
+      justify-content: center;
+    }
+
+    .social-links-footer {
+      justify-content: center;
+    }
+  }
+</style> 
