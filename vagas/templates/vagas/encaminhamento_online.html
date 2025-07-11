@@ -1,4 +1,4 @@
-{% extends 'template.html' %}
+{% extends 'template_new.html' %}
 {% load static %}
 {% block title %}Bem vindo{% endblock %}
 {% block css %}
@@ -7,7 +7,17 @@
 {% block main %}
 <div class="row pt-5 mt-5 pb-5">
     <div class="col-8 pt-5 mt-5  mx-auto">
-        <div style="background-color: white; padding: 30px 40px; border-radius: 25px;">
+        <div class="row">
+            <div class="col d-flex">
+                <a href="/" class="btn btn-secondary mb-4">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar para as vagas
+                </a>
+                <a class="btn btn-primary ms-auto mb-auto" onclick="printDiv()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </a>
+            </div>
+        </div>
+        <div id="printDiv" style="background-color: white; padding: 30px 40px; border-radius: 25px;">
             <h1 class="titulo text-center"><span class="mobile_hidden">ENCAMINHAMENTO</h1>
                 <div class="w-100 text-start text-justify">
                     <p style="margin-top: 50px;margin-bottom: 15px;">Prezado(a),</p>
@@ -26,19 +36,7 @@
                     <p style="margin: 10px 30px;">                
                     O candidato deverá  ligar para: <br>
                     <h1 class="titulo text-dark text-center" id="telefone" style="font-size: 14pt;">{{vaga.empresa.telefone}}</h1>
-                    <script>
-                         window.onload = function(){   
-                            let tel = document.getElementById('telefone');
-                            let wpp = document.getElementById('whatsapp');
-                            if(tel){
-                                document.getElementById('telefone').innerText=document.getElementById('telefone').innerText.replace(/^(\d{1})(\d{1})(\d{4})(\d{4})/, "$1$2 $3-$4")
-                            }
-                            if(wpp){
-                            document.getElementById('whatsapp').innerText=document.getElementById('whatsapp').innerText.replace(/^(\d{1})(\d{1})(\d{4})(\d{4})/, "$1$2 $3-$4")
-                            }
-            
-                        };
-                    </script>
+                    </p>
                     {% endif %}
                     {% if vaga.empresa.contato_whatsapp %}
                     <hr>
@@ -83,16 +81,159 @@
 </div>
 <style>
     .titulo{
-    color: #507B9B;
-    background-color: rgba(128, 128, 128, 0.13);
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-size: 4rem;
-}
-p{
-    margin-left: 0px !important;
-    text-indent: 0% !important;
-    text-align: justify !important;
-}
+        color: #507B9B;
+        background-color: rgba(128, 128, 128, 0.13);
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 4rem;
+    }
+    p{
+        margin-left: 0px !important;
+        text-indent: 0% !important;
+        text-align: justify !important;
+    }
+
+    /* Estilos para impressão */
+    @media print {
+        /* Oculta tudo por padrão */
+        * {
+            visibility: hidden;
+        }
+        
+        /* Mostra apenas a div printDiv e seus filhos */
+        #printDiv, #printDiv * {
+            visibility: visible;
+        }
+        
+        /* Posiciona a div printDiv no topo da página */
+        #printDiv {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            background-color: white !important;
+            background-image: none !important;
+            background: none !important;
+            padding: 20px !important;
+            border-radius: 0 !important;
+        }
+        
+        /* Remove margens e espaçamentos desnecessários */
+        body {
+            margin: 0;
+            padding: 0;
+            background: none !important;
+            background-color: white !important;
+            background-image: none !important;
+        }
+        
+        /* Remove todos os backgrounds */
+        *, *::before, *::after {
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Ajusta o título para impressão - sem background */
+        .titulo {
+            font-size: 2rem !important;
+            color: #507B9B !important;
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+            padding: 10px 0 !important;
+        }
+        
+        /* Garante que os textos fiquem bem formatados */
+        p {
+            font-size: 12pt !important;
+            line-height: 1.5 !important;
+            background: none !important;
+            background-color: transparent !important;
+        }
+        
+        /* Ajusta links para impressão */
+        a {
+            color: #000 !important;
+            text-decoration: none !important;
+            background: none !important;
+            background-color: transparent !important;
+        }
+        
+        /* Remove backgrounds de elementos específicos */
+        h1, h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+        
+        /* Remove backgrounds de containers */
+        div, section, article, aside, main, nav, header, footer {
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+        
+        /* Remove backgrounds de elementos de texto */
+        span, strong, b, em, i {
+            background: none !important;
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+        
+        p {
+            page-break-inside: avoid;
+            background: none !important;
+            background-color: transparent !important;
+        }
+        
+        /* Garante que a página seja branca */
+        @page {
+            margin: 1cm;
+            background: white;
+        }
+    }
 </style>
+
+<script>
+    function printDiv() {
+        // Salva o conteúdo original da página
+        const originalContent = document.body.innerHTML;
+        
+        // Obtém o conteúdo da div que queremos imprimir
+        const printContent = document.getElementById('printDiv').innerHTML;
+        
+        // Substitui o conteúdo da página pelo conteúdo da div
+        document.body.innerHTML = printContent;
+        
+        // Imprime
+        window.print();
+        
+        // Restaura o conteúdo original
+        document.body.innerHTML = originalContent;
+        
+        // Recarrega os scripts necessários (máscaras de telefone)
+        if (typeof formatPhoneNumbers === 'function') {
+            formatPhoneNumbers();
+        }
+    }
+
+    function formatPhoneNumbers() {
+        let tel = document.getElementById('telefone');
+        let wpp = document.getElementById('whatsapp');
+        
+        if(tel && tel.innerText){
+            tel.innerText = tel.innerText.replace(/^(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+        }
+        if(wpp && wpp.innerText){
+            wpp.innerText = wpp.innerText.replace(/^(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+        }
+    }
+
+    window.onload = function(){   
+        formatPhoneNumbers();
+    };
+</script>
 {% endblock %}

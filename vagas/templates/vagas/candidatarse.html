@@ -1,115 +1,718 @@
-{% extends 'template.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% block title %}Candidatar-se à Vaga{% endblock %}
 {% block css %}
 {{block.super}}
 {% endblock%}
 {% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %} 
-<div class="row">
-    <div class="col-8 mx-auto">
+
+<div class="candidate-form-container" style="margin-top: 120px;">
+    <div class="container-fluid px-4">
+        <!-- Success Message -->
         {% if success.0 %}
-<div class="row pt-5 px-4 mb-3">
-    <div class="col d-flex bg-success py-2">
-        <p class="m-auto text-white">{{success.1}}</p>
-    </div>
-</div>
-{% endif %}                
-<div class="row pt-5 mt-5 " >
-    <div class="col d-flex pt-5">
+        <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <div>{{success.1}}</div>
+        </div>
+        {% endif %}
         
-      <h2 class="text-start text-uppercase mb-4">CANDIDATAR-SE A VAGA</h2>
-      {% if request.user.is_staff %}
-      <span class="ms-auto">
-        <a class="btn btn-btfl bg-primary" href="{% url 'vagas:visualizar_vaga' id %}">VOLTAR</a>
-      </span>
-      {% endif %}
-    </div>
-  </div>
+        <!-- Header Section -->
+        <div class="candidate-form-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <h1 class="candidate-form-title">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Candidatar-se à Vaga
+                </h1>
+                
+                <div class="candidate-form-actions">
+                    {% if request.user.is_staff %}
+                    <a class="btn btn-primary" href="{% url 'vagas:visualizar_vaga' id %}">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar
+                    </a>
+                    {% else %}
+                    <a class="btn btn-primary" href="{% url 'vagas:vagas' %}">
+                        <i class="fas fa-arrow-left me-1"></i>Ver vagas
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-  {% if form.errors %}
-  <h5 class="errorlist my-3">Corrija os erros apresentados abaixo</h5>
-  {% endif %}
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <div>
+                <strong>Atenção!</strong> Corrija os erros apresentados abaixo para continuar.
+            </div>
+        </div>
+        {% endif %}
 
-<form id="form_cadastro_vaga" method="POST" class="form w-100 text-start"  style="background-color: white; padding: 25px 10px; border-radius: 25px;">
-
-    <div class="row">
-        <div class="col px-5">
-           
-            {% csrf_token %}            
-            {{form}}
-            <button type="submit" class="btn btn-primary text-white w-100 mt-3 text-uppercase ">
-            Gerar Encaminhamento
-            </button>
-
-        </div>      
-    </div>    
-    <style>
-        #form_cadastro_vaga ul, li{
-            list-style: none;
-        }
-        #form_cadastro_vaga button:hover{
-            background-color: #329787 !important;
-            border-color: #329787;
-            color: white !important;
-        }
-        #form_cadastro button, .btn-primary{
-            background-color: #329787 !important;
-            border-color: #329787;
-        }
-        #id_ativo{
-            opacity: 0;
-        }
-        .form-check{
-            display: flex;            
-        }
-        .form-switch span{
-            margin-left: 10px;
-            padding-top: 4px;
-        }
-
-        .form-switch .form-check-input{
-            margin-left: 0;
-        }
-        .form-check-input:checked[type=checkbox]{
-            background-color:#329787;
-        }
-        ul, li{
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-</form>
+        <!-- Candidate Form Card -->
+        <div class="candidate-form-card">
+            <form id="form_candidato" method="POST" class="candidate-form">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-user-edit me-2"></i>
+                            Seus Dados Pessoais
+                        </h3>
+                        <p class="form-section-subtitle">
+                            Preencha todos os campos obrigatórios para se candidatar à vaga
+                        </p>
+                    </div>
+                    
+                    <div class="form-fields">
+                        {% for field in form %}
+                            {% if field.name not in "vaga,candidato_online" %}
+                            <div class="form-field-group">
+                                <label class="form-label" for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                    <span class="required-asterisk">*</span>
+                                    {% endif %}
+                                </label>
+                                
+                                {% if field.name == 'nome' %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       onkeydown="mascara(this, inome)"
+                                       placeholder="Digite seu nome completo"
+                                       required>
+                                       
+                                {% elif field.name == 'cpf' %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       onkeydown="mascara(this, icpf)"
+                                       placeholder="000.000.000-00"
+                                       maxlength="14"
+                                       required>
+                                       
+                                {% elif field.name == 'data_nascimento' %}
+                                <input type="date" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       required>
+                                       
+                                {% elif field.name == 'sexo' %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}"
+                                        class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                        required>
+                                    <option value="">Selecione seu sexo</option>
+                                    {% for choice in field.field.choices %}
+                                    <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                
+                                {% elif field.name == 'email' %}
+                                <input type="email" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="seu.email@exemplo.com"
+                                       required>
+                                       
+                                {% elif field.name == 'celular' %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       onkeydown="mascara(this, icelular)"
+                                       placeholder="(00) 00000-0000"
+                                       maxlength="15"
+                                       required>
+                                       
+                                {% elif field.name == 'bairro' %}
+                                <input type="text" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}"
+                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                       value="{{ field.value|default:'' }}"
+                                       placeholder="Digite o nome do seu bairro"
+                                       required>
+                                       
+                                {% elif field.name == 'escolaridade' %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}"
+                                        class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                        required>
+                                    <option value="">Selecione sua escolaridade</option>
+                                    {% for choice in field.field.choices %}
+                                    <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>{{ choice.1 }}</option>
+                                    {% endfor %}
+                                </select>
+                                
+                                {% else %}
+                                {{ field }}
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in field.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Gerar Encaminhamento
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Info Card -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <h4 class="info-card-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações Importantes
+                </h4>
+            </div>
+            <div class="info-card-content">
+                <div class="info-item">
+                    <i class="fas fa-check-circle text-success"></i>
+                    <span>Todos os campos marcados com asterisco (*) são obrigatórios</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-shield-alt text-primary"></i>
+                    <span>Seus dados pessoais estão protegidos e serão utilizados apenas para fins de encaminhamento</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-file-alt text-info"></i>
+                    <span>Após o envio, você receberá um documento de encaminhamento para apresentar no local indicado no mesmo</span>
+            </div>
+        </div>
     </div>
 </div>
-<script>
-        function mascara(o,f){
-            v_obj=o
-            v_fun=f
-            setTimeout("execmascara()",1)
-        }
-        function execmascara(){
-            v_obj.value=v_fun(v_obj.value)
-        }
-        function icpf(v){
-            v=v.replace(/\D/g,"")                    //Remove tudo o que nao e digito
-            v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
-            v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
-                                                                //de novo (para o segundo bloco de numeros)
-            v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2") //Coloca um hifen entre o terceiro e o quarto digitos
-            return v
-        }
-        function inome(v){
-            v=v.replace(/[0-9]/g,"")
-            return v
-        }
-        function icelular(v){
-        v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
-        v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
-        v=v.replace(/(\d{5})(\d)/,"$1-$2")    //Coloca hifen entre o quarto e o quinto digitos
-        return v
-        }
-</script>
 
+<style>
+    /* CSS Variables */
+    :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1e40af;
+        --primary-light: #3b82f6;
+        --secondary-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --success-color: #22c55e;
+        --info-color: #06b6d4;
+        --dark-color: #1f2937;
+        --light-color: #f8fafc;
+        --white: #ffffff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        
+        --border-color: #e5e7eb;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --text-muted: #9ca3af;
+        --surface-color: #ffffff;
+        --background-color: #f9fafb;
+        
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        --radius-sm: 6px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+        
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+        --spacing-2xl: 3rem;
+    }
+
+    /* Body and Layout */
+    body {
+        background-color: var(--background-color);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+
+    .candidate-form-container {
+        min-height: 100vh;
+        padding: var(--spacing-xl) 0;
+        background: linear-gradient(135deg, var(--background-color) 0%, var(--gray-50) 100%);
+    }
+
+    /* Header */
+    .candidate-form-header {
+        /* background: linear-gradient(135deg, var(--success-color), #16a34a); */
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: white;
+        padding: var(--spacing-xl) var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        margin-bottom: var(--spacing-xl);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .candidate-form-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .candidate-form-actions {
+        display: flex;
+        gap: var(--spacing-sm);
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .candidate-form-actions .btn {
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        padding: var(--spacing-sm) var(--spacing-md);
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .candidate-form-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Form Card */
+    .candidate-form-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        margin-bottom: var(--spacing-xl);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .candidate-form {
+        padding: var(--spacing-2xl);
+    }
+
+    /* Form Section */
+    .form-section {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .form-section-header {
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .form-section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 var(--spacing-sm) 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-section-subtitle {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Form Fields */
+    .form-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .form-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-xs);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .required-asterisk {
+        color: var(--danger-color);
+        margin-left: var(--spacing-xs);
+    }
+
+    .form-control {
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: var(--surface-color);
+        width: 100%;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+
+    .form-control.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .invalid-feedback {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: var(--spacing-xs);
+        display: block;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-xl);
+        padding-top: var(--spacing-xl);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .form-actions .btn {
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        padding: var(--spacing-md) var(--spacing-2xl);
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        min-width: 200px;
+        justify-content: center;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .form-actions .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--success-color), #16a34a);
+        border: none;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white;
+    }
+
+    /* Info Card */
+    .info-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .info-card-header {
+        /* background: linear-gradient(135deg, var(--info-color), #0891b2); */
+        background: linear-gradient(135deg, var(--secondary-color), #059669);
+        color: white;
+        padding: var(--spacing-lg);
+    }
+
+    .info-card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .info-card-content {
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        transition: background-color 0.2s ease;
+    }
+
+    .info-item:hover {
+        background-color: var(--gray-50);
+    }
+
+    .info-item i {
+        width: 20px;
+        text-align: center;
+        font-size: 1.125rem;
+        flex-shrink: 0;
+    }
+
+    .info-item span {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    /* Alert */
+    .alert {
+        border-radius: var(--radius-md);
+        border: none;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-weight: 500;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, var(--success-color), #16a34a);
+        color: white;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, var(--danger-color), #dc2626);
+        color: white;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .candidate-form-container {
+            padding: var(--spacing-md) 0;
+        }
+
+        .candidate-form-header {
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+
+        .candidate-form-title {
+            font-size: 1.5rem;
+        }
+
+        .candidate-form-actions {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .candidate-form-actions .btn {
+            flex: 1;
+            min-width: auto;
+        }
+
+        .candidate-form {
+            padding: var(--spacing-lg);
+        }
+
+        .form-fields {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
+
+        .info-card-content {
+            gap: var(--spacing-sm);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .candidate-form-title {
+            font-size: 1.25rem;
+        }
+
+        .candidate-form-actions {
+            flex-direction: column;
+        }
+
+        .info-item {
+            flex-direction: column;
+            text-align: center;
+            gap: var(--spacing-sm);
+        }
+    }
+
+    /* Hidden fields */
+    input[type="hidden"] {
+        display: none;
+    }
+</style>
+
+<script>
+    // Mask functions
+    function mascara(o, f) {
+        v_obj = o;
+        v_fun = f;
+        setTimeout("execmascara()", 1);
+    }
+
+    function execmascara() {
+        v_obj.value = v_fun(v_obj.value);
+    }
+
+    function icpf(v) {
+        v = v.replace(/\D/g, "");                    // Remove tudo o que não é dígito
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");       // Coloca um ponto entre o terceiro e o quarto dígitos
+        v = v.replace(/(\d{3})(\d)/, "$1.$2");       // Coloca um ponto entre o terceiro e o quarto dígitos
+                                                     // de novo (para o segundo bloco de números)
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Coloca um hífen entre o terceiro e o quarto dígitos
+        return v;
+    }
+
+    function inome(v) {
+        v = v.replace(/[0-9]/g, "");
+        return v;
+    }
+
+    function icelular(v) {
+        v = v.replace(/\D/g, "");                 // Remove tudo o que não é dígito
+        v = v.replace(/^(\d\d)(\d)/g, "($1) $2"); // Coloca parênteses em volta dos dois primeiros dígitos
+        v = v.replace(/(\d{5})(\d)/, "$1-$2");    // Coloca hífen entre o quinto e o sexto dígitos
+        return v;
+    }
+
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('form_candidato');
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+                }
+            });
+        }
+
+        // Add smooth scrolling to form errors
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        if (invalidFields.length > 0) {
+            invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            invalidFields[0].focus();
+        }
+
+        // Add input validation feedback
+        const inputs = form.querySelectorAll('input[required], select[required]');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+
+        // CPF validation
+        const cpfInput = document.getElementById('id_cpf');
+        if (cpfInput) {
+            cpfInput.addEventListener('blur', function() {
+                const cpf = this.value.replace(/\D/g, '');
+                if (cpf.length === 11) {
+                    if (isValidCPF(cpf)) {
+                        this.classList.remove('is-invalid');
+                    } else {
+                        this.classList.add('is-invalid');
+                    }
+                }
+            });
+        }
+
+        // Email validation
+        const emailInput = document.getElementById('id_email');
+        if (emailInput) {
+            emailInput.addEventListener('blur', function() {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                } else {
+                    this.classList.add('is-invalid');
+                }
+            });
+        }
+    });
+
+    // CPF validation algorithm
+    function isValidCPF(cpf) {
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+        
+        let sum = 0;
+        for (let i = 0; i < 9; i++) {
+            sum += parseInt(cpf.charAt(i)) * (10 - i);
+        }
+        let remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11) remainder = 0;
+        if (remainder !== parseInt(cpf.charAt(9))) return false;
+        
+        sum = 0;
+        for (let i = 0; i < 10; i++) {
+            sum += parseInt(cpf.charAt(i)) * (11 - i);
+        }
+        remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11) remainder = 0;
+        if (remainder !== parseInt(cpf.charAt(10))) return false;
+        
+        return true;
+    }
+</script>
 
 {% endblock %}

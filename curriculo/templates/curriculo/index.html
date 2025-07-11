@@ -1,5 +1,5 @@
-{% extends 'template.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% block title %}Meu Currículo{% endblock %}
 {% block css %}
 {{block.super}}
 {% endblock%}
@@ -7,101 +7,255 @@
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<div class="row pt-5 mt-5">
-    <div class="col mx-auto pt-5 mt-5">
-        {% if success.0 %}
-        <div class="row px-4 mb-3">
-            <div class="col d-flex bg-success py-2">
-                <p class="m-auto text-white">{{success.1}}</p>
+
+<div class="container px-4" style="margin-top: 180px;">
+    <div class="row">
+        <div class="col-12">
+            <!-- Success Message -->
+            {% if success.0 %}
+            <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <div>{{success.1}}</div>
             </div>
-        </div>
-        {% endif %}                  
-        <div class="row mb-5">    
-            <div class="col d-flex w-100 text-center flex-column py-5 my-5">
-                <div class="row">
-                    <div class="col d-flex">
-                        <h2 class="text-uppercase">MEU CURRÍCULO</h2>
-                        <a href="/" class="ms-auto my-auto">Voltar</a>
+            {% endif %}
+
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Meu Currículo
+                    </h1>
+                    <p class="text-muted mb-0">Gerencie suas informações profissionais</p>
+                </div>
+                <div class="div-vaga-container-links d-flex">
+                    {% if request.user.is_authenticated %}
+                        <a class="btn btn-primary ms-auto my-auto" style="width: auto !important;"
+                          href="{% url 'vagas:vagas' %}">
+                          <i class="fas fa-briefcase me-1"></i>
+                          Vagas
+                        </a>
+                        <a class="btn btn-primary ms-1 me-1 my-auto" href="{% url 'vagas:meus_encaminhamentos' %}">
+                          <i class="fas fa-user-check me-1"></i>
+                          Encaminhamentos
+                        </a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                        <span>
+                            <a class="btn btn-primary me-2" href="{% url 'vagas:imprimir' %}"><i class="fas fa-print"></i></a>
+                            {% if request.user.is_superuser %}
+                            <span class="ms-0">
+                                <a class="ms-0 btn btn-success text-light me-2" href="{% url 'vagas:exportar_vagas' %}">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </a>
+                            </span>
+                            {% endif %}
+                        </span>
+                        <a class="btn btn-primary" style="width: auto !important;" href="{% url 'vagas:cadastrar' %}">
+                            <i class="fas fa-plus me-1"></i>
+                            CADASTRAR
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Curriculum Management Cards -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="curriculum-management">
+                        <div class="row g-4">
+                            <div class="col-lg-6">
+                                <div class="card curriculum-card h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="curriculum-icon mb-3">
+                                            <i class="fas fa-user-edit fa-2x text-primary"></i>
+                                        </div>
+                                        <h5 class="card-title">Dados Pessoais</h5>
+                                        <p class="card-text text-muted flex-grow-1">
+                                            Edite suas informações pessoais, contatos e dados básicos do seu perfil profissional.
+                                        </p>
+                                        <div class="mt-auto">
+                                            <a class="btn btn-primary btn-block" href="{% url 'cv:editar_dados' %}">
+                                                <i class="fas fa-pen-to-square me-2"></i>
+                                                Editar Dados
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="card curriculum-card h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="curriculum-icon mb-3">
+                                            <i class="fas fa-graduation-cap fa-2x text-info"></i>
+                                        </div>
+                                        <h5 class="card-title">Educação</h5>
+                                        <p class="card-text text-muted flex-grow-1">
+                                            Adicione ou edite sua formação acadêmica, cursos e qualificações educacionais.
+                                        </p>
+                                        <div class="mt-auto">
+                                            <a class="btn btn-info btn-block" href="{% url 'cv:educacao' %}">
+                                                <i class="fas fa-plus-circle me-2"></i>
+                                                Gerenciar Educação
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="card curriculum-card h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="curriculum-icon mb-3">
+                                            <i class="fas fa-briefcase fa-2x text-success"></i>
+                                        </div>
+                                        <h5 class="card-title">Experiência Profissional</h5>
+                                        <p class="card-text text-muted flex-grow-1">
+                                            Registre suas experiências profissionais, cargos ocupados e responsabilidades.
+                                        </p>
+                                        <div class="mt-auto">
+                                            <a class="btn btn-success btn-block" href="{% url 'cv:experiencia' %}">
+                                                <i class="fas fa-plus-circle me-2"></i>
+                                                Gerenciar Experiência
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6">
+                                <div class="card curriculum-card h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="curriculum-icon mb-3">
+                                            <i class="fas fa-file-pdf fa-2x text-warning"></i>
+                                        </div>
+                                        <h5 class="card-title">Visualizar Currículo</h5>
+                                        <p class="card-text text-muted flex-grow-1">
+                                            Visualize como seu currículo aparecerá quando impresso ou enviado para empresas.
+                                        </p>
+                                        <div class="mt-auto">
+                                            <a class="btn btn-warning btn-block" href="{% url 'cv:curriculo' %}" target="_blank">
+                                                <i class="fas fa-eye me-2"></i>
+                                                Ver Currículo
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex mx-auto mt-3">
-                    <a class="btn btn-btfl bg-primary" href="{% url 'cv:editar_dados' %}"><i class="fa-solid fa-pen-to-square me-2"></i>Dados Pessoais</a>
-                    <a class="btn btn-btfl bg-primary ms-2" href="{% url 'cv:educacao' %}"><i class="fa-solid fa-plus-minus me-2"></i>Educação</a>
-                    <a class="btn btn-btfl bg-primary ms-2" href="{% url 'cv:experiencia' %}"><i class="fa-solid fa-plus-minus me-2"></i>Experiência</a>                
-                    <a class="btn btn-btfl bg-primary ms-2" href="{% url 'cv:curriculo' %}" target="_blank"><i class="fa-solid fa-eye me-2"></i>Currículo</a>
-                </div>
-                      
             </div>
         </div>
     </div>
 </div>
-       
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script>
-    function searchVaga(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getVaga(e.value)
-        }        
-    }    
-    function searchEmpresa(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getEmpresa(e.value)
-        }        
-    }    
-    function getEmpresa(value){
-        var url = '/get_empresa/';  
-        $.ajax({ 
-            url: url,
-            data: {
-                'empresa': value,
-            },
-            success: function(data) {                               
-                $("#search_empresa_result").html(data);
-            }
-        });                
-    };
-    function getVaga(value){
-        var url = '/get_vaga/';         
-        $.ajax({ 
-            url: url,
-            data: {
-                'vaga': value,
-            },
-            success: function(data) {                               
-                $("#search_vaga_result").html(data);
-            }
-        });                
-    };
-    function selectThisVaga(e){
-        document.getElementById('id_vaga').value=e.value
-        document.getElementById('search_vaga_result').innerHTML=''
-    }
-    function selectThisEmpresa(e){
-        document.getElementById('id_empresa').value=e.value
-        document.getElementById('search_empresa_result').innerHTML=''
-    }
-</script>
-{% if visualizar %}
 <style>
-#form_cadastro_vaga{
-    background-color: white;
-    border-radius: 20px;
-}
-label{
-    font-weight: 600;
-}
-.form-control{
-    margin-bottom: 10px !important;
-    margin-top: 5px !important;
-}
-.bg-light{
-    border-radius: 30px !important;
-    background-color: white !important;
-    border-color: rgba(116, 116, 116, 0.112) !important;
-}
+    .curriculum-management {
+        margin-top: 2rem;
+    }
+    
+    .curriculum-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .curriculum-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .curriculum-card .card-body {
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .curriculum-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 80px;
+        height: 80px;
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+    }
+    
+    .curriculum-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 1rem;
+    }
+    
+    .curriculum-card .card-text {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-block {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-block:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    .div-vaga-container-links {
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .div-vaga-container-links .btn {
+        white-space: nowrap;
+    }
+    
+    .alert-success {
+        background-color: #d1e7dd;
+        border-color: #badbcc;
+        color: #0f5132;
+    }
+    
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 15px;
+        }
+        
+        .curriculum-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .curriculum-icon {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .curriculum-icon i {
+            font-size: 1.5rem;
+        }
+        
+        .h3 {
+            font-size: 1.5rem;
+        }
+        
+        .div-vaga-container-links {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .div-vaga-container-links .btn {
+            margin: 0.25rem 0;
+        }
+    }
 </style>
-{% endif %}
 {% endblock %}  

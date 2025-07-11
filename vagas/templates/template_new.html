@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Prefeitura de Nova Friburgo - Portal oficial dos serviços municipais">
+  <meta name="keywords" content="Nova Friburgo, Prefeitura, Serviços, Empreendedor, MEI, Empresa">
+  <meta name="author" content="Prefeitura Municipal de Nova Friburgo">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+  
+  <title>{% block title %}{{titulo}} - Prefeitura de Nova Friburgo{% endblock %}</title>
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  
+  <!-- Google Fonts - Optimized -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+  
+  <!-- AOS Animation Library -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  
+  <!-- Custom Template CSS -->
+  <style>
+    :root {
+      --primary-color: #0066cc;
+      --primary-dark: #004c99;
+      --primary-light: #3385d6;
+      --secondary-color: #28a745;
+      --accent-color: #ffc107;
+      --dark-color: #2c3e50;
+      --light-color: #f8f9fa;
+      --white: #ffffff;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      
+      --font-primary: 'Inter', sans-serif;
+      --font-secondary: 'Poppins', sans-serif;
+      
+      --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+      --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+      --shadow-xl: 0 12px 24px rgba(0,0,0,0.25);
+      
+      --border-radius-sm: 0.375rem;
+      --border-radius-md: 0.5rem;
+      --border-radius-lg: 0.75rem;
+      --border-radius-xl: 1rem;
+      
+      --transition-fast: 0.2s ease;
+      --transition-normal: 0.3s ease;
+      --transition-slow: 0.5s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-primary);
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--gray-800);
+      background-color: var(--gray-100);
+      overflow-x: hidden;
+    }
+    
+    /* Modern Header */
+    .modern-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all var(--transition-normal);
+    }
+    
+    .header-top {
+      background: rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 0;
+    }
+    
+    .header-main {
+      padding: 1rem 0;
+    }
+    
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .logo-nf {
+      height: 40px;
+    }
+    
+    .brand-text {
+      color: white;
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+    
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    
+    .nav-link-modern {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius-md);
+      transition: all var(--transition-normal);
+      position: relative;
+    }
+    
+    .nav-link-modern:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .nav-link-modern.active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .dropdown-modern .dropdown-menu {
+      border: none;
+      box-shadow: var(--shadow-lg);
+      border-radius: var(--border-radius-lg);
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .dropdown-modern .dropdown-item {
+      border-radius: var(--border-radius-md);
+      padding: 0.75rem 1rem;
+      transition: all var(--transition-fast);
+    }
+    
+    .dropdown-modern .dropdown-item:hover {
+      background-color: var(--primary-color);
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .btn-login {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: var(--border-radius-lg);
+      font-weight: 500;
+      transition: all var(--transition-normal);
+    }
+    
+    .btn-login:hover {
+      background: white;
+      color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    /* Mobile Menu */
+    .mobile-menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+      .main-nav {
+        display: none;
+      }
+      
+      .mobile-menu-toggle {
+        display: block;
+      }
+      
+      .brand-text {
+        font-size: 0.9rem;
+      }
+    }
+    
+    /* Main Content */
+    .main-content {
+      min-height: calc(100vh - 140px);
+      /* padding: 2rem 0; */
+    }
+    
+    /* Modern Cards */
+    .card-modern {
+      background: white;
+      border: none;
+      border-radius: var(--border-radius-xl);
+      box-shadow: var(--shadow-md);
+      transition: all var(--transition-normal);
+      overflow: hidden;
+    }
+    
+    .card-modern:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-xl);
+    }
+    
+    /* Buttons */
+    .btn-modern {
+      padding: 0.75rem 2rem;
+      border-radius: var(--border-radius-lg);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+      transition: all var(--transition-normal);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-modern::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left var(--transition-slow);
+    }
+    
+    .btn-modern:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary-modern {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      color: white;
+    }
+    
+    .btn-primary-modern:hover {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Footer */
+    .modern-footer {
+      background: linear-gradient(135deg, var(--dark-color), #34495e);
+      color: white;
+      padding: 3rem 0 1rem;
+      /* margin-top: 3rem; */
+    }
+    
+    .footer-content {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .footer-section h5 {
+      font-family: var(--font-secondary);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: white;
+    }
+    
+    .footer-link {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      display: block;
+      padding: 0.25rem 0;
+    }
+    
+    .footer-link:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: white;
+      text-decoration: none;
+      transition: all var(--transition-normal);
+    }
+    
+    .social-link:hover {
+      background: white;
+      color: var(--primary-color);
+      transform: translateY(-3px);
+    }
+    
+    /* Loading Animation */
+    #loadingSpinner {
+      background-color: white;
+      background-image: url('/static/images/banner-removebg-preview.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      opacity: 1;
+    }
+    .loading-spinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity var(--transition-slow);
+    }
+    
+    .spinner {
+      width: 250px;
+      height: 250px;
+      border: 3px solid var(--gray-200);
+      border-top: 3px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Alert System */
+    .alert-modern {
+      border: none;
+      border-radius: var(--border-radius-lg);
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .alert-modern::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+    
+    .alert-success::before { background: var(--secondary-color); }
+    .alert-danger::before { background: #dc3545; }
+    .alert-warning::before { background: var(--accent-color); }
+    .alert-info::before { background: #17a2b8; }
+    
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    .slide-up {
+      animation: slideUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Utility Classes */
+    .text-gradient {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .hover-scale:hover {
+      transform: scale(1.05);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+      .main-content {
+        margin-top: 120px;
+        padding: 1rem 0;
+      }
+      
+      .modern-header .container-fluid {
+        padding: 0 1rem;
+      }
+    }
+  </style>
+  
+  <!-- Custom CSS Block -->
+  {% block css %}{% endblock %}
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6PFZS9T0XW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6PFZS9T0XW');
+  </script>
+</head>
+
+<body>
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="loading-spinner">
+    <div class="spinner"></div>    
+  </div>
+
+  <!-- Modern Header -->
+  <header class="modern-header">
+    <!-- Top Bar -->
+    <div class="header-top">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center text-white small">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              <span>Av. Alberto Braune, 225 - Centro, Nova Friburgo - RJ</span>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="d-flex align-items-center justify-content-end text-white small">
+              <i class="fas fa-phone me-2"></i>
+              <span>(22) 2521-9205</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Header -->
+    <div class="header-main">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-md-3">
+            <div class="logo-section">
+              <img src="{% static 'images/brasao-nf.png' %}" alt="Brasão Nova Friburgo" class="logo-nf">
+              <h1 class="brand-text">PREFEITURA DE NOVA FRIBURGO</h1>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <nav class="main-nav">
+              <a href="/" class="nav-link-modern">
+                <i class="fas fa-briefcase me-2"></i>Trabalho e Renda
+              </a>
+              <a href="/financas/" class="nav-link-modern">
+                <i class="fas fa-chart-line me-2"></i>Finanças
+              </a>
+              <a href="#" class="nav-link-modern">
+                <i class="fas fa-rocket me-2"></i>Empreendorismo
+              </a>
+              
+              <div class="dropdown dropdown-modern">
+                <a class="nav-link-modern dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                  <i class="fas fa-th-large me-2"></i>Outros Sistemas
+                </a>
+                <ul class="dropdown-menu">
+                  <li><h6 class="dropdown-header">Sistemas Disponíveis</h6></li>
+                  <li><a class="dropdown-item" href="https://casadotrabalhador.pmnf.rj.gov.br">
+                    <i class="fas fa-briefcase me-2"></i>Trabalho e Renda
+                  </a></li>
+                  <li><a class="dropdown-item" href="https://julianasalvatore.github.io/smctieps_newmod/">
+                    <i class="fas fa-microscope me-2"></i>Ciência e Tecnologia
+                  </a></li>
+                  <li><a class="dropdown-item" href="#">
+                    <i class="fas fa-lightbulb me-2"></i>Iluminação Pública
+                  </a></li>
+                  <li><a class="dropdown-item" href="https://senhas.novafriburgo.rj.gov.br">
+                    <i class="fas fa-ticket-alt me-2"></i>Senhas de Turismo
+                  </a></li>
+                  <li><a class="dropdown-item" href="https://culturanf.novafriburgo.rj.gov.br">
+                    <i class="fas fa-palette me-2"></i>Mapeamento Cultural
+                  </a></li>
+                </ul>
+              </div>
+            </nav>
+          </div>
+          
+          <div class="col-md-3">
+            <div class="user-section">
+              <div class="social-links me-3">
+                <!-- <a href="https://www.facebook.com/desenvolvenf/" target="_blank" class="social-link">
+                  <i class="fab fa-facebook-f"></i>
+                </a> -->
+                <a href="https://www.instagram.com/cienciaetecnologianf/" target="_blank" class="social-link">
+                  <i class="fab fa-instagram"></i>
+                </a>
+              </div>
+              
+              {% if not request.user.is_authenticated %}
+                <a href="{% url 'autenticacao:login' %}" class="btn btn-login">
+                  <i class="fas fa-user me-2"></i>Login
+                </a>
+              {% else %}
+                <div class="dropdown">
+                  <button class="btn btn-login dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user me-2"></i>{{ request.user.first_name }}
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    {% if request.user.is_superuser %}
+                      <li><a class="dropdown-item" href="/admin/">
+                        <i class="fas fa-cog me-2"></i>Administração
+                      </a></li>
+                    {% endif %}
+                    <li><a class="dropdown-item" href="{% url 'autenticacao:logout' %}">
+                      <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a></li>
+                  </ul>
+                </div>
+              {% endif %}
+              
+              <button class="mobile-menu-toggle" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                <i class="fas fa-bars"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Offcanvas -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <nav class="d-flex flex-column gap-3">
+        <a href="https://casadotrabalhador.pmnf.rj.gov.br" class="nav-link-modern">Trabalho e Renda</a>
+        <a href="/financas/" class="nav-link-modern">Finanças</a>
+        <a href="#" class="nav-link-modern">Empreendorismo</a>
+        <hr>
+        <h6>Outros Sistemas</h6>
+        <a href="https://casadotrabalhador.pmnf.rj.gov.br" class="nav-link-modern">Trabalho e Renda</a>
+        <a href="https://julianasalvatore.github.io/smctieps_newmod/" class="nav-link-modern">Ciência e Tecnologia</a>
+        <a href="#" class="nav-link-modern">Iluminação Pública</a>
+        <a href="https://senhas.novafriburgo.rj.gov.br" class="nav-link-modern">Senhas de Turismo</a>
+        <a href="https://culturanf.novafriburgo.rj.gov.br" class="nav-link-modern">Mapeamento Cultural</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Page Title Section -->
+  {% if titulo %}
+  <section class="page-title-section bg-primary text-white py-4">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col">
+          <h1 class="h2 mb-0 text-gradient-white">{{ titulo }}</h1>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Navigation Block -->
+  {% block nav %}{% endblock %}
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container-fluid px-0">
+      {% block main %}{% endblock %}
+    </div>
+  </main>
+
+  <!-- Footer Block -->
+  {% block footer %}{% endblock %}
+
+  <!-- Modern Footer -->
+  <footer class="modern-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="row">
+          <div class="col-lg-4 mb-4">
+            <div class="footer-section">
+              <div class="logo-section mb-3">
+                <img src="{% static 'images/brasao-nf.png' %}" alt="Brasão Nova Friburgo" class="logo-nf mb-3">
+                <h5>Prefeitura de Nova Friburgo</h5>
+              </div>
+              <p class="text-light mb-3">
+                Av. Alberto Braune, 225 - Centro<br>
+                Nova Friburgo - RJ, 28613-001<br>
+                Horário: 09:00 às 17:00 (Seg. à Sex.)
+              </p>
+              <div class="social-links">
+                <!-- <a href="https://www.facebook.com/desenvolvenf/" target="_blank" class="social-link">
+                  <i class="fab fa-facebook-f"></i>
+                </a> -->
+                <a href="https://www.instagram.com/cienciaetecnologianf/" target="_blank" class="social-link">
+                  <i class="fab fa-instagram"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 mb-4">
+            <div class="footer-section">
+              <h5>Plataformas</h5>
+              <a href="#" class="footer-link">Capacitação Profissional</a>
+              <a href="#" class="footer-link">Cidade Inteligente</a>
+              <a href="#" class="footer-link">Eventos</a>
+              <a href="#" class="footer-link">Finanças</a>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 mb-4">
+            <div class="footer-section">
+              <h5>Sistemas</h5>
+              <a href="/" class="footer-link">Trabalho e Renda</a>
+              <a href="#" class="footer-link">Iluminação Pública</a>
+              <a href="https://senhas.novafriburgo.rj.gov.br/login/?next=/" class="footer-link">Senhas de Turismo</a>
+              <a href="https://culturanf.novafriburgo.rj.gov.br/" class="footer-link">Mapeamento Cultural</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center py-3">
+        <p class="mb-0 text-light">
+          &copy; 2025 SUBSECRETARIA DE TECNOLOGIA DA INFORMAÇÃO - PREFEITURA DE NOVA FRIBURGO
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Alert System -->
+  {% if messages %}
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11000;">
+      {% for message in messages %}
+        <div class="alert alert-modern alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message|escape }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  
+  <!-- AOS Animation -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Custom JavaScript -->
+  <script>
+    // Initialize AOS
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true
+    });
+
+    // Loading Screen
+    window.addEventListener('load', function() {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.style.opacity = '0';
+        setTimeout(() => {
+          spinner.style.display = 'none';
+        }, 300);
+      }
+    });
+
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('.modern-header');
+      if (window.scrollY > 100) {
+        header.style.background = 'linear-gradient(135deg, rgba(0, 102, 204, 0.95), rgba(0, 76, 153, 0.95))';
+      } else {
+        header.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-dark))';
+      }
+    });
+
+    // Auto-hide alerts
+    document.addEventListener('DOMContentLoaded', function() {
+      const alerts = document.querySelectorAll('.alert-modern');
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          const bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
+        }, 5000);
+      });
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+  </script>
+
+  <!-- Custom JS Block -->
+  {% block js %}{% endblock %}
+</body>
+</html>

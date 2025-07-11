@@ -1,4 +1,4 @@
-{% extends 'template.html' %}
+{% extends 'template_new.html' %}
 {% load static %}
 {% block title %}Vagas Ofertadas{% endblock %}
 {% block css %} {{block.super}} {% endblock%}
@@ -10,34 +10,25 @@
   <div class="col d-flex flex-column">
     {% include 'slide.html' %}
 
-    <div class="">
-      <div class="stats-section">
-        <div class="stats-container">
-           <p style="margin-bottom: 10px">
-            Temos no total
-            <b>{{qnt_cargos}} {% if qnt_cargos > 1 %}cargos{% else %}cargo{% endif %}</b>
-            e
-            <b>{{qnt_vagas}} {% if qnt_vagas > 1 %}vagas disponiveis{% else %}vaga
-              disponivel{% endif %}</b>! Veja nossas vagas agora!
-          </p>
-        </div>        
-      </div>
+    <div class="container mb-5 pb-5">      
       <div class="row">
         <div class="col d-flex div-vaga-container">
           <div class="div-vaga-container-links d-flex mt-3">
             {% if request.user.is_authenticated %}
-            <a class="btn btn-btfl ms-auto my-auto" style="width: auto !important;"
+            <a class="btn btn-primary ms-auto my-auto" style="width: auto !important;"
               href="{% url 'vagas:meus_encaminhamentos' %}">
+              <i class="fas fa-user-check me-1"></i>
               Encaminhamentos
             </a>
-            <a class="btn btn-btfl ms-1 me-1 my-auto" href="{% url 'cv:index' %}">
+            <a class="btn btn-primary ms-1 me-1 my-auto" href="{% url 'cv:index' %}">
+              <i class="fas fa-file-alt me-1"></i>
               Currículo
             </a>
             {% endif %}
             {% if request.user.is_staff %}
 
             <span>
-              <a class="btn btn-btfl me-2" href="{% url 'vagas:imprimir' %}"><i class="fas fa-print"></i></a>
+              <a class="btn btn-primary me-2" href="{% url 'vagas:imprimir' %}"><i class="fas fa-print"></i></a>
               {% if request.user.is_superuser %}
               <span class="ms-0">
                 <a class="ms-0 btn btn-success text-light me-2" href="{% url 'vagas:exportar_vagas' %}">
@@ -47,7 +38,10 @@
               {% endif %}
             </span>
 
-            <a class="btn btn-btfl" style="width: auto !important;" href="{% url 'vagas:cadastrar' %}">CADASTRAR</a>
+            <a class="btn btn-primary" style="width: auto !important;" href="{% url 'vagas:cadastrar' %}">
+              <i class="fas fa-plus me-1"></i>
+              CADASTRAR
+            </a>
 
             {% endif %}
 
@@ -56,13 +50,13 @@
       </div>
       {% if destaque %}
       <div class="featured-section">
-        <div class="section-header">
+        <!-- <div class="section-header">
           <h2 class="featured-title">
             <i class="fas fa-star"></i>
             Vagas em Destaque
           </h2>
           <p class="featured-subtitle">Oportunidades especiais selecionadas para você</p>
-        </div>
+        </div> -->
         
         <div class="featured-jobs">
           {% for vaga in vagas_destaque %}
@@ -141,7 +135,19 @@
       {% endif %}
       <div class="section-header">
         <h1 class="section-title">Todas as vagas</h1>
-        <p class="section-subtitle">Encontre a oportunidade perfeita para sua carreira</p>
+        <!-- <img src="https://casadotrabalhador.pmnf.rj.gov.br/static/images/banner.jpg" alt=""> -->
+        <!-- <p class="section-subtitle">Encontre a oportunidade perfeita para sua carreira</p> -->
+         <div class="stats-section">
+        <div class="stats-container">
+           <p class="stats-description">
+            Temos no total
+            <b>{{qnt_cargos}} {% if qnt_cargos > 1 %}cargos{% else %}cargo{% endif %}</b>
+            e
+            <b>{{qnt_vagas}} {% if qnt_vagas > 1 %}vagas disponiveis{% else %}vaga
+              disponivel{% endif %}</b>! Veja nossas vagas agora!
+          </p>
+        </div>        
+      </div>  
       </div>
       
       <div class="search-container">
@@ -355,7 +361,7 @@
                     {% if request.user.is_staff %}{{ vaga.empresa }} - {% endif %}
                     Vaga {{forloop.counter}}
                   </h4>
-                  <div class="job-meta">
+                  <div class="job-meta ms-auto">
                     {% if vaga.tipo_de_vaga != 'NML' %}
                     <span class="job-type-badge">{{ vaga.get_tipo_de_vaga_display }}</span>
                     {% endif %}
@@ -419,7 +425,6 @@
       </div>
 
       <style>
-        /* Modern Design System */
         :root {
           --primary-color: #2563eb;
           --primary-dark: #1d4ed8;
@@ -445,20 +450,21 @@
           --spacing-lg: 1.5rem;
           --spacing-xl: 2rem;
         }
-
-        /* Stats Section */
+        body{
+          overflow:visible;
+          
+        }
+        .logo-nf{
+          width: auto;
+        }
         .stats-section {
           text-align: center;
-          margin-bottom: var(--spacing-xl);
-          padding: var(--spacing-xl) 0;
         }
 
         .stats-container {
           display: flex;
           justify-content: center;
-          gap: var(--spacing-xl);
           flex-wrap: wrap;
-          margin-bottom: var(--spacing-lg);
         }
 
         .stat-card {
@@ -886,6 +892,7 @@
 
         .job-info {
           flex: 1;
+          display: flex ;
         }
 
         .job-title {
@@ -1242,6 +1249,27 @@
 
         #buscador {
           background-image: none !important;
+        }
+
+        /* Menu Navigation Styles */
+        .div-vaga-container-links {
+          align-items: center;
+          gap: 0.5rem;
+        }
+        
+        .div-vaga-container-links .btn {
+          white-space: nowrap;
+        }
+        
+        @media (max-width: 768px) {
+          .div-vaga-container-links {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
+          
+          .div-vaga-container-links .btn {
+            margin: 0.25rem 0;
+          }
         }
       </style>
       <script>

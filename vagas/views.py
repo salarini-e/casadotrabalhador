@@ -520,6 +520,9 @@ def alterar_vaga(request, id):
         if form.is_valid():
 
             form = CadastroVagasForm(gambiarra, instance=vaga)
+            print(gambiarra)
+            print(form.errors)
+            
             form.save()
             return redirect('vagas:vagas')
     else:

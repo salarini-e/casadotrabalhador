@@ -1,3 +1,5 @@
 {% for result in results %}
-<input type="text" onclick="selectThisVaga(this)" class="form-control for_click bg-primary text-white" value="{{result.nome}}" readonly>
+<div class="autocomplete-item" onclick="selectThisCargo(this)" data-value="{{result.nome}}">
+    {{result.nome}}
+</div>
 {% endfor %}
