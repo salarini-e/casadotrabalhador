@@ -1,70 +1,52 @@
-<!-- resume/templates/resume.html -->
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Meu Currículo</title>
 </head>
 <body>
-    <div class="resume">
+    <div style="max-width: 800px; margin: 40px auto; padding: 20px; background: #fff; color: #222;">
         <h1>{{ nome }}</h1>
-        <p class="contact-info">
-            Email: {{ email }} | Telefone: {{ telefone }}
+        <p>
+            {% if email %}Email: {{ email }}{% endif %}
+            {% if telefone %} | Telefone: {{ telefone }}{% endif %}
+            {% if endereco %} | Endereço: {{ endereco }}{% endif %}
         </p>
-        <h2>Objetivo</h2>
-        <p style="text-align: justify;">{% if objetivo %}{{ objetivo }}{% endif %}</p>
 
-        <h2>Educação</h2>
-        {% for educacao in educacoes %}
-            <div class="education">
+        {% if objetivo %}
+        <h2>Objetivo</h2>
+        <p style="text-align: justify;">{{ objetivo }}</p>
+        {% endif %}
+
+        <h2>Formação Acadêmica</h2>
+        {% if educacoes %}
+            {% for educacao in educacoes %}
+            <div style="margin-bottom: 16px;">
                 <p><strong>{{ educacao.instituicao }}</strong></p>
                 <p>{{ educacao.curso }}</p>
-                <p>{{ educacao.periodo }}</p>
+                <p>
+                    {% if educacao.ano_inicio %}{{ educacao.ano_inicio }}{% endif %}
+                    {% if educacao.ano_fim %} - {{ educacao.ano_fim }}{% else %} - Cursando{% endif %}
+                </p>
+                {% if educacao.descricao %}<p>{{ educacao.descricao }}</p>{% endif %}
             </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>Nenhuma formação acadêmica cadastrada.</p>
+        {% endif %}
 
         <h2>Experiência Profissional</h2>
-        {% for experiencia in experiencias %}
-            <div class="experience">
+        {% if experiencias %}
+            {% for experiencia in experiencias %}
+            <div style="margin-bottom: 16px;">
                 <p><strong>{{ experiencia.empresa }}</strong></p>
                 <p>{{ experiencia.cargo }}</p>
                 <p>{{ experiencia.periodo }}</p>
-                <p style="text-align: justify;">{{ experiencia.descricao }}</p>
+                {% if experiencia.descricao %}<p style="text-align: justify;">{{ experiencia.descricao }}</p>{% endif %}
             </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>Nenhuma experiência profissional cadastrada.</p>
+        {% endif %}
     </div>
-<style>
-    /* resume/static/resume/style.css */
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    padding: 0;
-}
-
-h1, h2 {
-    margin-bottom: 5px;
-}
-
-.resume {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.contact-info {
-    margin-bottom: 20px;
-}
-
-.education, .experience {
-    margin-bottom: 15px;
-}
-
-/* Estilize o currículo conforme sua preferência */
-</style>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        print();
-    });
-</script>
 </body>
 </html>

@@ -35,11 +35,17 @@ def curriculo(request):
 def cadastrar_educacao(request):
     if request.method == 'POST':
         form = EducacaoForm(request.POST)
+        print('1', request.POST)
         if form.is_valid():
+            print('2', request.POST)
             educacao = form.save()
             educacao.pessoa=Pessoa.objects.get(user=request.user)
             educacao.save()
             form = EducacaoForm()
+        else:
+            print('Formulário inválido:', form.errors)
+            messages.error(request, 'Erro ao cadastrar educação. Verifique os dados e tente novamente.')
+            form = EducacaoForm(request.POST)
     else:
         form = EducacaoForm()
     pessoa=Pessoa.objects.get(user=request.user)
