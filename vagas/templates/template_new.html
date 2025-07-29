@@ -97,7 +97,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
-      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      background: linear-gradient(135deg, rgba(0, 102, 204, 0.95), rgba(0, 76, 153, 0.95));
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       transition: all var(--transition-normal);
@@ -227,7 +227,6 @@
     /* Main Content */
     .main-content {
       min-height: calc(100vh - 140px);
-      /* padding: 2rem 0; */
     }
     
     /* Modern Cards */
@@ -460,6 +459,7 @@
   </style>
   
   <!-- Custom CSS Block -->
+  <link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
   {% block css %}{% endblock %}
   
   <!-- Google Analytics -->
@@ -741,7 +741,7 @@
       if (window.scrollY > 100) {
         header.style.background = 'linear-gradient(135deg, rgba(0, 102, 204, 0.95), rgba(0, 76, 153, 0.95))';
       } else {
-        header.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-dark))';
+        header.style.background = '';
       }
     });
 

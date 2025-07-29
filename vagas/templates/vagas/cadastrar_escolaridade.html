@@ -33,10 +33,12 @@
             {% endif %}
             {% if f.errors %}
                 {{f|add_class:'form-control  my-2 is-invalid'}}
-            {% elif f.name == 'destaque' %}
-            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
-                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
-                <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+            {% if f.name == 'destaque' %}
+            <div class="form-check form-switch">
+                {{f|add_class:'form-check-input'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                <label class="form-check-label" for="id_{{f.name}}">
+                    <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+                </label>
             </div>
             {% else %}
                 {{f|add_class:'form-control bg-light my-2'}}
@@ -51,42 +53,7 @@
             </button>
 
         </div>      
-    </div>    
-    <style>
-        #form_cadastro_vaga ul, li{
-            list-style: none;
-        }
-        #form_cadastro_vaga button:hover{
-            background-color: #329787 !important;
-            border-color: #329787
-            color: white !important;
-        }
-        #form_cadastro button, .btn-primary{
-            background-color: #329787 !important;
-            border-color: #329787;
-        }
-        #id_ativo{
-            opacity: 0;
-        }
-        .form-check{
-            display: flex;            
-        }
-        .form-switch span{
-            margin-left: 10px;
-            padding-top: 4px;
-        }
-
-        .form-switch .form-check-input{
-            margin-left: 0;
-        }
-        .form-check-input:checked[type=checkbox]{
-            background-color:#329787;
-        }
-        ul, li{
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+    </div>
 </form>
 <script>
     function destacar(){

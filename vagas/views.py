@@ -515,6 +515,8 @@ def alterar_vaga(request, id):
                     gambiarra[item] = request.POST[item]
             else:
                 gambiarra[item] = request.POST[item]
+        gambiarra['user'] = request.user.id
+        gambiarra['ativo'] = True
         form = CadastroInternoVagasForm(gambiarra)
         vaga = Vaga_Emprego.objects.get(id=id)
         if form.is_valid():
@@ -525,6 +527,8 @@ def alterar_vaga(request, id):
             
             form.save()
             return redirect('vagas:vagas')
+        else:
+            print(form.errors)
     else:
         vaga = Vaga_Emprego.objects.get(id=id)
         form = CadastroInternoVagasForm(instance=vaga)

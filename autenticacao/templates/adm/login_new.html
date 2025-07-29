@@ -67,19 +67,11 @@
             padding: 0;
             box-sizing: border-box;
         }
-        html{
-            background-image: url("{% static 'images/bg-login.jpg' %}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
+        
         body {
             font-family: var(--font-primary);
-            /* background: linear-gradient(135deg, var(#329787), var(#1e5e56));                         */
-            background-color: #ffffff7c;
+            /* background: linear-gradient(135deg, var(--pr    imary-color), var(--primary-dark)); */
+            background-image: url("{% static 'images/background.jpg' %}");
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -101,8 +93,8 @@
                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 30%),
                         radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 30%);
             animation: float 20s ease-in-out infinite;
-        }
-         */
+        } */
+        
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-20px) rotate(180deg); }
@@ -121,8 +113,8 @@
         }
         
         .login-left {
-            /* background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); */
-            color: black;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
             padding: 3rem;
             display: flex;
             flex-direction: column;
@@ -140,6 +132,7 @@
             left: 0;
             right: 0;
             bottom: 0;
+            background: url("{% static 'images/brasao.png' %}") center/contain no-repeat;
             opacity: 0.1;
             z-index: 0;
         }
@@ -150,8 +143,9 @@
         }
         
         .login-logo {
-            max-width: 320px;
+            max-width: 120px;
             margin-bottom: 2rem;
+            filter: brightness(0) invert(1);
         }
         
         .login-title {
@@ -436,9 +430,9 @@
             <!-- Left Side - Branding -->
             <div class="col-lg-6 login-left">
                 <div class="login-left-content">
-                    <img src="{% static 'images/logo.png' %}" alt="Brasão Nova Friburgo" class="login-logo">
-                    <!-- <h1 class="login-title">Casa do Trabalhador</h1> -->
-                    <!-- <p class="login-subtitle">Conectando talentos às oportunidades em Nova Friburgo</p> -->
+                    <img src="{% static 'images/brasao.png' %}" alt="Brasão Nova Friburgo" class="login-logo">
+                    <h1 class="login-title">Casa do Trabalhador</h1>
+                    <p class="login-subtitle">Conectando talentos às oportunidades em Nova Friburgo</p>
                     
                     <ul class="login-features">
                         <li>
@@ -462,11 +456,10 @@
             </div>
             
             <!-- Right Side - Login Form -->
-            <div class="col-lg-6 login-right pt-5">
+            <div class="col-lg-6 login-right">
                 <div class="login-form-header">
-                    <!-- <h2 class="login-form-title">Bem-vindo de volta!</h2> -->
-                    <img src="{% static 'images/brasao.png' %}" alt="" style="max-width: 200px;">
-                    <!-- <p class="my-4 login-form-subtitle">Faça login para acessar sua conta</p> -->
+                    <h2 class="login-form-title">Bem-vindo de volta!</h2>
+                    <p class="login-form-subtitle">Faça login para acessar sua conta</p>
                 </div>
                 
                 <!-- Messages -->

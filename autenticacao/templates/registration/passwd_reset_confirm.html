@@ -15,7 +15,8 @@
     <link href="{% static 'fontawesomefree/css/all.min.css' %}" rel="stylesheet" type="text/css">
     <!-- CUSTOM CSS -->
     <link rel="stylesheet" href="{% static '/css/template.css' %}">
-    <link rel="stylesheet" href="{% static '/css/login.css' %}">    
+    <link rel="stylesheet" href="{% static '/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">    
 </head>
 <body class="container-fluid">
 <div class="row">
@@ -36,11 +37,6 @@
                 <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|safe }}</li>
                 {% endfor %}
             </ul>
-            <style>
-                li{
-                    list-style: none;
-                }
-            </style>
             {% endif %}
             {% if error %}
             <p class="bg-danger text-white mb-4 py-2 text-center">Usuário ou senha não conferem.</p>
@@ -51,13 +47,7 @@
             <form class="pt-3 px-5" method="POST">
                 {% csrf_token %}
                 {% bootstrap_form form %}
-                <button type="submit" class="btn btn-primary">Trocar Senha</button>   
-                <style>
-                    ul{
-                        margin-top: 20px;
-                        margin-bottom: 10px;
-                    }
-                </style>            
+                <button type="submit" class="btn btn-primary">Trocar Senha</button>              
             </form>
         </div>
     </div>

@@ -1,6 +1,8 @@
 {% extends 'base_site.html' %} {% load static %} 
 {% block title %}Painel Administrativo{% endblock %} 
-{% block css %} {{block.super}} {% endblock%}
+{% block css %} {{block.super}} 
+<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+{% endblock%}
 
 {% block head_js %}
 <script src="{% static 'assets/js/modal.js' %}"></script>

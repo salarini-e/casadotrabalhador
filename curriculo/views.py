@@ -30,7 +30,7 @@ def curriculo(request):
         'educacoes': educacoes,
         'experiencias': experiencias,
     }
-    return render(request, 'curriculo/curriculo.html', context)
+    return render(request, 'curriculo/novo_curriculo.html', context)
 
 def cadastrar_educacao(request):
     if request.method == 'POST':
