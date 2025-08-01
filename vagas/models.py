@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .validations import validate_CNPJ, validate_CPF, validate_TELEFONE
+from django.utils import timezone
 # Create your models here.
 
 # class Candidato(models.Model):
@@ -100,11 +101,18 @@ class Vaga_Emprego(models.Model):
     destaque=models.BooleanField(default=False)
     banner_img = models.ImageField(upload_to='banner_vaga', verbose_name='Arte da vaga', null=True, blank=True)
     user=models.ForeignKey(User, on_delete=models.PROTECT)                    
-    dt_inclusao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Inclusão')
+    dt_inclusao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Inclusão')    
     dt_desativacao = models.DateTimeField(verbose_name='Dt. Desativação', null=True, blank=True)
     ativo=models.BooleanField(default=True)        
+
+    dt_atualizacao = models.DateTimeField(verbose_name='Dt. Atualização', null=True, blank=True)
+    
     def __str__(self):
         return '%s - %s' % (self.empresa, self.cargo)
+    def save(self, *args, **kwargs):
+        if self.dt_inclusao:
+            self.dt_atualizacao = timezone.now()
+        super(Vaga_Emprego, self).save(*args, **kwargs)
 
 class Candidato(models.Model):
 

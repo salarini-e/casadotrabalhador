@@ -83,7 +83,7 @@
                                        name="{{ field.name }}" 
                                        id="{{ field.id_for_label }}"
                                        class="form-control {% if field.errors %}is-invalid{% endif %}"
-                                       value="{{ field.value|default:'' }}"
+                                       value="{{ pessoa.nome  }}"
                                        onkeydown="mascara(this, inome)"
                                        placeholder="Digite seu nome completo"
                                        required>

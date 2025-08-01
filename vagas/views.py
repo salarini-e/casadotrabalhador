@@ -146,7 +146,7 @@ def visualizar_vaga(request, id):
             'id': id,
             'tipo_cadastro': '',
             'form': form,
-            'hidden': ['user', 'ativo', 'destaque'],
+            'hidden': ['user', 'ativo', 'destaque', 'dt_atualizacao'],
             'cargo': vaga.cargo.nome,
             'empresa': vaga.empresa.nome
         }
@@ -156,7 +156,7 @@ def visualizar_vaga(request, id):
             'id': id,
             'tipo_cadastro': '',
             'form': form,
-            'hidden': ['user', 'ativo', 'destaque', 'empresa'],
+            'hidden': ['user', 'ativo', 'destaque', 'empresa', 'dt_atualizacao'],
             'cargo': vaga.cargo.nome,
             'empresa': vaga.empresa.nome
         }
@@ -690,8 +690,15 @@ def gera_encaminhamento_to_pdf(request, id, user_id=0):
 def candidatarse(request, id):
     if request.user.is_staff:
         form = Form_Candidato(initial={'vaga': id, 'candidato_online': False})
+        pessoa = {'nome': '', 'cpf': '', 'email': '', 'celular': ''}
+        print('usuário staff')
     else:
-        form = Form_Candidato(initial={'vaga': id, 'candidato_online': True})
+        print('usuário normal')
+        if request.user.is_authenticated:
+            pessoa = Pessoa.objects.get(user=request.user)
+            form = Form_Candidato(initial={'vaga': id, 'candidato_online': True, 'nome': pessoa.nome, 'cpf': pessoa.cpf, 'email': pessoa.email, 'celular': pessoa.telefone})
+        elif request.user.is_anonymous:
+            form = Form_Candidato(initial={'vaga': id, 'candidato_online': True})
 
     if request.method == 'POST':
         form = Form_Candidato(request.POST)
@@ -717,7 +724,8 @@ def candidatarse(request, id):
 
     context = {
         'id': id,
-        'form': form
+        'form': form,
+        'pessoa': pessoa
     }
     return render(request, 'vagas/candidatarse.html', context)
 

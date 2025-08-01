@@ -64,7 +64,7 @@
             data-cargo="{{vaga.cargo}}" data-bairro="{{vaga.empresa.bairro}}" data-empresa="{{vaga.empresa.nome}}">
             <div class="featured-badge">
               <i class="fas fa-star"></i>
-              Destaque
+              Destaque da Semana
             </div>
             
             <div class="featured-job-header">
@@ -87,7 +87,11 @@
               {% if request.user.is_staff %}
               <div class="featured-job-date">
                 <i class="fas fa-calendar-alt"></i>
+                {% if dt_atualizacao %}
+                {{vaga.dt_atualizacao | date:"d/m/Y"}}                
+                {% else %}
                 {{vaga.dt_inclusao | date:"d/m/Y"}}
+                {% endif %}
               </div>
               {% endif %}
             </div>
@@ -129,7 +133,7 @@
                   <span>{{vaga.empresa.bairro}}</span>
                 </div>
               </div>
-              <a href="{% url 'vagas:visualizar_vaga' vaga.id %}" class="btn btn-featured">
+              <a href="{% url 'vagas:visualizar_vaga' vaga.id %}" class="btn btn-primary job-details-btn">
                 <i class="fas fa-eye"></i>
                 Ver Detalhes
               </a>
@@ -354,7 +358,7 @@
         <div class="job-category-section" data-cargo-title="{{ cargo }}">
           <div class="category-header">
             <h3 class="category-title">{{ cargo }}</h3>
-            <span class="job-count">{{ vagas|length }} {% if vagas|length > 1 %}vagas{% else %}vaga{% endif %}</span>
+            <span class="job-count">{{ vagas|length }} {% if vagas|length > 1 %}opções{% else %}opção{% endif %}</span>
           </div>
           
           <div class="jobs-list">
@@ -365,24 +369,27 @@
                 <div class="job-info">
                   <h4 class="job-title">
                     {% if request.user.is_staff %}{{ vaga.empresa }} - {% endif %}
-                    Vaga {{forloop.counter}}
+                    Opção {{forloop.counter}} {% if request.user.is_staff %}<br>{% endif %}<span style="color: gray;">(Ref. {{vaga.id}})</span>
                   </h4>
                   <div class="job-meta ms-auto">
                     {% if vaga.tipo_de_vaga != 'NML' %}
                     <span class="job-type-badge">{{ vaga.get_tipo_de_vaga_display }}</span>
-                    {% endif %}
-                    {% if vaga.experiencia == 'Sim' %}
+                    {% endif %}                    
+                  </div>
+                </div>
+                {% if request.user.is_staff %}
+                <div class="job-date d-flex flex-column">
+                  <div>
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ vaga.dt_inclusao | date:"d/m/Y" }}
+                  </div>
+                  <br>
+                  {% if vaga.experiencia == 'Sim' %}
                     <span class="experience-required">
                       <i class="fas fa-user-check"></i>
                       Requer experiência
                     </span>
                     {% endif %}
-                  </div>
-                </div>
-                {% if request.user.is_staff %}
-                <div class="job-date">
-                  <i class="fas fa-calendar-alt"></i>
-                  {{ vaga.dt_inclusao | date:"d/m/Y" }}
                 </div>
                 {% endif %}
               </div>
@@ -575,7 +582,8 @@
         }
 
         .featured-title i {
-          color: var(--jobs-warning-color);
+          /* color: var(--jobs-warning-color); */
+          color: var(--jobs-primary-color);
         }
 
         .featured-subtitle {
@@ -593,8 +601,8 @@
         }
 
         .featured-job-card {
-          background: linear-gradient(135deg, #fef3c7, #fde68a);
-          border: 2px solid var(--jobs-warning-color);
+          background: linear-gradient(135deg, #ffffff, #ffffff);
+          border: 2px solid rgba(245, 158, 11, 0.3);
           border-radius: var(--radius-lg);
           padding: var(--spacing-lg);
           position: relative;
@@ -701,7 +709,9 @@
         }
 
         .featured-detail-item i {
-          color: var(--jobs-warning-color);
+          /* color: var(--jobs-warning-color); */
+          color: var(--jobs-primary-color);
+          margin-right: 5px;
           width: 16px;
           flex-shrink: 0;
         }
@@ -742,7 +752,9 @@
 
         .featured-regime-info i,
         .featured-location-info i {
-          color: var(--jobs-warning-color);
+          /* color: var(--jobs-warning-color); */
+          color: var(--jobs-primary-color);
+          margin-right: 5px;          
           width: 14px;
         }
 
@@ -974,6 +986,7 @@
 
         .detail-item i {
           color: var(--jobs-primary-color);
+          margin-right: 5px;
           width: 16px;
           flex-shrink: 0;
         }
