@@ -250,7 +250,8 @@ def cadastrar_empresa(request):
                 'hidden': ['user', 'ativo'],
                 'success': [True, 'Empresa cadastrada com sucesso!']
             }
-            return render(request, 'vagas/cadastrar_empresa.html', context)
+            return render(request, 'vagas/infoempresa cadastrar.html', context)
+            # return render(request, 'vagas/cadastrar_empresa.html', context)
     else:
         form = Form_Empresa(initial={'user': request.user})
     context = {

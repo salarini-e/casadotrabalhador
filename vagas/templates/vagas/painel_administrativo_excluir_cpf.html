@@ -140,10 +140,10 @@
     </div>
 
 <!-- Delete Form Section -->
-<div class="stats-container">
+<div class="stats-container px-5 py-5">
     <!-- Warning Banner -->
     <div class="warning-banner mb-4">
-        <div class="modern-card border-danger">
+        <div class="modern-card border-danger p-4" style="background-color: white;">
             <div class="card-body">
                 <div class="d-flex align-items-center">
                     <div class="warning-icon me-3">
@@ -159,100 +159,103 @@
     </div>
 
     <!-- Main Delete Section -->
-    <div class="delete-section">
-        <div class="modern-card">
-            <div class="card-header bg-danger text-white">
-                <h4 class="mb-0">
-                    <i class="fas fa-user-times me-2"></i>Excluir Candidato
-                </h4>
-            </div>
-            <div class="card-body p-4">
-                <div class="row">
-                    <div class="col-md-8 mx-auto">
-                        <div class="delete-form-container">
-                            <h5 class="mb-3 text-center">Remover Registros por CPF</h5>
-                            <p class="text-muted text-center mb-4">
-                                Digite o CPF do candidato para remover todos os registros relacionados do sistema.
-                            </p>
-                            
-                            <form id="excluir_candidato" class="delete-form">
-                                <div class="form-group mb-4">
-                                    <label for="cpf" class="form-label fw-semibold">CPF do Candidato</label>
-                                    <div class="input-group input-group-lg">
-                                        <span class="input-group-text bg-light">
-                                            <i class="fas fa-id-card text-primary"></i>
-                                        </span>
-                                        <input
-                                            id="cpf"
-                                            type="text"
-                                            class="form-control"
-                                            onkeydown="mascara(this, icpf)"
-                                            placeholder="000.000.000-00"
-                                            required
-                                            maxlength="14"
-                                        />
-                                    </div>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Digite apenas os números, a formatação será aplicada automaticamente
-                                    </div>
-                                </div>
-
-                                <!-- Confirmation Checkbox -->
-                                <div class="form-check mb-4">
-                                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
-                                    <label class="form-check-label fw-semibold" for="confirmDelete">
-                                        Confirmo que desejo excluir permanentemente todos os dados relacionados a este CPF
-                                    </label>
-                                </div>
-
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
-                                        <i class="fas fa-trash-alt me-2"></i>Excluir Dados Permanentemente
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+    <div class="row">
+        <div class="col d-flex">
+            <div class="delete-section m-0">
+                <div class="modern-card" style="background-color: white;">
+                    <div class="card-header bg-danger text-white p-3">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-times me-2"></i> Remover Registros por CPF
+                        </h4>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-8 mx-auto">
+                                <div class="delete-form-container">                            
+                                    <p class="text-muted text-center mb-4">
+                                        Digite o CPF do candidato para remover todos os registros relacionados do sistema.
+                                    </p>
+                                    
+                                    <form id="excluir_candidato" class="delete-form">
+                                        <div class="form-group mb-4">
+                                            <label for="cpf" class="form-label fw-semibold">CPF do Candidato</label>
+                                            <div class="input-group input-group-lg">
+                                                <span class="input-group-text bg-light">
+                                                    <i class="fas fa-id-card text-white"></i>
+                                                </span>
+                                                <input
+                                                    id="cpf"
+                                                    type="text"
+                                                    class="form-control"
+                                                    onkeydown="mascara(this, icpf)"
+                                                    placeholder="000.000.000-00"
+                                                    required
+                                                    maxlength="14"
+                                                />
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Digite apenas os números, a formatação será aplicada automaticamente
+                                            </div>
+                                        </div>
 
-    <!-- Information Cards -->
-    <div class="info-section mt-4">
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="modern-card border-warning">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="info-icon bg-warning bg-opacity-10 text-warning me-3">
-                                <i class="fas fa-exclamation-triangle fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="text-warning mb-2">Ação Irreversível</h6>
-                                <p class="text-muted mb-0 small">
-                                    Uma vez excluídos, os dados não poderão ser recuperados. 
-                                    Certifique-se de que realmente deseja remover este candidato.
-                                </p>
+                                        <!-- Confirmation Checkbox -->
+                                        <div class="form-check mb-4">
+                                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                            <label class="form-check-label fw-semibold" for="confirmDelete">
+                                                Confirmo que desejo excluir permanentemente todos os dados relacionados a este CPF
+                                            </label>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                                                    Excluir Dados Permanentemente
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="modern-card border-info">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start">
-                            <div class="info-icon bg-info bg-opacity-10 text-info me-3">
-                                <i class="fas fa-database fa-lg"></i>
+
+            <!-- Information Cards -->
+            <div class="info-section ms-4 mb-auto me-0 pe-0">
+                <div class="row g-4 d-flex flex-column">
+                    <div class="col">
+                        <div class="modern-card border-warning p-3" style="background-color: white;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="info-icon  text-warning me-3">
+                                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-warning mb-2">Ação Irreversível</h6>
+                                        <p class="text-muted mb-0 small">
+                                            Uma vez excluídos, os dados não poderão ser recuperados. 
+                                            Certifique-se de que realmente deseja remover este candidato.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <h6 class="text-info mb-2">Dados Afetados</h6>
-                                <p class="text-muted mb-0 small">
-                                    Serão removidos: dados pessoais, currículos, candidaturas 
-                                    e todo histórico relacionado ao CPF informado.
-                                </p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="modern-card border-info p-3" style="background-color: white;">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="info-icon text-info me-3">
+                                        <i class="fas fa-database fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="text-info mb-2">Dados Afetados</h6>
+                                        <p class="text-muted mb-0 small">
+                                            Serão removidos: dados pessoais, currículos, candidaturas 
+                                            e todo histórico relacionado ao CPF informado.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -263,8 +266,8 @@
 
     <!-- Recent Actions Log (Placeholder) -->
     <div class="actions-log mt-4">
-        <div class="modern-card">
-            <div class="card-header bg-light">
+        <div class="modern-card p-3" style="background-color: white;">
+            <div class="card-header">
                 <h6 class="mb-0">
                     <i class="fas fa-history me-2"></i>Ações Recentes
                 </h6>
