@@ -1,0 +1,563 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Painel Administrativo{% endblock %}
+{% block css %} {{block.super}} {% endblock%}
+{% block main %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/static/css/template.css">
+
+<div class="row">
+  <div class="col d-flex flex-column">
+    
+    <div class="container mb-5 pb-5">
+      <!-- Header Section -->
+      <div class="row">
+        <div class="col d-flex div-vaga-container">
+          <div class="div-vaga-container-links d-flex mt-3">
+            <h1 class="section-title me-auto">
+              <i class="fas fa-tachometer-alt me-2"></i>
+              Painel Administrativo
+            </h1>
+            <a class="btn btn-primary ms-auto my-auto" style="width: auto !important;" href="{% url 'vagas:vagas' %}">
+              <i class="fas fa-arrow-left me-1"></i>
+              Voltar às Vagas
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="stats-section">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ total_vagas_ativas }}</div>
+              <div class="stat-label">Vagas Ativas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ total_posicoes_abertas }}</div>
+              <div class="stat-label">Posições Abertas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ total_empresas_ativas }}</div>
+              <div class="stat-label">Empresas Ativas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-friends"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ total_candidatos }}</div>
+              <div class="stat-label">Total Candidatos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Info Section -->
+      <div class="featured-section" style="margin-bottom: 2rem;">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="featured-job-card" style="height: auto; background: linear-gradient(135deg, #27ae60, #2ecc71);">
+              <div class="featured-job-header">
+                <div class="featured-job-info">
+                  <h3 class="featured-job-title" style="color: white;">
+                    <i class="fas fa-globe me-2"></i>
+                    Candidatos Online
+                  </h3>
+                  <div class="featured-job-meta">
+                    <span style="color: white; font-size: 2rem; font-weight: bold;">{{ candidatos_online }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="featured-job-card" style="height: auto; background: linear-gradient(135deg, #e74c3c, #c0392b);">
+              <div class="featured-job-header">
+                <div class="featured-job-info">
+                  <h3 class="featured-job-title" style="color: white;">
+                    <i class="fas fa-store me-2"></i>
+                    Candidatos Balcão
+                  </h3>
+                  <div class="featured-job-meta">
+                    <span style="color: white; font-size: 2rem; font-weight: bold;">{{ candidatos_balcao }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="featured-job-card" style="height: 400px;">
+            <div class="featured-job-header">
+              <div class="featured-job-info">
+                <h3 class="featured-job-title">
+                  <i class="fas fa-chart-bar me-2"></i>
+                  Top 5 Cargos Mais Procurados
+                </h3>
+              </div>
+            </div>
+            <div style="height: 300px; padding: 1rem;">
+              <canvas id="topCargosChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="featured-job-card" style="height: 400px;">
+            <div class="featured-job-header">
+              <div class="featured-job-info">
+                <h3 class="featured-job-title">
+                  <i class="fas fa-chart-pie me-2"></i>
+                  Online vs Balcão
+                </h3>
+              </div>
+            </div>
+            <div style="height: 300px; padding: 1rem;">
+              <canvas id="candidatosChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="featured-job-card" style="height: 400px;">
+            <div class="featured-job-header">
+              <div class="featured-job-info">
+                <h3 class="featured-job-title">
+                  <i class="fas fa-chart-line me-2"></i>
+                  Top 5 Empresas
+                </h3>
+              </div>
+            </div>
+            <div style="height: 300px; padding: 1rem;">
+              <canvas id="topEmpresasChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="featured-job-card" style="height: 400px;">
+            <div class="featured-job-header">
+              <div class="featured-job-info">
+                <h3 class="featured-job-title">
+                  <i class="fas fa-chart-area me-2"></i>
+                  Candidatos por Mês
+                </h3>
+              </div>
+            </div>
+            <div style="height: 300px; padding: 1rem;">
+              <canvas id="candidatosMesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Menu Section -->
+      <div class="featured-section">
+        <div class="section-header">
+          <h2 class="featured-title">
+            <i class="fas fa-cogs me-2"></i>
+            Ações Administrativas
+          </h2>
+          <p class="featured-subtitle">Acesse as principais funcionalidades do sistema</p>
+        </div>
+        
+        <div class="jobs-grid">
+          <!-- Vagas com Candidatos -->
+          <div class="job-category-section">
+            <div class="jobs-list">
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-th-list me-2"></i>
+                      Vagas com Candidatos
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Relatórios</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Visualizar vagas que possuem candidatos inscritos</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:vagas_com_candidatos' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-search me-2"></i>
+                      Procurar Candidato
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Busca</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Buscar candidatos por nome ou CPF</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:pesquisar_candidatos' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-building me-2"></i>
+                      Procurar Empresa
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Busca</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Buscar informações de empresas cadastradas</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:empresa_info' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-chart-pie me-2"></i>
+                      Indicadores Detalhados
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Análise</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Relatórios completos e gráficos avançados</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:indicadores' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-envelope me-2"></i>
+                      Listar E-mails
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Comunicação</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Exportar lista de e-mails dos candidatos</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:emails' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-user-tie me-2"></i>
+                      Candidatos por Funcionário
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge">Relatórios</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Ver produtividade dos funcionários</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:candidatosporfuncionario' %}" class="btn btn-primary job-details-btn">
+                    <i class="fas fa-eye"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card" style="border-left: 4px solid #e74c3c;">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-trash me-2"></i>
+                      Excluir CPF
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge" style="background-color: #e74c3c;">Atenção</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Remover registros de candidatos por CPF</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="btn btn-danger job-details-btn">
+                    <i class="fas fa-trash"></i>
+                    Acessar
+                  </a>
+                </div>
+              </div>
+
+              <div class="job-card" style="border-left: 4px solid #f39c12;">
+                <div class="job-card-header">
+                  <div class="job-info">
+                    <h4 class="job-title">
+                      <i class="fas fa-database me-2"></i>
+                      Backup Database
+                    </h4>
+                    <div class="job-meta">
+                      <span class="job-type-badge" style="background-color: #f39c12;">Sistema</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Download do backup do banco de dados</span>
+                  </div>
+                </div>
+                <div class="job-footer">
+                  <a href="{% url 'vagas:backup_database' %}" class="btn btn-warning job-details-btn">
+                    <i class="fas fa-download"></i>
+                    Download
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuração de cores padrão
+    const colors = {
+        primary: '#3498db',
+        secondary: '#2c3e50',
+        success: '#27ae60',
+        warning: '#f39c12',
+        danger: '#e74c3c',
+        info: '#17a2b8'
+    };
+
+    // 1. Top Cargos Chart
+    const topCargosCtx = document.getElementById('topCargosChart').getContext('2d');
+    new Chart(topCargosCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for cargo in top_cargos %}
+                '{{ cargo.vaga__cargo__nome|truncatechars:20 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos',
+                data: [
+                    {% for cargo in top_cargos %}
+                    {{ cargo.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Candidatos Online vs Balcão Chart
+    const candidatosCtx = document.getElementById('candidatosChart').getContext('2d');
+    new Chart(candidatosCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Online', 'Balcão'],
+            datasets: [{
+                data: [{{ candidatos_online }}, {{ candidatos_balcao }}],
+                backgroundColor: [colors.success, colors.danger],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // 3. Top Empresas Chart
+    const topEmpresasCtx = document.getElementById('topEmpresasChart').getContext('2d');
+    new Chart(topEmpresasCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for empresa in top_empresas %}
+                '{{ empresa.empresa__nome|truncatechars:25 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Vagas',
+                data: [
+                    {% for empresa in top_empresas %}
+                    {{ empresa.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: colors.info,
+                borderColor: colors.info,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 4. Candidatos por Mês Chart
+    const candidatosMesCtx = document.getElementById('candidatosMesChart').getContext('2d');
+    new Chart(candidatosMesCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for item in candidatos_por_mes %}
+                '{{ item.mes }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos',
+                data: [
+                    {% for item in candidatos_por_mes %}
+                    {{ item.total }},
+                    {% endfor %}
+                ],
+                borderColor: colors.secondary,
+                backgroundColor: colors.secondary + '20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

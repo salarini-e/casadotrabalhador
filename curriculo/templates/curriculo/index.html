@@ -135,7 +135,7 @@
                                             Visualize como seu currículo aparecerá quando impresso ou enviado para empresas.
                                         </p>
                                         <div class="mt-auto">
-                                            <a class="btn btn-warning btn-block" href="{% url 'cv:curriculo' %}" target="_blank">
+                                            <a class="btn btn-warning btn-block" href="{% url 'cv:curriculo' request.user.id %}" target="_blank">
                                                 <i class="fas fa-eye me-2"></i>
                                                 Ver Currículo
                                             </a>

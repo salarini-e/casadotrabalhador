@@ -1,104 +1,590 @@
-{% extends 'base_site.html' %} {% load static %} 
-{% block title %}Painel administrativo{% endblock %} 
-{% block css %} {{block.super}} {% endblock%}
+{% extends 'template_new.html' %} 
+{% load static %} 
+{% block title %}Excluir CPF{% endblock %} 
+{% block css %} 
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
 
 {% block head_js %}
 <script src="{% static 'assets/js/modal.js' %}"></script>
 {% endblock %}
 
-{% block main_conteudo %}
+{% block main %}
 
-
-<div class="col d-flex flex-column">  
-  <div class="row">
-    <div class="col d-flex">
-        <b style="font-size: 20pt;">EXCLUIR CPF</b>
-        <a class="btn btn-primary  ms-auto" href="{% url 'vagas:painel_administrativo' %}">
-          Voltar
-        </a>
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
     </div>
   </div>
-  <form id="excluir_candidato" class="m-auto" >
-    <div class="d-flex" >
-    <label class="my-auto me-3" for="cpf">CPF:</label>
-    <input
-      id="cpf"
-      type="text"
-      class="form-control mb-2"
-      onkeydown="mascara(this, icpf)"
-      required
-      style="width:300px;"
-    />
-    <button class="btn btn-danger mb-auto ms-3">Excluir CPF</button>
-    </div>    
-    <form />
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-user-times me-2"></i>
+          Excluir CPF
+        </h1>
+        <p class="page-subtitle">Remoção de registros por CPF do candidato</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+<!-- Delete Form Section -->
+<div class="stats-container">
+    <!-- Warning Banner -->
+    <div class="warning-banner mb-4">
+        <div class="modern-card border-danger">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="warning-icon me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-danger mb-1">Zona de Exclusão de Dados</h5>
+                        <p class="text-muted mb-0">Esta área permite a remoção permanente de registros. Proceda com extrema cautela.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Delete Section -->
+    <div class="delete-section">
+        <div class="modern-card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-times me-2"></i>Excluir Candidato
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-8 mx-auto">
+                        <div class="delete-form-container">
+                            <h5 class="mb-3 text-center">Remover Registros por CPF</h5>
+                            <p class="text-muted text-center mb-4">
+                                Digite o CPF do candidato para remover todos os registros relacionados do sistema.
+                            </p>
+                            
+                            <form id="excluir_candidato" class="delete-form">
+                                <div class="form-group mb-4">
+                                    <label for="cpf" class="form-label fw-semibold">CPF do Candidato</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-id-card text-primary"></i>
+                                        </span>
+                                        <input
+                                            id="cpf"
+                                            type="text"
+                                            class="form-control"
+                                            onkeydown="mascara(this, icpf)"
+                                            placeholder="000.000.000-00"
+                                            required
+                                            maxlength="14"
+                                        />
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Digite apenas os números, a formatação será aplicada automaticamente
+                                    </div>
+                                </div>
+
+                                <!-- Confirmation Checkbox -->
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                    <label class="form-check-label fw-semibold" for="confirmDelete">
+                                        Confirmo que desejo excluir permanentemente todos os dados relacionados a este CPF
+                                    </label>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-danger btn-lg" id="deleteBtn" disabled>
+                                        <i class="fas fa-trash-alt me-2"></i>Excluir Dados Permanentemente
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="info-section mt-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="modern-card border-warning">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="info-icon bg-warning bg-opacity-10 text-warning me-3">
+                                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-warning mb-2">Ação Irreversível</h6>
+                                <p class="text-muted mb-0 small">
+                                    Uma vez excluídos, os dados não poderão ser recuperados. 
+                                    Certifique-se de que realmente deseja remover este candidato.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="modern-card border-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="info-icon bg-info bg-opacity-10 text-info me-3">
+                                <i class="fas fa-database fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-info mb-2">Dados Afetados</h6>
+                                <p class="text-muted mb-0 small">
+                                    Serão removidos: dados pessoais, currículos, candidaturas 
+                                    e todo histórico relacionado ao CPF informado.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Actions Log (Placeholder) -->
+    <div class="actions-log mt-4">
+        <div class="modern-card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Ações Recentes
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-clock fa-2x mb-2 opacity-50"></i>
+                    <p class="mb-0">Nenhuma exclusão realizada recentemente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
 </div>
 
-      <script>
-        function mascara(o, f) {
-          v_obj = o;
-          v_fun = f;
-          setTimeout("execmascara()", 1);
-        }
-        function execmascara() {
-          v_obj.value = v_fun(v_obj.value);
-        }
-        function icpf(v) {
-          v = v.replace(/\D/g, ""); //Remove tudo o que nao e digito
-          v = v.replace(/(\d{3})(\d)/, "$1.$2"); //Coloca um ponto entre o terceiro e o quarto digitos
-          v = v.replace(/(\d{3})(\d)/, "$1.$2"); //Coloca um ponto entre o terceiro e o quarto digitos
-          //de novo (para o segundo bloco de numeros)
-          v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); //Coloca um hifen entre o terceiro e o quarto digitos
-          return v;
+<style>
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.warning-banner {
+    animation: slideInDown 0.6s ease;
+}
+
+.delete-section {
+    animation: fadeInUp 0.8s ease;
+}
+
+.info-section {
+    animation: fadeInUp 1s ease;
+}
+
+.warning-icon,
+.info-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-form-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+#deleteBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px 12px 0 0 !important;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.border-danger {
+    border-left: 4px solid #dc3545 !important;
+}
+
+.border-warning {
+    border-left: 4px solid #ffc107 !important;
+}
+
+.border-info {
+    border-left: 4px solid #0dcaf0 !important;
+}
+
+.input-group-text {
+    border-color: #dee2e6;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+}
+</style>
+
+<!-- Scripts -->
+<script>
+    // Enable/disable delete button based on checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmCheckbox = document.getElementById('confirmDelete');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const cpfInput = document.getElementById('cpf');
+
+        function updateDeleteButton() {
+            const isChecked = confirmCheckbox.checked;
+            const hasCpf = cpfInput.value.length >= 14; // CPF completo
+            deleteBtn.disabled = !(isChecked && hasCpf);
         }
 
-        document
-          .getElementById("excluir_candidato")
-          .addEventListener("submit", async (e) => {
-            e.preventDefault();
-            cpf = document.getElementById("cpf").value;
-            cpf.replace("-", "");
-            cpf.replace(".", "");
+        if (confirmCheckbox && deleteBtn && cpfInput) {
+            confirmCheckbox.addEventListener('change', updateDeleteButton);
+            cpfInput.addEventListener('input', updateDeleteButton);
 
+            // Form submission
+            document.getElementById('excluir_candidato').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const cpf = cpfInput.value;
+                if (!cpf || cpf.length < 14) {
+                    showAlert('Por favor, digite um CPF válido.', 'warning');
+                    return;
+                }
+
+                if (!confirmCheckbox.checked) {
+                    showAlert('Você deve confirmar a exclusão antes de prosseguir.', 'warning');
+                    return;
+                }
+
+                // Show confirmation modal
+                if (confirm(`Tem certeza que deseja excluir permanentemente todos os dados relacionados ao CPF ${cpf}?\n\nEsta ação NÃO pode ser desfeita!`)) {
+                    showAlert('Solicitação de exclusão enviada. Os dados serão removidos em breve.', 'success');
+                    
+                    // Reset form
+                    cpfInput.value = '';
+                    confirmCheckbox.checked = false;
+                    updateDeleteButton();
+                }
+            });
+        }
+
+        // Sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('sidebar-collapsed');
+            });
+        }
+    });
+
+    function showAlert(message, type = 'info') {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.parentNode.removeChild(alert);
+            }
+        }, 5000);
+    }
+
+    function mascara(o, f) {
+        v_obj = o;
+        v_fun = f;
+        setTimeout("execmascara()", 1);
+    }
+
+    function execmascara() {
+        v_obj.value = v_fun(v_obj.value);
+    }
+
+    function icpf(v) {
+        v = v.replace(/\D/g, ""); // Remove tudo o que não é dígito
+        v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca um ponto entre o terceiro e o quarto dígitos
+        v = v.replace(/(\d{3})(\d)/, "$1.$2"); // Coloca um ponto entre o terceiro e o quarto dígitos novamente
+        v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Coloca um hífen
+        return v;
+    }
+
+    // Validação de CPF
+    function validarCPF(cpf) {
+        cpf = cpf.replace(/[^\d]+/g, '');
+        if (cpf.length !== 11) return false;
+        
+        // Elimina CPFs inválidos conhecidos
+        if (cpf === "00000000000" || cpf === "11111111111" || 
+            cpf === "22222222222" || cpf === "33333333333" || 
+            cpf === "44444444444" || cpf === "55555555555" || 
+            cpf === "66666666666" || cpf === "77777777777" || 
+            cpf === "88888888888" || cpf === "99999999999") return false;
+        
+        // Valida 1º dígito
+        let soma = 0;
+        for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+        let resto = 11 - (soma % 11);
+        if (resto === 10 || resto === 11) resto = 0;
+        if (resto !== parseInt(cpf.charAt(9))) return false;
+        
+        // Valida 2º dígito
+        soma = 0;
+        for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+        resto = 11 - (soma % 11);
+        if (resto === 10 || resto === 11) resto = 0;
+        if (resto !== parseInt(cpf.charAt(10))) return false;
+        
+        return true;
+    }
+
+    document.getElementById("excluir_candidato").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const cpfInput = document.getElementById("cpf");
+        const cpf = cpfInput.value.replace(/[^\d]+/g, '');
+        
+        if (!validarCPF(cpf)) {
+            Message.push("CPF inválido! Verifique o número digitado.", 2);
+            cpfInput.focus();
+            return;
+        }
+
+        try {
             const response = await fetch("/excluir_cpf", {
-              method: "POST",
-              headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ cpf, step: 0 }),
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ cpf, step: 0 }),
             });
 
-            if (!response.ok){
-                console.log(response)
-                Message.push("CPF Inválido", '1')
-                return
+            if (!response.ok) {
+                Message.push("Erro ao verificar CPF. Tente novamente.", 2);
+                return;
             }
 
             const data = await response.json();
 
-            if(data.qnt_excluidos == 0){
-                Message.push(`Nenhum registro encontrado com o CPF especificado!`, 1)
-                return
+            if (data.qnt_excluidos == 0) {
+                Message.push(`Nenhum registro encontrado com o CPF ${cpfInput.value}!`, 1);
+                return;
             }
 
-            const promessinha = await AcceptDeclineModal.dispatch(`Você realmente deseja excluir ${data.qnt_excluidos == 1 ? "o" : "os"} <b>${data.qnt_excluidos}</b> ${data.qnt_excluidos == 1 ? "registro" : "registros"} com o CPF ${document.getElementById("cpf").value}?`)
+            const confirmacao = await AcceptDeclineModal.dispatch(
+                `Você realmente deseja excluir ${data.qnt_excluidos == 1 ? "o" : "os"} <b>${data.qnt_excluidos}</b> ${data.qnt_excluidos == 1 ? "registro" : "registros"} com o CPF <b>${cpfInput.value}</b>?<br><br><span class="text-danger"><strong>Esta ação é irreversível!</strong></span>`
+            );
 
-            if(promessinha){
-                const response = await fetch("/excluir_cpf", {
+            if (confirmacao) {
+                const deleteResponse = await fetch("/excluir_cpf", {
                     method: "POST",
                     headers: {
-                      "X-CSRFToken": "{{ csrf_token }}",
-                      "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json",
                     },
                     body: JSON.stringify(data),
-                  });
-                  const finalData = await response.json();
-                  Message.push(`Registros excluídos com sucesso!`, 1)
-            } else{
-                console.log('ação cancelada')
+                });
+                
+                if (deleteResponse.ok) {
+                    Message.push(`${data.qnt_excluidos} registro(s) excluído(s) com sucesso!`, 1);
+                    cpfInput.value = '';
+                } else {
+                    Message.push("Erro ao excluir registros. Tente novamente.", 2);
+                }
             }
-        })
-      </script>
+        } catch (error) {
+            console.error('Erro:', error);
+            Message.push("Erro inesperado. Tente novamente.", 2);
+        }
+    });
+
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+</script>
+
+  </div>
+</div>
 
 {% endblock %}

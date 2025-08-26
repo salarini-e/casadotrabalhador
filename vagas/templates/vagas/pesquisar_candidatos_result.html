@@ -1,15 +1,29 @@
 {% if candidatos %}
 {% for candidato in candidatos %}
-<tr>					
+<tr>	
+    <td style="text-align: center;">
+        {{candidato.id}}
+    </td>
     <td>
-        <a href="{% url 'vagas:visualizar_candidato' candidato.id %}">
-            {{candidato.nome}}
-        </a>
-    </td>              
-    <td>{{candidato.vaga.cargo}}</td>          
-    <td>{{candidato.vaga}}</td>      
-    <td>{{candidato.vaga.empresa}}</td>	
-    <td>{{candidato.dt_inclusao}}</td>			
+        {{candidato.get_cpf}}
+    </td>
+    <td style="color: rgb(2, 94, 17);">
+        
+            {{candidato.nome}}        
+    </td>          
+    <td style="text-align: center;">
+        {{candidato.n_encaminhamentos}}        
+    </td>     
+    <td style="text-align: center;">
+        {{candidato.idade}}        
+    </td>        
+    <td style="text-align: center;">
+        {{candidato.contato}}        
+    </td>             
+    <td style="text-align: center;"> <a href="{% url 'vagas:visualizar_candidato' candidato.id %}">
+            Ver
+        </a></td>
+    
 </tr>
 {% endfor %}
 {% else %}
@@ -19,7 +33,9 @@
     </td>
     <td>-</td>
     <td>-</td>
-    <td>-</td>
+    <td>
+       -
+    </td>
 
 <tr>
 {% endif %}

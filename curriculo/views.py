@@ -5,13 +5,17 @@ from autenticacao.models import Pessoa
 from autenticacao.forms import Form_Pessoa
 from .forms import EducacaoForm, ExperienciaProfissionalForm, PessoaCurriculoForm
 from django.contrib import messages
+from django.contrib.auth.models import User
 # Create your views here.
 def index(request):
     return render(request, 'curriculo/index.html')
 
-def curriculo(request):
+def curriculo(request, id):
     try:
-        pessoa = Pessoa.objects.get(user=request.user)
+        print(request.user.id)
+        
+        user = User.objects.get(id=id)
+        pessoa = Pessoa.objects.get(user=user)
     except:
         pessoa = {
             'nome': None,

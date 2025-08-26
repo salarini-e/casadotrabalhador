@@ -105,19 +105,19 @@
                             {% if educacoes %}
                                 <div class="education-list">
                                     {% for item in educacoes %}
-                                    <div class="education-item">
+                                    <div class="education-item d-flex">
                                         <div class="education-content">
-                                            <h5 class="education-title">{{item.curso}}</h5>
-                                            <p class="education-institution">{{item.instituicao}}</p>
+                                            <h5 class="education-title">{{item.curso}} - {{item.instituicao}}</h5>
                                             {% if item.periodo %}
                                             <p class="education-period">
-                                                {{item.periodo}}
+                                                <span>{{item.periodo}}</span>
+                                                
                                             </p>
-                                            {% endif %}
+                                            {% endif %}                                            
                                         </div>
-                                        <div class="education-actions">
+                                        <div class="education-actions ms-auto">
                                             <a href="{% url 'cv:excluir_educacao' item.id %}" 
-                                               class="btn btn-outline-danger btn-sm"
+                                               class="text-danger"
                                                onclick="return confirm('Tem certeza que deseja remover esta formação?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>

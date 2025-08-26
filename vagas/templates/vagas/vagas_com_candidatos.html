@@ -1,177 +1,495 @@
-{% extends 'base_site.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Vagas com Candidatos{% endblock %}
 {% block css %}
 {{block.super}}
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
 {% load qntvagas %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-users-cog me-2"></i>
+          Vagas com Candidatos
+        </h1>
+        <p class="page-subtitle">Análise de candidatos por vagas em aberto</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+{% if success.0 %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+<!-- Filter Section -->
+<div class="stats-container mb-3 pt-5 px-5">
+    <form id="form_cadastro_vaga" method="post" class="form w-100">
+        <div class="filter-section">
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="mes" class="filter-label">Mês:</label>
+                    <select name="mes" id="mes" class="form-select">
+                        <option selected value='1'>Janeiro</option>
+                        <option value='2'>Fevereiro</option>
+                        <option value='3'>Março</option>
+                        <option value='4'>Abril</option>
+                        <option value='5'>Maio</option>
+                        <option value='6'>Junho</option>
+                        <option value='7'>Julho</option>
+                        <option value='8'>Agosto</option>
+                        <option value='9'>Setembro</option>
+                        <option value='10'>Outubro</option>
+                        <option value='11'>Novembro</option>
+                        <option value='12'>Dezembro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="ano" class="filter-label">Ano:</label>
+                    <select name="ano" id="ano" class="form-select">
+                        <option selected value='2022'>2022</option>
+                        <option value='2023'>2023</option>
+                        <option value='2024'>2024</option>
+                        <option value='2025'>2025</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
+            </div>
+        </div>
+        {% csrf_token %}
+    </form>
+</div>	
+{% if buscar %}
+<!-- Results Section -->
+<div class="results-section px-5 mb-5">
+    <div class="section-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-1">
+                    Resultado da busca
+                </h2>
+                <p class="text-muted mb-0">Dados referentes a {{mes}}/{{ano}}</p>
+            </div>
+            <div class="result-badge">
+                <span class="badge bg-dark fs-6 px-3 py-2">
+                    <i class="fas fa-briefcase me-1"></i>{{vagas|length}} vagas encontradas
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidatos Stats -->
+    <div class="stats-overview mb-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="stat-card modern-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon text-success me-3">
+                                <i class="fas fa-globe fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-1 text-success">{{online}}</h3>
+                                <p class="text-muted mb-0">Candidatos Online</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card modern-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icontext-info me-3">
+                                <i class="fas fa-building fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-1 text-info">{{balcao}}</h3>
+                                <p class="text-muted mb-0">Candidatos Balcão</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section mb-4">
+        <div class="modern-card">
+            <div class="card-header bg-light p-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Distribuição de Candidatos
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="piechart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Results Table -->
+    <div class="table-section">
+        <div class="modern-card">
+            <div class="card-header bg-primary text-white p-3">
+                <h5 class="mb-0">
+                    Candidatos por Empresa/Cargo
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 120px;">
+                                    <i class="fas fa-users me-1"></i>Candidatos
+                                </th>
+                                <th style="min-width: 200px;">
+                                    <i class="fas fa-briefcase me-1"></i>Cargo
+                                </th>
+                                <th class="text-center" style="width: 100px;">
+                                    <i class="fas fa-hashtag me-1"></i>Vagas
+                                </th>
+                                <th style="width: 150px;">
+                                    <i class="fas fa-clock me-1"></i>Experiência
+                                </th>
+                                <th style="width: 180px;">
+                                    <i class="fas fa-graduation-cap me-1"></i>Escolaridade
+                                </th>
+                                <th class="text-center" style="width: 160px;">
+                                    <i class="fas fa-cog me-1"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vaga in vagas %}
+                            <tr class="align-middle">
+                                <td class="text-center">
+                                    <span class="badge bg-primary rounded-pill fs-6 px-3 py-2">
+                                        {{vaga.total}}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-dark">{{vaga.informacao}}</div>
+                                    {% if vaga.informacao.empresa %}
+                                    <small class="text-muted">{{vaga.informacao.empresa}}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{vaga.informacao.quantidadeVagas}}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{vaga.informacao.experiencia|default:"Não informado"}}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{vaga.informacao.escolaridade|default:"Não informado"}}</span>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'vagas:listar_candidatos' vaga.informacao.id mes ano %}" 
+                                       class="btn btn-sm btn-outline-primary rounded-pill" 
+                                       target="_blank"
+                                       title="Ver candidatos desta vaga">
+                                        <i class="fas fa-list me-2"></i>Candidatos
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-search fa-3x mb-3"></i>
+                                        <h5>Nenhuma vaga encontrada</h5>
+                                        <p>Não há vagas com candidatos para o período selecionado.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.results-section {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.result-badge {
+    animation: fadeInUp 0.6s ease;
+}
+
+.stats-overview {
+    animation: fadeInUp 0.8s ease;
+}
+
+.table-section {
+    animation: fadeInUp 1s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.card-header {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-outline-primary.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+</style>
+{% endif %}
+<!-- Scripts -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
 
-      function drawChart() {
-
+    function drawChart() {
         var data = google.visualization.arrayToDataTable([
-          ['Task', 'Hours per Day'],
-          ['Balcão',     {{balcao}}],
-		  {% comment %} ['Balcão/Encerrado',     {{balcao}}], {% endcomment %}
-          ['Online',      {{online}}],
-		  {% comment %} ['Online/Encerrado',      {{online}}], {% endcomment %}
+            ['Tipo', 'Candidatos'],
+            ['Balcão', {{balcao}}],
+            ['Online', {{online}}],
         ]);
 
         var options = {
-          title: ''
+            title: '',
+            titleTextStyle: {
+                fontSize: 16,
+                bold: true
+            },
+            pieHole: 0.4,
+            colors: ['#007bff', '#28a745'],
+            legend: {
+                position: 'bottom',
+                alignment: 'center'
+            },
+            chartArea: {
+                left: 20,
+                top: 40,
+                width: '90%',
+                height: '75%'
+            }
         };
 
         var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-
         chart.draw(data, options);
-      }
-    </script>
-{% if success.0 %}
-<div class="row px-4 mb-3">
-    <div class="col d-flex bg-success py-2">
-        <p class="m-auto text-white">{{success.1}}</p>
-    </div>
-</div>
-{% endif %}                  
-<div class="row">    
-    <div class="col d-flex">
-        <h2 class="text-start text-uppercase">{{ tipo_cadastro }} VAGAS COM CANDIDATOS{% if mes and ano%} - {{mes}}/{{ano}}{% endif %}</h2>   
-		<div class="ms-auto">
-			<a class="btn btn-primary  ms-auto" href="{% url 'vagas:painel_administrativo' %}">
-				Voltar
-			  </a>
-		</div>
-    </div>
-</div>
-  
-<form id="form_cadastro_vaga" method="post" class="form w-100 text-start">
-	<div class="d-flex w-100 py-4">		
-		<span class="my-auto ms-auto">
-			<label for="month">Mês:</label>
-			<select name="mes" type="date" class="form-control my-auto ms-auto" id="">
-			  <option selected value='1'>Janeiro</option>
-			  <option value='2'>Fevereiro</option>
-			  <option value='3'>Março</option>
-			  <option value='4'>Abril</option>
-			  <option value='5'>Maio</option>
-			  <option value='6'>Junho</option>
-			  <option value='7'>Julho</option>
-			  <option value='8'>Agosto</option>
-			  <option value='9'>Setembro</option>
-			  <option value='10'>Outubro</option>
-			  <option value='11'>Novembro</option>
-			  <option value='12'>Dezembro</option>
-			</select>
-		  </span>
-		  <span class="my-auto ms-2 me-1"> 
-			<label for="year">Ano:</label>
-			<select name="ano" type="date" class="form-control" id="">
-			  <option selected value='2022'>2022</option>			  
-			  <option value='2023'>2023</option>
-			  <option value='2024'>2024</option>			  
-			  <option value='2025'>2025</option>
-			</select>
-		  </span>
-		  
-		<button class="btn btn-btfl mt-auto ms-1 me-auto"><i class="fas fa-filter me-2"></i></button>
-	</div>	
-	{% if buscar %}
-	<h2 class="text-center mt-5 pb-5">Resultado da busca ({{mes}}/{{ano}})</h2>
-	<div class="row px-2 mt-3">
-		<h3>Candidatos por vagas em aberto</h3>
-	</div>
-    <div class="row px-4 text-center mb-3">
-		<div class="col border py-4 me-2 indicador d-flex flex-column">
-            <b>Total de candidatos do Balcão</b>
-			<span>
-				<a href="{% url 'vagas:candidatosporfuncionario' %}" style="text-decoration: none; color: white;">
-					{{balcao}}
-				</a>
-			</span>
-        </div>
-        <div class="col border py-4 ms-2 indicador d-flex flex-column">
-            <b>Total de candidatos Online</b>
-			<span>{{online}}</span>
-        </div>
-    </div>
-	{% comment %} <div class="row px-2 mt-3">
-		<h3>Candidatos por vagas encerradas</h3>
-	</div>
-	<div class="row px-4 text-center mb-3">
-		<div class="col border py-4 me-2 indicador d-flex flex-column bg-secondary">
-            <b>Total de candidatos do Balcão</b>
-			<span>{{balcao2}}</span>
-        </div>
-        <div class="col border py-4 ms-2 indicador d-flex flex-column bg-secondary">
-            <b>Total de candidatos Online</b>
-			<span>{{online2}}</span>
-        </div>
-    </div> {% endcomment %}
-	<div class="row">
-		<div class="col d-flex">
-			<div class="mx-auto" id="piechart" style="width: 900px; height: 500px;"></div>
-		</div>
-	</div>	
-    <div class="row">
-        <div class="col pt-3 px-5">
-			<div class="d-flex w-100">
-				<h3 style="display: inline;">Candidatos por empresa/cargo</h3>				
-			</div>			
-			<table class="table table-hover text-center mt-4">
-				<thead>
-					<tr>
-						
-						<th class="text-center">Qnt. Candidatos</th>						
-						<th scope="col">Cargo</th>
-						<th scope="col">Vagas</th>
-						<th scope="col">Experiência</th>
-						<th scope="col">Escolaridade</th>						
-						<th scope="col"></th>
-			
-					  </tr>
-					</thead>
-					<tbody>
-					{% for vaga in vagas %}        
-					<tr style="background-color: rgba(230, 230, 230, 0.274);"></tr>
-						<th class="text-center">{{vaga.total}}</th>						
-						<td>{{vaga.informacao}}</td>              
-						<td scope="row">{{vaga.informacao.quantidadeVagas}}</td>          
-						<td>{{vaga.informacao.experiencia}}</td>      
-						<td>{{vaga.informacao.escolaridade}}</td>						
-						<td><a target="_blank" href="{% url 'vagas:listar_candidatos' vaga.informacao.id mes ano %}">Listar Candidatos</a></td>  
-					  </tr>
-					{% endfor %}
-				</tbody>
-			  </table>
+    }
+</script>
 
-			  <style>
-				table{
-				  font-size:  0.9em;
-				}
-				.indicador{
-					background-color: #507B9B;
-					color: white;
-				}
-				.indicador span{
-					font-size: 40pt;
-				}
-			  </style>
-        </div>      
-    </div>    
+  </div>
+</div>
 
-{% endif %}
-{% csrf_token %}
-</form>
 <script>
-   
+// Sidebar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
 </script>
 
 {% endblock %}

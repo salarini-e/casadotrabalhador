@@ -1,85 +1,472 @@
-{% extends 'base_site.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Pesquisar Candidatos{% endblock %}
 {% block css %}
 {{block.super}}
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
 {% load qntvagas %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
 
-{% if success.0 %}
-<div class="row px-4 mb-3">
-    <div class="col d-flex bg-success py-2">
-        <p class="m-auto text-white">{{success.1}}</p>
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <!-- <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button> -->
     </div>
-</div>
-{% endif %}                  
-<div class="row">    
-    <div class="col d-flex">
-        <h2 class="text-start text-uppercase">PESQUISAR CANDIDATOS POR CPF OU NOME</h2>   
-		<div class="ms-auto">
-			<a href="{% url 'vagas:vagas_com_candidatos' %}" class="btn btn-btfl me-2"><i class="fas fa-undo-alt me-2"></i>Voltar</a>			
-		</div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item active">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
     </div>
   </div>
- 
-    <div class="row px-4 text-center my-3">
-		<div class="col py-4 me-2 d-flex flex-column">
-            <div class="input-group mb-3" style="max-width: 400px;">
-        <form id='search_form' class='d-flex'>
 
-				<span class="input-group-text" id="basic-addon1"><i class="fas fa-search"></i></span>
-				<input type="text" oninput="potencial_mask(this)" id='search_input' class="form-control" placeholder="Pesquisar candidato" aria-label="pesquisar" aria-describedby="basic-addon1">
-                <button id='pesquisar' class="mx-2 btn btn-primary">Pesquisar</button>
-               
-        </form>
-            </div>
-			  
-        </div>        
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-search me-2"></i>
+          Pesquisar Candidatos
+        </h1>
+        <p class="page-subtitle">Busca por CPF ou nome do candidato</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="row d-flex flex-column">
-        <div class="col pt-3 px-5">
-			<table class="table table-hover text-center">
-				<thead>
-					<tr>						
-						<th class="text-center">Candidatos</th>						
-						<th scope="col" >Cargo</th>
-						<th scope="col">Vagas</th>
-						<th scope="col">Empresa</th>			
-					  </tr>
-					</thead>
-					<tbody id="search_candidato_result">
-			
-					</tbody>
-			  </table>
-			  <style>
-				table{
-				  font-size:  0.9em;
-				}
-				.indicador{
-					background-color: #507B9B;
-					color: white;
-				}
-				.indicador span{
-					font-size: 40pt;
-				}
-			  </style>
-        </div>      
 
-        <div class="loading d-none" id="loading">
-            <img src="/static/images/Spinner-1s-200px.svg"/>
-          </div>   
-    </div>    
+{% if success.0 %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- Search Section -->
+<div class="stats-container">
+    <div class="search-section">
+        <div class="search-header">
+            <h3><i class="fas fa-user-search me-2"></i>Buscar Candidatos</h3>
+            <p class="text-muted">Digite o CPF (com números) ou nome (somente letras) do candidato</p>
+        </div>
+        
+        <form id='search_form' class='search-form'>
+            <div class="search-input-group">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" 
+                           oninput="potencial_mask(this)" 
+                           id='search_input' 
+                           class="form-control form-control-lg" 
+                           placeholder="Digite CPF (ex: 123.456.789-00) ou nome do candidato" 
+                           aria-label="pesquisar">
+                    <button type="submit" id='pesquisar' class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Pesquisar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div class="results-container">
+    <!-- Search Stats -->
+    <div id="search-stats" class="search-stats d-none mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="stat-card modern-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-2">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <h4 class="mb-1" id="total-found">0</h4>
+                        <p class="text-muted mb-0">Candidatos encontrados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card modern-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success mb-2">
+                            <i class="fas fa-globe fa-2x"></i>
+                        </div>
+                        <h4 class="mb-1" id="online-count">0</h4>
+                        <p class="text-muted mb-0">Cadastros Online</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card modern-card">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info mb-2">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                        <h4 class="mb-1" id="balcao-count">0</h4>
+                        <p class="text-muted mb-0">Cadastros Balcão</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-section my-4 mx-5">
+        <div class="modern-card">
+            <div class="card-header bg-light p-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Resultados da Pesquisa
+                </h5>
+                <div class="table-actions d-none" id="table-actions">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="exportResults()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearResults()">
+                        <i class="fas fa-trash me-1"></i>Limpar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px; text-align: center;">
+                                    ID
+                                </th>
+                                <th style="width: 50px;">
+                                    CPF
+                                </th>
+                                <th style="width: 350px;">
+                                    <i class="fas fa-id-card me-1"></i>Nome do candidato
+                                </th>                                
+                                <th style="width: 80px; text-align: center;">
+                                    <i class="fas fa-share-square me-1"></i>Encaminhamentos
+                                </th>                    
+                                <th style="width: 60px; text-align: center;">
+                                    <i class="fas fa-calendar me-1"></i>Idade
+                                </th>
+                                <th style="width: 80px; text-align: center;">
+                                    <i class="fas fa-phone me-1"></i>Contato
+                                </th>
+                                            
+                                <th style="width: 60px; text-align: center;">
+                                    <i class="fas fa-cog me-1"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="search_candidato_result">
+                            <tr class="no-results-row">
+                                <td colspan="7" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Nenhuma pesquisa realizada</h5>
+                                        <p class="text-muted mb-0">Digite um CPF ou nome para começar a pesquisa</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+           
+        </div>
+    </div>
+</div>
+
+<style>
+.results-container {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa !important;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.empty-state {
+    padding: 2rem;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.candidate-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.candidate-info {
+    line-height: 1.4;
+}
+
+.candidate-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.candidate-cpf {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-family: 'Courier New', monospace;
+}
+
+.contact-info {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.origin-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.origin-online {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.origin-balcao {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.search-stats {
+    animation: fadeInUp 0.6s ease;
+}
+
+.table-actions {
+    animation: fadeInLeft 0.6s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-action {
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+</style>
+    </div>
     
-
+    <!-- Loading Indicator -->
+  
+</div>    
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script>
-
     document.querySelector('#search_form').addEventListener('submit', (e)=>{
-        e.preventDefault('#')
+        e.preventDefault()
         pesquisar(document.querySelector('#search_input'))
     })
 
@@ -94,93 +481,150 @@
     function execmascara(element, fn){
         element.value=fn(element.value)
     }
+    
     function icpf(v){
         v = v.substring(0, 14)
-        v=v.replace(/\D/g,"")                    //Remove tudo o que nao e digito
-        v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
-        v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
-                                                            //de novo (para o segundo bloco de numeros)
-        v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2") //Coloca um hifen entre o terceiro e o quarto digitos
+        v=v.replace(/\D/g,"")
+        v=v.replace(/(\d{3})(\d)/,"$1.$2")
+        v=v.replace(/(\d{3})(\d)/,"$1.$2")
+        v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2")
         return v
     }
+    
     function inome(v){
         v=v.replace(/[0-9]/g,"")
         return v
     }
 
     function pesquisar(element){
-
-        document.querySelector("#search_candidato_result").innerHTML = ''
-        remove_class(document.querySelector('#loading'), 'd-none')
-        add_class(document.querySelector('#pesquisar'), 'disabled')
+        // Clear previous results
+        document.querySelector("#search_candidato_result").innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>                        
+                    </div>
+                    <p class="mb-0">Pesquisando candidatos...</p>
+                </td>
+            </tr>
+        `
+        
+        // remove_class(document.querySelector('#loading'), 'd-none')
+        // add_class(document.querySelector('#pesquisar'), 'disabled')
 
         if(/\d/.test(element.value)){
-            console.log(element.value)
             get_canditado_by_cpf(element.value.replaceAll('.','').replace('-', ''))
-
         } else {
             get_candidato_by_nome(element.value)
         }
-
     }
 
     async function get_canditado_by_cpf(value){
-        
-        const response = await fetch('/get_candidatos/',
-        {
-            method: 'POST',
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({cpf: value})
-        })
+        try {
+            const response = await fetch('/get_candidatos/', {
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({cpf: value})
+            })
 
-        const data = await response.text()
-        add_class(document.querySelector('#loading'), 'd-none')
-        remove_class(document.querySelector('#pesquisar'), 'disabled')
+            const data = await response.text()
+            // add_class(document.querySelector('#loading'), 'd-none')
+            // remove_class(document.querySelector('#pesquisar'), 'disabled')
 
-        document.querySelector("#search_candidato_result").innerHTML = data
-        
+            if (data.trim()) {
+                document.querySelector("#search_candidato_result").innerHTML = data
+            } else {
+                document.querySelector("#search_candidato_result").innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="fas fa-exclamation-circle fa-2x mb-3 text-warning"></i>
+                            <p class="mb-0">Nenhum candidato encontrado para este CPF</p>
+                        </td>
+                    </tr>
+                `
+            }
+        } catch (error) {
+            console.error('Erro na pesquisa:', error)
+            // add_class(document.querySelector('#loading'), 'd-none')
+            // remove_class(document.querySelector('#pesquisar'), 'disabled')
+            
+            document.querySelector("#search_candidato_result").innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger py-5">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <p class="mb-0">Erro na pesquisa. Tente novamente.</p>
+                    </td>
+                </tr>
+            `
+        }
     }
 
     async function get_candidato_by_nome(value){
-        const response = await fetch('/get_candidatos/',
-        {
-            method: 'POST',
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({nome: value})
-        })
+        try {
+            const response = await fetch('/get_candidatos/', {
+                method: 'POST',
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({nome: value})
+            })
 
-        const data = await response.text()
-        add_class(document.querySelector('#loading'), 'd-none')
-        remove_class(document.querySelector('#pesquisar'), 'disabled')
+            const data = await response.text()
+            // add_class(document.querySelector('#loading'), 'd-none')
+            // remove_class(document.querySelector('#pesquisar'), 'disabled')
 
-        document.querySelector("#search_candidato_result").innerHTML = data
+            if (data.trim()) {
+                document.querySelector("#search_candidato_result").innerHTML = data
+            } else {
+                document.querySelector("#search_candidato_result").innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="fas fa-exclamation-circle fa-2x mb-3 text-warning"></i>
+                            <p class="mb-0">Nenhum candidato encontrado para este nome</p>
+                        </td>
+                    </tr>
+                `
+            }
+        } catch (error) {
+            console.error('Erro na pesquisa:', error)
+            // add_class(document.querySelector('#loading'), 'd-none')
+            // remove_class(document.querySelector('#pesquisar'), 'disabled')
+            
+            document.querySelector("#search_candidato_result").innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger py-5">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                        <p class="mb-0">Erro na pesquisa. Tente novamente.</p>                        
+                    </td>
+                </tr>
+            `
+        }
     }
 
     function remove_class(el, class_name){
         el.classList.remove(class_name)
     }
+    
     function add_class(el, class_name){
         el.classList.add(class_name)
     }
 
-   function getCandidatos(value){
-        var url = '/get_candidatos/';  
-        $.ajax({ 
-            url: url,
-            data: {
-                'candidatos': value,
-            },
-            success: function(data) {                               
-                $("#search_candidato_result").html(data);
-            }
-        });                
-    };
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
 </script>
+
+  </div>
+</div>
 
 {% endblock %}

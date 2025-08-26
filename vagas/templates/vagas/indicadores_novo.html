@@ -1,0 +1,465 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Indicadores - Casa do Trabalhador{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
+{% block main %}
+{% load widget_tweaks %}   
+{% load bootstrap5 %}  
+{% load qntvagas %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-chart-line me-2"></i>
+          Indicadores
+        </h1>
+        <p class="page-subtitle">
+          Iremos posteriormente substituir esta área pelo Dashboard assim que implementarmos os gráficos.
+        </p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+        
+        </div>
+      </div>
+    </div>
+
+{% if success.0 %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+<!-- Filter Section -->
+
+
+<!-- Results Section -->
+<div class="results-section px-5 mb-5">
+    
+  <!-- Informações da Oportunidade -->
+  <!-- Informações da Oportunidade -->
+  <div class="opportunity-section mb-4">    
+      <div class="modern-card shadow-sm p-4" style="background-color: white;">        
+          
+          <div class="row">
+              <!-- Coluna 1 -->
+              
+              <div class="col">
+
+                  <div class="main-card mb-3">
+                      <div id="graf_top_cargos_ofertados" style="width: 100%; height: 450px;"></div>
+                  </div> 
+
+                  <div class="main-card mb-3">
+                      <div id="graf_escolaridades" style="width: 100%; height: 450px;"></div>
+                  </div> 
+
+                  <div class="main-card mb-3">
+                      <div id="graf_candidato_por_mes" style="width: 100%; height: 450px;"></div>
+                  </div> 
+
+                  <div class="main-card mb-3">
+                      <div id="graf_vagas_por_empresa" style="width: 100%; height: 450px;"></div>
+                  </div> 
+
+                  <div class="main-card mb-3">
+                    <div id="graf_vaga_cadastradas_por_mes" style="width: 100%; height: 450px;"></div>
+                  </div>
+
+                  <div class="main-card mb-3">
+                    <div id="graf_relacao_online_balcao" style="width: 100%; height: 450px;"></div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+        
+        function drawChart() {
+          
+          let data = google.visualization.arrayToDataTable([
+            ['Cargo', 'Quantidade'],
+              {% for cargo_ofertado in top_cargos_ofertados %}
+                      ["{{ cargo_ofertado.nome}}",     {{ cargo_ofertado.total }}],
+              {% endfor %}
+          ]);
+
+          let options = {
+            title: '{{top_x}} cargos com mais vagas',
+            pieHole: 0.4,
+          };
+
+          let chart = new google.visualization.PieChart(document.getElementById('graf_top_cargos_ofertados'));
+          chart.draw(data, options);
+
+          // -------------------------- //
+
+          data = google.visualization.arrayToDataTable([
+          ['Cargo', 'Quantidade'],
+            {% for escolaridade in escolaridades %}
+                    ["{{ escolaridade.nome}}",     {{ escolaridade.total }}],
+            {% endfor %}
+          ]);
+
+          options = {
+              title: 'Candidatos por escolaridade',
+              pieHole: 0.4,
+          };
+
+          chart = new google.visualization.PieChart(document.getElementById('graf_escolaridades'));
+          chart.draw(data, options);
+
+
+          // -------------------------- //
+
+          data = google.visualization.arrayToDataTable([
+          ['Cargo', 'Quantidade'],
+            {% for candidato_por_mes in candidatos_por_mes %}
+                    ["{{ candidato_por_mes.nome|date:"M Y"}}",     {{ candidato_por_mes.total }}],
+            {% endfor %}
+          ]);
+
+          options = {
+              title: 'Cargos ofertados por mês',
+          };
+
+          chart = new google.visualization.ColumnChart(document.getElementById('graf_candidato_por_mes'));
+          chart.draw(data, options);
+
+          // -------------------------- //
+
+          data = google.visualization.arrayToDataTable([
+          ['Mês', 'Quantidade'],
+            {% for vaga_cadastradas_por_mes in vagas_cadastradas_por_mes %}
+                    ["{{ vaga_cadastradas_por_mes.nome|date:"M Y"}}",     {{ vaga_cadastradas_por_mes.total }}],
+            {% endfor %}
+          ]);
+  
+          options = {
+              title: 'Candidatos por mês',
+          };
+  
+          chart = new google.visualization.ColumnChart(document.getElementById('graf_vaga_cadastradas_por_mes'));
+          chart.draw(data, options);
+
+          // -------------------------- //
+
+          data = google.visualization.arrayToDataTable([
+          ['Empresa', 'Quantidade'],
+            {% for vaga_por_empresa in vagas_por_empresa %}
+                    ["{{ vaga_por_empresa.nome}}",     {{ vaga_por_empresa.total }}],
+            {% endfor %}
+          ]);
+
+          options = {
+              title: '{{top_x}} empresas com maior número de oferta de vagas',
+              pieHole: 0.4,
+          };
+
+          chart = new google.visualization.PieChart(document.getElementById('graf_relacao_online_balcao'));
+          chart.draw(data, options);
+
+      // -------------------------- //
+
+      data = new google.visualization.DataTable();
+      data.addColumn('string', 'Mês');
+      data.addColumn('number', 'Candidatos Online');
+      data.addColumn('number', 'Candidatos presencialmente');
+
+      data.addRows([
+        {% for relacao in relacao_online_balcao %}
+                ["{{ relacao.nome|date:"M Y"}}", {{ relacao.online }}, {{relacao.balcao}}],
+        {% endfor %}
+      ]);
+
+      options = {
+          title: 'Relação de vagas onlines e presencialmente',
+      };
+
+      chart = new google.visualization.ColumnChart(document.getElementById('graf_vagas_por_empresa'));
+      chart.draw(data, options);
+
+      }
+
+
+        google.charts.load("current", {packages:["corechart"]});
+        google.charts.setOnLoadCallback(drawChart);
+
+
+      
+  </script>
+    
+</div>
+
+<style>
+.results-section {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.result-badge {
+    animation: fadeInUp 0.6s ease;
+}
+
+.stats-overview {
+    animation: fadeInUp 0.8s ease;
+}
+
+.table-section {
+    animation: fadeInUp 1s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.card-header {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-outline-primary.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+</style>
+
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Tipo', 'Candidatos'],
+            ['Balcão', {{balcao}}],
+            ['Online', {{online}}],
+        ]);
+
+        var options = {
+            title: '',
+            titleTextStyle: {
+                fontSize: 16,
+                bold: true
+            },
+            pieHole: 0.4,
+            colors: ['#007bff', '#28a745'],
+            legend: {
+                position: 'bottom',
+                alignment: 'center'
+            },
+            chartArea: {
+                left: 20,
+                top: 40,
+                width: '90%',
+                height: '75%'
+            }
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+        chart.draw(data, options);
+    }
+</script>
+
+  </div>
+</div>
+
+<script>
+// Sidebar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}

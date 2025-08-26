@@ -8,7 +8,16 @@
 {% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
-
+<style>
+    .experience-item{
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .experience-item:hover{
+        background-color: #acb4c598;
+    }
+</style>
 <div class="form-container" style="margin-top: 120px;">
     <div class="container-fluid px-4">
         <!-- Success Message -->
@@ -105,24 +114,24 @@
                             {% if experiencias %}
                                 <div class="experience-list">
                                     {% for item in experiencias %}
-                                    <div class="experience-item">
-                                        <div class="experience-content">
-                                            <h5 class="experience-title">{{item.cargo}}</h5>
-                                            <p class="experience-company">{{item.empresa}}</p>
+                                    <div class="experience-item w-100 d-flex">
+                                        <div class="experience-content w-100">
+                                            <h5 class="experience-title">{{item.cargo}} - {{item.empresa}}</h5>
+                                            
                                             {% if item.periodo %}
                                             <p class="experience-period">
                                                 {{item.periodo}}
                                             </p>
                                             {% endif %}
                                             {% if item.descricao %}
-                                            <p class="experience-description">
+                                            <p class="experience-description" style="margin-bottom: 0px;">
                                                 {{item.descricao}}
                                             </p>
                                             {% endif %}
                                         </div>
                                         <div class="experience-actions">
                                             <a href="{% url 'cv:excluir_experiencia' item.id %}" 
-                                               class="btn btn-outline-danger btn-sm"
+                                               class="ms-auto text-danger"
                                                onclick="return confirm('Tem certeza que deseja remover esta experiência?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>

@@ -1,47 +1,232 @@
-{% extends 'base_site.html' %} {% load static %} 
-{% block title %}Painel Administrativo{% endblock %} 
-{% block css %} {{block.super}} 
-<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Informações da Empresa{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
 {% endblock%}
 
 {% block head_js %}
 <script src="{% static 'assets/js/modal.js' %}"></script>
 {% endblock %}
 
-{% block main_conteudo %}
+{% block main %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-building me-2"></i>
+          Informações da Empresa
+        </h1>
+        <p class="page-subtitle">Pesquisar informações de empresas cadastradas</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 
 <div class="row">
-  <div class="col">
-    <h1 class="text-start mb-0 pb-0">
-      Painel Administrativo
-    </h1>
-  </div>
-</div>
-<div id="painelMenu" class="col">
+  <div class="col p-5">
   <div class="row">
     <div class="col d-flex">
       <input type="search" name="search" id="search" class="form-control" placeholder="Procurar...">
     </div>
   </div>
   
-  <table class="table mt-5">
-    <thead>
-      <th>ID</th>
-      <th>CNPJ</th>
-      <th>Nome da empresa</th>
-      <th></th>
-    </thead>
-    <tbody>
-      {% for empresa in empresas %}
-      <tr class="empresa-row">
-        <td>{{empresa.id}}</td>
-        <td>{{empresa.cnpj}}</td>
-        <td>{{empresa.nome}}</td>
-        <td><a class="text-success" href="{% url 'vagas:empresa_info_download' empresa.id %}" style="text-decoration: none;"><i class="fa fa-file-excel"></i></a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Results Section -->
+  
+
+    <!-- Companies Table -->
+    <div class="table-section mt-4">
+        <div class="modern-card">
+            <div class="card-header p-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>Empresas
+                </h5>
+                <div class="table-actions">
+                    <a target="_blank" href="{% url 'vagas:cadastrar_empresa' %}" style="color: #2c3e50;" class="me-2">
+                      <i class="fas fa-plus me-1"></i>
+                      Adicionar nova
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 80px; text-align: center;">
+                                    <i class="fas fa-hashtag me-1"></i>ID
+                                </th>
+                                <th style="width: 180px;">
+                                    <i class="fas fa-id-card me-1"></i>CNPJ
+                                </th>
+                                <th style="min-width: 250px;">
+                                    <i class="fas fa-building me-1"></i>Nome da Empresa
+                                </th>
+                                <th style="width: 120px;" class="text-center">
+                                    <i class="fas fa-cog me-1"></i>Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for empresa in empresas %}
+                            <tr class="empresa-row align-middle">
+                                <td class="text-center">
+                                    <span class="">{{empresa.id}}</span>
+                                </td>
+                                <td>
+                                    {{empresa.get_cnpj|default:"Não informado"}}
+                                </td>
+                                <td>
+                                    <div class="company-info">
+                                        <div class="company-name">{{empresa.nome}}</div>
+                                        {% if empresa.endereco %}
+                                        <small class="text-muted">{{empresa.endereco}}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'vagas:empresa_info_download' empresa.id %}" 
+                                       class="btn btn-sm btn-outline-success rounded-pill"
+                                       title="Baixar relatório da empresa"
+                                       target="_blank">
+                                        <i class="fas fa-file-excel me-1"></i>Excel
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Nenhuma empresa encontrada</h5>
+                                        <p class="text-muted mb-0">Não há empresas cadastradas no sistema.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
 
 </div>
 <style>
@@ -51,23 +236,190 @@
     padding-bottom: 8px;
     margin-bottom: 5px;    
   }
+
+  .results-section {
+    margin-top: 2rem;
+  }
+
+  .modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  .stat-card {
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .modern-table {
+    font-size: 0.9rem;
+  }
+
+  .modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa !important;
+  }
+
+  .modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+  }
+
+  .modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .cnpj-code {
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #495057;
+  }
+
+  .company-info {
+    line-height: 1.4;
+  }
+
+  .company-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+  }
+
+  .empty-state {
+    padding: 2rem;
+  }
+
+  .card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  .btn-outline-success.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-success.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+  }
+
+  .search-stats {
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .table-section {
+    animation: fadeInUp 0.8s ease;
+  }
+
+  @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+  }
+  
+</style>
   
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    const totalEmpresas = {{empresas|length}};
+    
     $("#search").on("keyup", function() {
         var value = $(this).val().toLowerCase();
+        let visibleCount = 0;
+        
         $(".empresa-row").filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            const isVisible = $(this).text().toLowerCase().indexOf(value) > -1;
+            $(this).toggle(isVisible);
+            if (isVisible) visibleCount++;
+            return true;
         });
+        
+        // Update visible count
+        $("#visible-count").text(visibleCount);
+        
+        // Show empty state if no results
+        if (visibleCount === 0 && value.length > 0) {
+            if ($(".no-results-message").length === 0) {
+                $("tbody").append(`
+                    <tr class="no-results-message">
+                        <td colspan="4" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhuma empresa encontrada</h5>
+                                <p class="text-muted mb-0">Tente ajustar os termos da pesquisa.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+        } else {
+            $(".no-results-message").remove();
+        }
     });
 
     $("#clear-filter").on("click", function() {
         $("#search").val("");
         $(".empresa-row").show();
+        $("#visible-count").text(totalEmpresas);
+        $(".no-results-message").remove();
     });
+
+    // Export function
+    window.exportAllCompanies = function() {
+        window.open('/empresas/export/all', '_blank');
+    };
+
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
 });
 </script>
+
+  </div>
+</div>
+
 {% endblock %}

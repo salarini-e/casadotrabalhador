@@ -1,0 +1,430 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Vagas com Candidatos{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
+{% block main %}
+{% load widget_tweaks %}   
+{% load bootstrap5 %}  
+{% load qntvagas %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-users-cog me-2"></i>
+          Vagas com Candidatos
+        </h1>
+        <p class="page-subtitle">Lista de candidatos por vaga</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:vagas_com_candidatos' %}" style="color: #414141;" title="Atualizar dados">
+            Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+
+{% if success.0 %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+<!-- Filter Section -->
+
+
+<!-- Results Section -->
+<div class="results-section px-5 mb-5">
+    <div class="section-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-1">
+                    {{candidatos.0.vaga}}
+                </h2>
+                <p class="text-muted mb-0">Dados referentes a {{mes}}/{{ano}}</p>
+            </div>
+            <div class="result-badge">
+                <span class="badge bg-dark fs-6 px-3 py-2">
+                    <i class="fas fa-briefcase me-1"></i>{{candidatos|length}} candidatos
+                </span>
+            </div>
+        </div>
+    </div>
+
+ <!-- Informações da Oportunidade -->
+<!-- Informações da Oportunidade -->
+<div class="opportunity-section mb-4">
+    <div class="card-header bg-primary text-white p-3">
+                <h5 class="mb-0">
+                    Detalhes da vaga
+                </h5>
+            </div>  
+    <div class="modern-card shadow-sm p-4" style="background-color: white;">        
+         
+        <div class="row">
+            <!-- Coluna 1 -->
+            <div class="col-md-6">
+                
+                <h6>CNPJ:</h6>
+                <p>{{candidatos.0.vaga.empresa.get_cnpj}}</p>
+
+                <h6 class="fw-bold mt-3">Cargo</h6>
+                <p class=" mb-1">{{candidatos.0.vaga.cargo.nome}}</p>
+                <h6 class="fw-bold">Tipo de vaga: </h6>
+                <p>{{candidatos.0.vaga.get_tipo_de_vaga_display}}</p>
+
+                <h6 class="fw-bold mt-3">Escolaridade</h6>
+                <p class="">{{candidatos.0.vaga.escolaridade}}</p>
+            </div>
+
+            <!-- Coluna 2 -->
+            <div class="col-md-6">
+                <h6>Salário:</h6>
+                <p class="">{{candidatos.0.vaga.salario|default:"Não informado"}}</p>
+
+                <h6 class="fw-bold mt-3">Carga Horária</h6>
+                <p class=" mb-1">{{candidatos.0.vaga.carga_horaria|default:"Não informado"}}</p>
+
+                <h6 class="fw-bold mt-3">Regime</h6>
+                <p class=" mb-1">{{candidatos.0.vaga.regime|default:"Não informado"}}</p>
+
+                <h6 class="fw-bold mt-3">Experiência</h6>
+                <p class=" mb-1">{{candidatos.0.vaga.get_experiencia_display}}</p>
+            </div>
+        </div>
+
+        {% if candidatos.0.vaga.atribuicoes %}
+        <div class="mt-3">
+            <h6 class="fw-bold">Atribuições</h6>
+            <p class="mb-0">{{candidatos.0.vaga.atribuicoes}}</p>
+        </div>
+        {% endif %}
+
+        {% if candidatos.0.vaga.observacao %}
+        <div class="mt-3">
+            <h6 class="fw-bold">Observações Internas</h6>
+            <p class="mb-0 text-danger">{{candidatos.0.vaga.observacao}}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+    <!-- Main Results Table -->
+    <div class="table-section">
+        <div class="modern-card">
+            <div class="card-header bg-primary text-white p-3">
+                <h5 class="mb-0">
+                    Candidatos por Empresa/Cargo
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Celular</th>
+                <th>Encaminhamento</th>
+                <th>Data de registro</th>
+                <th>Ação</th>
+            </thead>
+            </tbody>
+        {% for candidato in candidatos %}
+            
+            <tr>
+                <td class="text-capitalize">{{candidato.nome|lower}}</td>
+                <td>{{candidato.email}}</td>
+                <td>{{candidato.celular}}</td>
+                <td>
+                    {% if candidato.candidato_online %}
+                    <span class="text-success">Online</span>
+                    {% else %}
+                    <span class="text-danger">Balcão</span>
+                    {% endif %}                    
+                </td>
+                <td>{{candidato.dt_inclusao}}</td>
+                <td>
+                    <a href="{% url 'vagas:visualizar_candidato' candidato.id %}">
+                        Ver
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.results-section {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.result-badge {
+    animation: fadeInUp 0.6s ease;
+}
+
+.stats-overview {
+    animation: fadeInUp 0.8s ease;
+}
+
+.table-section {
+    animation: fadeInUp 1s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.card-header {
+    border-bottom: none;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-outline-primary.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+</style>
+
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Tipo', 'Candidatos'],
+            ['Balcão', {{balcao}}],
+            ['Online', {{online}}],
+        ]);
+
+        var options = {
+            title: '',
+            titleTextStyle: {
+                fontSize: 16,
+                bold: true
+            },
+            pieHole: 0.4,
+            colors: ['#007bff', '#28a745'],
+            legend: {
+                position: 'bottom',
+                alignment: 'center'
+            },
+            chartArea: {
+                left: 20,
+                top: 40,
+                width: '90%',
+                height: '75%'
+            }
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+        chart.draw(data, options);
+    }
+</script>
+
+  </div>
+</div>
+
+<script>
+// Sidebar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}

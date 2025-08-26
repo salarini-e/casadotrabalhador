@@ -1,9 +1,54 @@
-{% extends 'base_site.html' %}
+{% extends 'template_new.html' %}
+{% load static %}
 {% block title %}{{tipo_cadastro}} Vaga{% endblock %}
 {% block css %}
 {{block.super}}
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Logo">
+                <h3>Painel Admin</h3>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="/painel_administrativo"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="/pesquisar_candidatos"><i class="fas fa-search"></i> <span>Pesquisar Candidatos</span></a></li>
+                <li><a href="/excluir_cpf"><i class="fas fa-user-minus"></i> <span>Excluir CPF</span></a></li>
+                <li><a href="/infoempresa"><i class="fas fa-building"></i> <span>Info Empresa</span></a></li>
+                <li><a href="/emails"><i class="fas fa-envelope"></i> <span>Emails</span></a></li>
+                <li><a href="/vagas-com-candidatos"><i class="fas fa-briefcase"></i> <span>Vagas com Candidatos</span></a></li>
+                <li><a href="/candidatos-por-funcionarios"><i class="fas fa-users"></i> <span>Candidatos por Funcionário</span></a></li>
+                <li class="active"><a href="/cadastrar-cargo"><i class="fas fa-plus-circle"></i> <span>Cadastrar Cargo</span></a></li>
+                <li><a href="/cadastrar-escolaridade"><i class="fas fa-graduation-cap"></i> <span>Cadastrar Escolaridade</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h2>{{ tipo_cadastro }} Cargo</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-info">
+                    <span>Admin</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content" style="padding: 20px;">
 {% load widget_tweaks %}   
 {% load bootstrap5 %} 
 {% if success.0 %}
@@ -65,6 +110,15 @@
         }
     }
 </script>
+        </div>
+    </div>
+</div>
 
+<script>
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+    document.querySelector('.main-content').classList.toggle('content-expanded');
+});
+</script>
 
 {% endblock %}

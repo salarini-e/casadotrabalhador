@@ -1,135 +1,598 @@
-{% extends 'base_site.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Emails de Candidatos{% endblock %}
 {% block css %}
 {{block.super}}
-{% load static %}
-<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
 {% load qntvagas %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
 
-      function drawChart() {
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        var data = google.visualization.arrayToDataTable([
-          ['Task', 'Hours per Day'],
-          ['Balcão',     {{balcao}}],
-		  {% comment %} ['Balcão/Encerrado',     {{balcao}}], {% endcomment %}
-          ['Online',      {{online}}],
-		  {% comment %} ['Online/Encerrado',      {{online}}], {% endcomment %}
-        ]);
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-envelope me-2"></i>
+          Emails de Candidatos
+        </h1>
+        <p class="page-subtitle">Exportação de emails por período</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 
-        var options = {
-          title: ''
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-
-        chart.draw(data, options);
-      }
-    </script>
 {% if success.0 %}
-<div class="row px-4 mb-3">
-    <div class="col d-flex bg-success py-2">
-        <p class="m-auto text-white">{{success.1}}</p>
-    </div>
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
-{% endif %}                  
-<div class="row">    
-    <div class="col d-flex">
-        <h2 class="text-start text-uppercase">{{ tipo_cadastro }} CANDIDATOS POR MÊS{% if mes and ano%} - {{mes}}/{{ano}}{% endif %}</h2>   
-		<div class="ms-auto">
-			<a class="btn btn-primary  ms-auto" href="{% url 'vagas:painel_administrativo' %}">
-				Voltar
-			  </a>
-		</div>
-    </div>
-</div>
-  
-<form id="form_cadastro_vaga" method="post" class="form w-100 text-start">
-	<div class="d-flex w-100 py-4">		
-		<span class="my-auto ms-auto">
-			<label for="month">Mês:</label>
-			<select name="mes" type="date" class="form-control my-auto ms-auto" id="">
-			  <option selected value='1'>Janeiro</option>
-			  <option value='2'>Fevereiro</option>
-			  <option value='3'>Março</option>
-			  <option value='4'>Abril</option>
-			  <option value='5'>Maio</option>
-			  <option value='6'>Junho</option>
-			  <option value='7'>Julho</option>
-			  <option value='8'>Agosto</option>
-			  <option value='9'>Setembro</option>
-			  <option value='10'>Outubro</option>
-			  <option value='11'>Novembro</option>
-			  <option value='12'>Dezembro</option>
-			</select>
-		  </span>
-		  <span class="my-auto ms-2 me-1"> 
-			<label for="year">Ano:</label>
-			<select name="ano" type="date" class="form-control" id="">
-			  <option selected value='2022'>2022</option>			  
-			  <option value='2023'>2023</option>			  
-			  <option value='2023'>2024</option>	
-			  <option value='2023'>2025</option>	
-			</select>
-		  </span>
-		  
-		<button class="btn btn-btfl mt-auto ms-1 me-auto"><i class="fas fa-filter me-2"></i></button>
-	</div>	
-	{% if buscar %}
-	
-
-    <div class="row my-5">
-        <div class="col pt-3 px-5">
-			<div class="d-flex w-100">
-				<h3 style="display: inline;">Candidatos</h3>
-                <a class="btn btn-primary mx-3" id='csv' href={% url "vagas:download_emails" mes ano %} Download="candidatos_{{mes}}_{{ano}}.csv">Download CSV</a>				
-			</div>			
-			<table class="table table-hover text-center mt-4">
-				<thead>
-					<tr>
-						
-						<th class="text-center">Nome</th>						
-						<th scope="col">Email</th>
-			
-					  </tr>
-					</thead>
-					<tbody>
-					{% for candidato in candidatos %}        
-					<tr style="background-color: rgba(230, 230, 230, 0.274);"></tr>
-						<th class="text-center">{{candidato.nome}}</th>						
-						<td>{{candidato.email}}</td>              
-					  </tr>
-					{% endfor %}
-				</tbody>
-			  </table>
-
-			  <style>
-				table{
-				  font-size:  0.9em;
-				}
-				.indicador{
-					background-color: #507B9B;
-					color: white;
-				}
-				.indicador span{
-					font-size: 40pt;
-				}
-			  </style>
-        </div>      
-    </div>    
-
 {% endif %}
-{% csrf_token %}
-</form>
+
+<!-- Filter Section -->
+<div class="stats-container mb-4 px-5 pt-5">
+    <form id="form_cadastro_vaga" method="post" class="form w-100">
+        <div class="filter-section">
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="mes" class="filter-label">Mês:</label>
+                    <select name="mes" id="mes" class="form-select">
+                        <option selected value='1'>Janeiro</option>
+                        <option value='2'>Fevereiro</option>
+                        <option value='3'>Março</option>
+                        <option value='4'>Abril</option>
+                        <option value='5'>Maio</option>
+                        <option value='6'>Junho</option>
+                        <option value='7'>Julho</option>
+                        <option value='8'>Agosto</option>
+                        <option value='9'>Setembro</option>
+                        <option value='10'>Outubro</option>
+                        <option value='11'>Novembro</option>
+                        <option value='12'>Dezembro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="ano" class="filter-label">Ano:</label>
+                    <select name="ano" id="ano" class="form-select">
+                        <option selected value='2022'>2022</option>
+                        <option value='2023'>2023</option>
+                        <option value='2024'>2024</option>
+                        <option value='2025'>2025</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
+            </div>
+        </div>
+        {% csrf_token %}
+    </form>
+</div>	
+{% if buscar %}
+<!-- Results Section -->
+<div class="results-section px-5 pb-5">
+    <div class="section-header mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="mb-1">
+                    Lista de Emails
+                </h2>                
+            </div>            
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats-overview mb-4">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="stat-card modern-card">
+                    <div class="card-body text-center">
+                        <!-- <div class="stat-icon bg-info bg-opacity-10 text-info mb-2">
+                            <i class="fas fa-calendar fa-2x"></i>
+                        </div> -->
+                        <h4 class="mb-1">{{mes}}/{{ano}}</h4>
+                        <p class="text-muted mb-0">Período Selecionado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card modern-card">
+                    <div class="card-body text-center">
+                        <!-- <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-2">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div> -->
+                        <h4 class="mb-1">{{candidatos|length}}</h4>
+                        <p class="text-muted mb-0">Total de Candidatos</p>
+                    </div>
+                </div>
+            </div>
+  
+            
+        </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="export-section mb-4">
+        <div class="modern-card">
+            <div class="card-body px-5 py-4" style="background-color: #ffffff; border-radius: 12px;">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            
+                            <div>
+                                <h5 class="mb-1">Exportar Lista de Emails</h5>
+                                <p class="text-muted mb-0">Download da lista completa de emails dos candidatos no formato CSV</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a class="btn btn-success btn-lg rounded-pill" href="{% url 'vagas:download_emails' mes ano %}" download="candidatos_{{mes}}_{{ano}}.csv">
+                            <i class="fas fa-download me-2"></i>Download CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-section">
+        <div class="modern-card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center px-4 py-2">
+                <h5 class="mb-0">
+                    Lista de Candidatos
+                </h5>
+                <div class="table-actions">
+                    <button class="btn btn-sm  me-2 py-0 text-white " onclick="selectAllEmails()">
+                        <i class="fas fa-check-square me-1"></i>Selecionar Todos
+                    </button>
+                    <button class="btn btn-sm ms-3 text-white py-0" onclick="copySelectedEmails()">
+                        <i class="fas fa-copy me-1"></i>Copiar Selecionados
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 50px;" class="text-center">
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th style="min-width: 200px;">
+                                    <i class="fas fa-user me-1"></i>Nome
+                                </th>
+                                <th style="min-width: 250px;">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </th>
+                                <!-- <th style="width: 120px;" class="text-center">
+                                    <i class="fas fa-cog me-1"></i>Ações
+                                </th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidato in candidatos %}
+                            <tr class="align-middle">
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input email-checkbox" 
+                                           data-email="{{candidato.email}}" data-name="{{candidato.nome}}">
+                                </td>
+                                <td>
+                                    <div class="candidate-info">
+                                        <div class="candidate-name">{{candidato.nome}}</div>
+                                        <small class="text-muted">Candidato #{{forloop.counter}}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="email-info">
+                                        <a href="mailto:{{candidato.email}}" class="text-decoration-none email-link">
+                                            <i class="fas fa-envelope me-2 text-primary"></i>{{candidato.email}}
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                                onclick="copyEmail('{{candidato.email}}')"
+                                                title="Copiar email">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <!-- <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="mailto:{{candidato.email}}" 
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Enviar email">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="showCandidateDetails('{{candidato.nome}}', '{{candidato.email}}')"
+                                                title="Ver detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td> -->
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                        <h5 class="text-muted">Nenhum candidato encontrado</h5>
+                                        <p class="text-muted mb-0">Não há candidatos cadastrados para o período selecionado.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.results-section {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon, .export-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.candidate-info {
+    line-height: 1.4;
+}
+
+.candidate-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.email-info {
+    display: flex;
+    align-items: center;
+}
+
+.email-link {
+    color: #495057;
+    transition: color 0.3s ease;
+}
+
+.email-link:hover {
+    color: #0d6efd;
+}
+
+.empty-state {
+    padding: 2rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-success.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-success.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+}
+
+.stats-overview {
+    animation: fadeInUp 0.6s ease;
+}
+
+.export-section {
+    animation: fadeInUp 0.8s ease;
+}
+
+.table-section {
+    animation: fadeInUp 1s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endif %}
+
+  </div>
+</div>
+
 <script>
+// Sidebar toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+
+    // Select all functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const emailCheckboxes = document.querySelectorAll('.email-checkbox');
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            emailCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateEmailsCount();
+        });
+    }
+
+    emailCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateEmailsCount);
+    });
+
+    function updateEmailsCount() {
+        const checkedCount = document.querySelectorAll('.email-checkbox:checked').length;
+        const emailsCountElement = document.getElementById('emails-count');
+        if (emailsCountElement) {
+            emailsCountElement.textContent = checkedCount > 0 ? checkedCount : {{candidatos|length}};
+        }
+    }
+});
+
+// Copy email function
+function copyEmail(email) {
+    navigator.clipboard.writeText(email).then(function() {
+        // Show success message
+        showToast('Email copiado: ' + email, 'success');
+    }, function(err) {
+        console.error('Erro ao copiar email: ', err);
+        showToast('Erro ao copiar email', 'error');
+    });
+}
+
+// Select all emails function
+function selectAllEmails() {
+    const emailCheckboxes = document.querySelectorAll('.email-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    
+    emailCheckboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = true;
+    }
+    
+    updateEmailsCount();
+}
+
+// Copy selected emails function
+function copySelectedEmails() {
+    const checkedBoxes = document.querySelectorAll('.email-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        showToast('Nenhum email selecionado', 'warning');
+        return;
+    }
+    
+    const emails = Array.from(checkedBoxes).map(checkbox => checkbox.getAttribute('data-email'));
+    const emailList = emails.join('; ');
+    
+    navigator.clipboard.writeText(emailList).then(function() {
+        showToast(`${emails.length} emails copiados para a área de transferência`, 'success');
+    }, function(err) {
+        console.error('Erro ao copiar emails: ', err);
+        showToast('Erro ao copiar emails', 'error');
+    });
+}
+
+// Show candidate details function
+function showCandidateDetails(name, email) {
+    alert(`Candidato: ${name}\nEmail: ${email}`);
+}
+
+// Toast notification function
+function showToast(message, type = 'info') {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+function updateEmailsCount() {
+    const checkedCount = document.querySelectorAll('.email-checkbox:checked').length;
+    const totalCount = {{candidatos|length}};
+    const emailsCountElement = document.getElementById('emails-count');
+    
+    if (emailsCountElement) {
+        emailsCountElement.textContent = checkedCount > 0 ? checkedCount : totalCount;
+    }
+}
 </script>
 
 {% endblock %}

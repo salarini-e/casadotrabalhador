@@ -46,7 +46,11 @@
         text-align: justify;
       /* margin-bottom: 30px; */
     }
+    h1{
+      font-size: 18pt;
+    }
     h2 {
+      font-size: 14pt;
       color: #282829;
       padding: 0px;
       margin: 0px;
@@ -100,11 +104,12 @@
 <body>
 
   <header>
-    <h2 style="text-align: start;">{{ nome }}</h2>
+    <h1 style="text-align: start;">{{ nome }}</h1>
     <div class="contato">
       <p style="text-align: start; margin-top: 0px; padding-top: 0px;">
         {% if email %}Email: {{ email }}{% endif %}
-        {% if telefone %} - Telefone: {{ telefone }}{% endif %}
+        {% if email and  telefone %} <br> {% endif %}
+        {% if telefone %} Telefone: {{ telefone }}{% endif %}
       </p>
     </div>
   </header>
@@ -122,9 +127,9 @@
     {% if experiencias %}
       {% for experiencia in experiencias %}
       <p style="margin: 0px; padding: 0px;"><strong>{{ experiencia.cargo }} – {{ experiencia.empresa }}</strong></p>
-      <p style="margin-top: 0px; padding: 0px;">{{ experiencia.periodo }}</p>
+      <p style="margin-top: 0px; margin-bottom: 5px; padding: 0px; font-size: 11pt;">{{ experiencia.periodo }}</p>
       {% if experiencia.descricao %}
-      <p style="margin-top: 0px; padding: 0px;">{{ experiencia.descricao }}</p>
+      <p style="margin-top: 0px; margin-bottom: 8px; padding: 0px;">{{ experiencia.descricao }}
       {% endif %}
       {% if not forloop.last %}<br>{% endif %}
       {% endfor %}
@@ -134,12 +139,11 @@
   </section>
 
   <section class="formacao">
-    <h2>Formação Acadêmica</h2>
+    <h2 style="margin-bottom: 0px !important;">Formação Acadêmica</h2>
     {% if educacoes %}
       {% for educacao in educacoes %}
       <p style="margin: 0px; padding: 0px;"><strong>{{ educacao.curso }}</strong> – {{ educacao.instituicao }}</p>
-      <p style="margin-top: 0px; padding: 0px;">{{ educacao.periodo }}</p>
-      {% if not forloop.last %}<br>{% endif %}
+      <p style="margin-top: 0px; margin-bottom: 8px; padding: 0px;">{{ educacao.periodo }}</p>      
       {% endfor %}
     {% else %}
     <p>Nenhuma formação acadêmica cadastrada.</p>

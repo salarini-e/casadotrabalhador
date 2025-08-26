@@ -257,7 +257,8 @@ def cadastrar_empresa(request):
         'form': form,
         'tipo_cadastro': 'Cadastrar',
     }
-    return render(request, 'vagas/cadastrar_empresa.html', context)
+    return render(request, 'vagas/infoempresa cadastrar.html', context)
+    # return render(request, 'vagas/cadastrar_empresa.html', context)
 
 
 @login_required
@@ -760,7 +761,7 @@ def candidatosporvaga(request, id, mes, ano):
         'ano': ano
     }
 
-    return render(request, 'vagas/listar_candidatos.html', context)
+    return render(request, 'vagas/vagas_com_candidatos listar.html', context)
 
 def infoempresa(request):
     empresas = Empresa.objects.all()
@@ -818,7 +819,7 @@ def pesquisar_candidatos(request):
     context = {}
     return render(request, 'vagas/pesquisar_candidatos.html', context)
 
-
+from django.db.models import Min
 @login_required
 def get_candidatos(request):
     if request.method == 'POST':
@@ -831,17 +832,40 @@ def get_candidatos(request):
             nome = data['nome']        
         if cpf:
             try:
-                # empresas=Empresa.objects.filter(nome__startswith=request.GET.get('nome')).order_by('nome')
-                candidatos = Candidato.objects.filter(cpf=cpf)
+                candidatos = (
+                    Candidato.objects.filter(cpf=cpf)
+                    .values('cpf')  # agrupa pelo CPF
+                    .annotate(id=Min('id'))  # pega o menor id por cpf (ou pode ser outro campo)
+                )
+                candidatos = Candidato.objects.filter(id__in=[c['id'] for c in candidatos])
             except Exception as E:
                 candidatos = None
+
         elif nome:
             try:
-                # empresas=Empresa.objects.filter(nome__startswith=request.GET.get('nome')).order_by('nome')
-                candidatos = Candidato.objects.filter(
-                    nome__icontains=nome).order_by('nome')
+                candidatos = (
+                    Candidato.objects.filter(nome__icontains=nome)
+                    .values('cpf')  # agrupa por CPF
+                    .annotate(id=Min('id'))
+                    .order_by('cpf')
+                )
+                candidatos = Candidato.objects.filter(id__in=[c['id'] for c in candidatos]).order_by('nome')
             except Exception as E:
                 candidatos = None
+
+        # if cpf:
+        #     try:
+        #         # empresas=Empresa.objects.filter(nome__startswith=request.GET.get('nome')).order_by('nome')
+        #         candidatos = Candidato.objects.filter(cpf=cpf).distinct()
+        #     except Exception as E:
+        #         candidatos = None
+        # elif nome:
+        #     try:
+        #         # empresas=Empresa.objects.filter(nome__startswith=request.GET.get('nome')).order_by('nome')
+        #         candidatos = Candidato.objects.filter(
+        #             nome__icontains=nome).order_by('nome').distinct('cpf')
+        #     except Exception as E:
+        #         candidatos = None
 
         else:
             print('dados informados não são os esperados')
@@ -862,7 +886,7 @@ def visualizar_candidato(request, id):
         'candidato': candidato,
         'form': Form_Candidato(instance=candidato)
     }
-    return render(request, 'vagas/pesquisar_candidatos_visualizar.html', context)
+    return render(request, 'vagas/pesquisar_visualizar_candidato.html', context)
 
 
 @login_required
@@ -995,7 +1019,137 @@ def sair(request):
 @login_required
 @staff_required
 def painel_administrativo(request):
-    return render(request, 'vagas/painel_administrativo.html')
+    from django.db.models import Count, Sum
+    from datetime import datetime, timedelta
+    import calendar
+    
+    # Estatísticas gerais
+    total_vagas_ativas = Vaga_Emprego.objects.filter(ativo=True).count()
+    total_posicoes_abertas = Vaga_Emprego.objects.filter(ativo=True).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+    total_empresas_ativas = Empresa.objects.filter(vaga_emprego__ativo=True).distinct().count()
+    total_candidatos = Candidato.objects.count()
+    candidatos_online = Candidato.objects.filter(candidato_online=True).count()
+    candidatos_balcao = Candidato.objects.filter(candidato_online=False).count()
+    
+    # Estatísticas do mês atual
+    hoje = datetime.now()
+    inicio_mes = datetime(hoje.year, hoje.month, 1)
+    candidatos_mes = Candidato.objects.filter(dt_inclusao__gte=inicio_mes).count()
+    vagas_mes = Vaga_Emprego.objects.filter(dt_inclusao__gte=inicio_mes).count()
+    
+    # Data para últimos 31 dias
+    ultimos_31_dias = hoje - timedelta(days=31)
+    
+    # Estatísticas dos últimos 31 dias
+    vagas_ativas_31_dias = Vaga_Emprego.objects.filter(ativo=True, dt_inclusao__gte=ultimos_31_dias).count()
+    posicoes_abertas_31_dias = Vaga_Emprego.objects.filter(ativo=True, dt_inclusao__gte=ultimos_31_dias).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+    empresas_ativas_31_dias = Empresa.objects.filter(vaga_emprego__ativo=True, vaga_emprego__dt_inclusao__gte=ultimos_31_dias).distinct().count()
+    candidatos_31_dias = Candidato.objects.filter(dt_inclusao__gte=ultimos_31_dias).count()
+    
+    # Top 5 cargos mais procurados (total)
+    top_cargos_total = Candidato.objects.values('vaga__cargo__nome').annotate(
+        total=Count('id')
+    ).order_by('-total')[:5]
+    
+    # Top 5 cargos mais procurados (últimos 31 dias)
+    top_cargos_31_dias = Candidato.objects.filter(
+        dt_inclusao__gte=ultimos_31_dias
+    ).values('vaga__cargo__nome').annotate(
+        total=Count('id')
+    ).order_by('-total')[:5]
+    
+    # Top 10 empresas com mais vagas (total)
+    top_empresas_total = Vaga_Emprego.objects.filter(ativo=True).values('empresa__nome').annotate(
+        total=Sum('quantidadeVagas')
+    ).order_by('-total')[:10]
+    
+    # Top 10 empresas com mais vagas (últimos 31 dias)
+    top_empresas_31_dias = Vaga_Emprego.objects.filter(
+        ativo=True, 
+        dt_inclusao__gte=ultimos_31_dias
+    ).values('empresa__nome').annotate(
+        total=Sum('quantidadeVagas')
+    ).order_by('-total')[:10]
+    
+    # Candidatos online vs balcão (total)
+    candidatos_online_total = candidatos_online
+    candidatos_balcao_total = candidatos_balcao
+    
+    # Candidatos online vs balcão (últimos 31 dias)
+    candidatos_online_31_dias = Candidato.objects.filter(
+        candidato_online=True, 
+        dt_inclusao__gte=ultimos_31_dias
+    ).count()
+    candidatos_balcao_31_dias = Candidato.objects.filter(
+        candidato_online=False, 
+        dt_inclusao__gte=ultimos_31_dias
+    ).count()
+    
+    # Distribuição por escolaridade
+    escolaridade_stats = Candidato.objects.values('escolaridade__nome').annotate(
+        total=Count('id')
+    ).order_by('-total')
+    
+    # Candidatos por mês (últimos 13 meses)
+    candidatos_por_mes = []
+    data_atual = datetime.now()
+    
+    for i in range(13):
+        # Calcula o mês de referência
+        if data_atual.month - i > 0:
+            mes = data_atual.month - i
+            ano = data_atual.year
+        else:
+            mes = 12 + (data_atual.month - i)
+            ano = data_atual.year - 1
+            
+        data_inicio = datetime(ano, mes, 1)
+        
+        # Calcula o fim do mês
+        if mes == 12:
+            data_fim = datetime(ano + 1, 1, 1)
+        else:
+            data_fim = datetime(ano, mes + 1, 1)
+        
+        count = Candidato.objects.filter(dt_inclusao__gte=data_inicio, dt_inclusao__lt=data_fim).count()
+        candidatos_por_mes.append({
+            'mes': data_inicio.strftime('%m/%Y'),
+            'total': count
+        })
+    
+    candidatos_por_mes.reverse()
+    
+    context = {
+        'total_vagas_ativas': total_vagas_ativas,
+        'total_posicoes_abertas': total_posicoes_abertas,
+        'total_empresas_ativas': total_empresas_ativas,
+        'total_candidatos': total_candidatos,
+        'candidatos_online': candidatos_online,
+        'candidatos_balcao': candidatos_balcao,
+        'candidatos_mes': candidatos_mes,
+        'vagas_mes': vagas_mes,
+        
+        # Dados dos últimos 31 dias
+        'vagas_ativas_31_dias': vagas_ativas_31_dias,
+        'posicoes_abertas_31_dias': posicoes_abertas_31_dias,
+        'empresas_ativas_31_dias': empresas_ativas_31_dias,
+        'candidatos_31_dias': candidatos_31_dias,
+        
+        # Dados para gráficos comparativos
+        'top_cargos_total': top_cargos_total,
+        'top_cargos_31_dias': top_cargos_31_dias,
+        'top_empresas_total': top_empresas_total,
+        'top_empresas_31_dias': top_empresas_31_dias,
+        'candidatos_online_total': candidatos_online_total,
+        'candidatos_balcao_total': candidatos_balcao_total,
+        'candidatos_online_31_dias': candidatos_online_31_dias,
+        'candidatos_balcao_31_dias': candidatos_balcao_31_dias,
+        
+        'escolaridade_stats': escolaridade_stats,
+        'candidatos_por_mes': candidatos_por_mes,
+    }
+    
+    return render(request, 'vagas/painel_administrativo.html', context)
 
 
 @login_required
@@ -1134,7 +1288,7 @@ def indicadores(request):
         'relacao_online_balcao': relacao_online_balcao
     }
 
-    return render(request, 'vagas/indicadores.html', context)
+    return render(request, 'vagas/indicadores_novo.html', context)
 
 @login_required
 @staff_required

@@ -1,0 +1,465 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Pesquisar Candidatos{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
+{% block main %}
+{% load widget_tweaks %}   
+{% load bootstrap5 %}  
+{% load qntvagas %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <!-- <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button> -->
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <!-- <li class="nav-item">
+            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li> -->
+          <li class="nav-item active">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-user me-3"></i>
+          Informações sobre candidato
+        </h1>
+        <p class="page-subtitle"></p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:pesquisar_candidatos' %}" class="text-secondary" title="Atualizar dados">
+            Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+
+{% if success.0 %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>{{success.1}}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- Search Section -->
+<div class="stats-container my-4 mx-5">
+    <div class="search-section">
+        <!-- Header do Candidato -->
+        <div class="search-header mb-4 p-4 bg-light rounded shadow-sm d-flex align-items-center">
+            <div class="flex-grow-1">
+                <h3 class="mb-1">                    
+                    {{ candidato.nome }}
+                </h3>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-id-card me-2"></i>{{ candidato.get_cpf }}
+                </p>
+            </div>
+  
+        </div>
+
+        <!-- Informações do Candidato -->
+        <div id="dados-candidato" class="row g-4">
+            <!-- Card Informações -->
+            <div class="col-md-6">
+                <div class=" ps-3 h-100">
+                    
+                    <div class="card-body">
+                        <p><i class="fas fa-birthday-cake me-2 text-muted"></i>Idade: <strong>{{ candidato.idade }}</strong></p>
+                        <p><i class="fas fa-venus-mars me-2 text-muted"></i>Sexo: <strong>{{ candidato.get_sexo_display }}</strong></p>
+                        <p><i class="fas fa-envelope me-2 text-muted"></i>Email: <strong>{{ candidato.email }}</strong></p>
+                        <p><i class="fas fa-phone me-2 text-muted"></i>Celular: <strong>{{ candidato.contato }}</strong></p>
+                        <p><i class="fas fa-map-marker-alt me-2 text-muted"></i>Bairro: <strong>{{ candidato.bairro }}</strong></p>
+                        <p><i class="fas fa-graduation-cap me-2 text-muted"></i>Escolaridade: <strong>{{ candidato.escolaridade }}</strong></p>
+                        <p><i class="fas fa-calendar-plus me-2 text-muted"></i>Data inclusão: 
+                            <strong>{{ candidato.dt_inclusao|date:"d/m/Y" }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Currículo -->
+            <div class="col-md-6">
+                <div class="card modern-card shadow-sm h-100 d-flex flex-column">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Currículo</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-center text-center">
+                        {% if candidato.curriculo %}
+                            <a href="{{ candidato.curriculo.url }}" class="btn btn-lg btn-outline-primary" target="_blank">
+                                <i class="fas fa-file-pdf me-2"></i> Visualizar Currículo
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-0"><i class="fas fa-times-circle me-2 text-danger"></i>Currículo não disponível</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Encaminhamentos -->
+ <div class="table-section my-4 mx-5">
+        <div class="modern-card">
+            <div class="card-header bg-light p-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-share-square me-2"></i>
+                    Encaminhamentos
+                </h5>
+                <div class="table-actions d-none" id="table-actions">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="exportResults()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearResults()">
+                        <i class="fas fa-trash me-1"></i>Limpar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover modern-table mb-0">
+                        <thead class="table-light">
+                            <tr>
+                               <th class="text-center" style="width: 150px;">ID</th>
+                                <th class="text-center">Data</th>
+                                <th>Vaga</th>
+                                <th>Funcionário responsável</th>
+                                <th>Origem</th>
+                                <th>                                    
+                                    Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="search_candidato_result">
+                            {% for encaminhamento in candidato.get_encaminhamentos %}
+                            <tr>
+                                <td class="text-center">{{ encaminhamento.id }}</td>
+                                <td class="text-center">{{ encaminhamento.dt_inclusao|date:"d/m/Y H:i" }}</td>
+                                <td>{{ encaminhamento.vaga.cargo }}</td>
+                                <td>
+                                    {% if encaminhamento.online %}
+                                    {{ encaminhamento.funcionario_encaminhamento }}
+                                    {% else %}
+                                    Cadastrado pelo proprio candidato
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if encaminhamento.online %}
+                                        <span class="badge bg-danger text-white">Balcão</span>                                        
+                                    {% else %}
+                                        <span class="badge bg-success">Online</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a target="_blank" href="{% url 'vagas:visualizar_vaga' encaminhamento.vaga.id %}">
+                                        Visualizar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="text-center">
+                                <td colspan="5" class="py-4 text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>Nenhum encaminhamento encontrado
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+           
+        </div>
+    </div>
+
+
+
+<style>
+.results-container {
+    margin-top: 2rem;
+}
+
+.modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.modern-table {
+    font-size: 0.9rem;
+}
+
+.modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa !important;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.empty-state {
+    padding: 2rem;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.candidate-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.candidate-info {
+    line-height: 1.4;
+}
+
+.candidate-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.candidate-cpf {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-family: 'Courier New', monospace;
+}
+
+.contact-info {
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.origin-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.origin-online {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.origin-balcao {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.search-stats {
+    animation: fadeInUp 0.6s ease;
+}
+
+.table-actions {
+    animation: fadeInLeft 0.6s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.btn-action {
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+</style>
+      
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -56,6 +56,10 @@ class Empresa(models.Model):
     def __str__(self):
         return '%s' % (self.nome)
 
+    def get_cnpj(self):
+        cnpj_formated = f"{self.cnpj[:2]}.{self.cnpj[2:5]}.{self.cnpj[5:8]}/{self.cnpj[8:12]}-{self.cnpj[12:]}"
+        return cnpj_formated                                                                                                                                                                            
+
 class Cargo(models.Model):
 
     nome=models.CharField(max_length=100, verbose_name='Nome do cargo', unique=True)
@@ -64,6 +68,7 @@ class Cargo(models.Model):
 
     def __str__(self):
         return '%s' % (self.nome)
+
 
 class Vaga_Emprego(models.Model):
 
@@ -114,6 +119,7 @@ class Vaga_Emprego(models.Model):
             self.dt_atualizacao = timezone.now()
         super(Vaga_Emprego, self).save(*args, **kwargs)
 
+#ENCAMINHAMENTOS
 class Candidato(models.Model):
 
     class Meta:
@@ -148,6 +154,30 @@ class Candidato(models.Model):
     
     def __str__(self):
         return '%s - %s' % (self.vaga.cargo, self.nome)
+
+    def idade(self):
+        from datetime import date
+        today = date.today()
+        return today.year - self.data_nascimento.year - ((today.month, today.day) < (self.data_nascimento.month, self.data_nascimento.day))
+
+    def n_encaminhamentos(self):
+        qnt = Candidato.objects.filter(cpf=self.cpf).count()
+        return qnt
+
+    def contato(self):
+        return self.celular
+    
+    def get_cpf(self):
+        cpf_formated = f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"
+        return cpf_formated
+
+    def get_encaminhamentos(self):
+        return Candidato.objects.filter(cpf = self.cpf)
+    
+    def curriculo(self):
+        url_curriculo = False
+        return url_curriculo
+        
 
 
 class Slide(models.Model):
