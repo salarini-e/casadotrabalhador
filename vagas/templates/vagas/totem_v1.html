@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casa do Trabalhador - Totem de Vagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --totem-primary: #2563eb;
+            --totem-primary-dark: #1d4ed8;
+            --totem-secondary: #64748b;
+            --totem-success: #10b981;
+            --totem-warning: #f59e0b;
+            --totem-danger: #ef4444;
+            --totem-background: #f8fafc;
+            --totem-surface: #ffffff;
+            --totem-text-primary: #1e293b;
+            --totem-text-secondary: #64748b;
+            --totem-text-muted: #94a3b8;
+            --totem-border: #e2e8f0;
+            --totem-highlight: #fef3c7;
+            --totem-highlight-border: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, white, rgb(236, 234, 234));
+            color: var(--totem-text-primary);
+            overflow: hidden;
+            line-height: 1.6;
+            height: 100vh;
+        }
+
+        /* Header */
+        .totem-header {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: 80px;
+        }
+
+        .totem-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .totem-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Full Screen Slides Container */
+        .slides-container {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+            padding-top: 80px; /* Header height */
+        }
+
+        .slide {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100vw;
+            height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+        }
+
+        .slide.current {
+            transform: translateY(0);
+            z-index: 10;
+        }
+
+        .slide.prev {
+            transform: translateY(-100vh);
+            z-index: 5;
+        }
+
+        .slide.next {
+            transform: translateY(100vh);
+            z-index: 5;
+        }
+
+        /* Intro Slide */
+        .intro-slide {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .intro-content h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .intro-content p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .stats-display {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        /* Job Slide */
+        .job-slide {
+            padding: 3rem;
+        }
+
+        .job-content {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .job-info {
+            padding: 2rem;
+        }
+
+        .job-header {
+            margin-bottom: 2rem;
+        }
+
+        .job-option-number {
+            font-size: 1rem;
+            color: var(--totem-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+        }
+
+        .job-title-main {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--totem-text-primary);
+            margin-bottom: 1rem;
+            line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .job-company {
+            font-size: 1.4rem;
+            color: var(--totem-primary);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .job-reference {
+            font-size: 1rem;
+            color: var(--totem-text);
+            margin-bottom: 1rem;
+        }
+
+        .job-badges {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .job-badge {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-featured {
+            background: linear-gradient(135deg, var(--totem-warning), #f59e0b);
+            color: white;
+        }
+
+        .badge-type {
+            background: linear-gradient(135deg, var(--totem-success), #059669);
+            color: white;
+        }
+
+        .badge-experience {
+            background: linear-gradient(135deg, var(--totem-danger), #dc2626);
+            color: white;
+        }
+
+        /* Job Details Grid */
+        .job-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            background: var(--totem-surface);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--totem-primary);
+        }
+
+        .detail-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--totem-background), #e2e8f0);
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .detail-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .detail-icon {
+            font-size: 2.5rem;
+            color: var(--totem-primary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .detail-label {
+            font-size: 1rem;
+            color: var(--totem-text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--totem-text-primary);
+            line-height: 1.3;
+        }
+
+        /* Job Description */
+        .job-description {
+            margin-top: 2rem;
+        }
+
+        .description-section {
+            margin-bottom: 2rem;
+        }
+
+        .description-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--totem-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .description-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--totem-text-primary);
+            background: rgba(161, 190, 223, 0.158);
+            padding: 1.0rem 1.5rem;
+            border-radius: 10px;
+            /* border-left: 4px solid var(--totem-primary); */
+        }
+        .description-content p{
+            margin-bottom: 0px;
+        }
+        
+        /* Navigation Instructions */
+        .navigation-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--totem-success), #059669);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: pulse-glow 2s infinite;
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 250px;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+            }
+        }
+
+        .nav-instruction {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-instruction:last-child {
+            margin-bottom: 0;
+        }
+
+        .nav-instruction i {
+            font-size: 1.5rem;
+        }
+
+        /* Slide Counter */
+        .slide-counter {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            height: 4px;
+            background: var(--totem-success);
+            transition: width 0.6s ease;
+            z-index: 1000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .job-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .job-title-main {
+                font-size: 2.5rem;
+            }
+
+            .job-option-number {
+                font-size: 0.875rem;
+            }
+
+            .job-company {
+                font-size: 1.2rem;
+            }
+
+            .intro-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats-display {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .job-details-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+
+            .navigation-indicator {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 1rem;
+                font-size: 1rem;
+                min-width: 200px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(37, 99, 235, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-100%);
+            }
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            :root {
+                --totem-primary: #000080;
+                --totem-background: #ffffff;
+                --totem-text-primary: #000000;
+                --totem-border: #000000;
+            }
+        }
+
+        /* Screen reader only */
+
+
+
+
+
+        .search-modal-header {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-modal-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-modal-body {
+            padding: 2rem;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .search-input-group {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--totem-primary);
+            font-size: 1.25rem;
+            z-index: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 4rem 1.25rem 4rem;
+            border: 3px solid var(--totem-primary);
+            border-radius: 15px;
+            font-size: 1.25rem;
+            background: var(--totem-background);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--totem-warning);
+            box-shadow: 0 0 0 0.2rem rgba(245, 158, 11, 0.25);
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--totem-danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-search:hover {
+            background: #dc2626;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .search-results {
+            min-height: 200px;
+        }
+
+        .search-help {
+            text-align: center;
+            color: var(--totem-text-secondary);
+            font-size: 1.1rem;
+            padding: 3rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .search-result-item {
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--totem-background), #e2e8f0);
+        }
+
+        .search-result-item:hover,
+        .search-result-item.highlighted {
+            border-color: var(--totem-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);
+            background: linear-gradient(135deg, var(--totem-surface), var(--totem-background));
+        }
+
+        .search-result-item.selected {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            border-color: var(--totem-warning);
+        }
+
+        .search-result-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--totem-primary);
+        }
+
+        .search-result-item.selected .search-result-title {
+            color: white;
+        }
+
+        .search-result-company {
+            font-size: 1rem;
+            color: var(--totem-text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .search-result-item.selected .search-result-company {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .search-result-ref {
+            font-size: 0.875rem;
+            color: var(--totem-text-muted);
+        }
+
+        .search-result-item.selected .search-result-ref {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-modal-footer {
+            background: var(--totem-background);
+            padding: 1.5rem 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .search-instructions {
+            display: flex;
+            gap: 2rem;
+            font-size: 1rem;
+            color: var(--totem-text-secondary);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .search-instructions span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-instructions i {
+            color: var(--totem-primary);
+        }
+
+        /* Search Filter Indicator */
+        .search-filter-indicator {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--totem-warning), #f59e0b);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 600;
+            z-index: 1500;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .filter-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .clear-filter {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .clear-filter:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            :root {
+                --totem-primary: #000080;
+                --totem-background: #ffffff;
+                --totem-text-primary: #000000;
+                --totem-border: #000000;
+            }
+        }
+
+        /* Screen reader only */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Preparando candidatura...</div>
+    </div>
+
+    <!-- Header -->
+    <header class="totem-header">
+        <div class="container">
+            <h1 class="totem-title">                
+                Casa do Trabalhador
+            </h1>
+            <p class="totem-subtitle">Encontre sua oportunidade de trabalho</p>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Slides Container -->
+    <div class="slides-container" id="slidesContainer">
+        <!-- Intro Slide -->
+        <div class="slide intro-slide current" data-slide="0">
+            <div class="intro-content">
+                <h1>                    
+                    Bem-vindo(a)
+                </h1>
+                <p>Navegue pelas oportunidades disponíveis</p>
+                
+                <div class="stats-display">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ qnt_cargos }}</span>
+                        <span class="stat-label">
+                            {% if qnt_cargos > 1 %}Tipos de Cargo{% else %}Tipo de Cargo{% endif %}
+                        </span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">{{ qnt_vagas }}</span>
+                        <span class="stat-label">
+                            {% if qnt_vagas > 1 %}Vagas Disponíveis{% else %}Vaga Disponível{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="nav-instruction">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Use as setas ↓↑ para navegar</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Slides -->
+        {% for cargo, vagas in vagas_por_cargo.items %}
+            {% for vaga in vagas %}
+            <div class="slide job-slide next" 
+                 data-slide="{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                 data-vaga-id="{{ vaga.id }}"
+                 data-url="{% url 'vagas:totem_candidatarse' vaga.id %}">
+                <div class="job-content">
+                    <div class="job-info">
+                        <div class="job-header">
+                            <div class="job-option-number">Opção {{ forloop.counter }}</div>
+                            <h2 class="job-title-main">{{ vaga.cargo.nome }}</h2>
+                            <div class="job-company">{{ vaga.empresa.nome }}</div>
+                            <div class="job-reference">
+                                Referência: 
+                                <strong>#{{ vaga.id }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="job-badges">
+                            {% if vaga.destaque %}
+                            <span class="job-badge badge-featured">
+                                <i class="fas fa-star"></i>
+                                Destaque
+                            </span>
+                            {% endif %}
+                            {% if vaga.tipo_de_vaga != 'NML' %}
+                            <span class="job-badge badge-type">
+                                {{ vaga.get_tipo_de_vaga_display }}
+                            </span>
+                            {% endif %}
+                            {% if vaga.experiencia == 'Sim' %}
+                            <span class="job-badge badge-experience">
+                                <i class="fas fa-user-check"></i>
+                                Requer Experiência
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {% if vaga.observacao %}
+                        <div class="job-description">
+                            <div class="description-section">
+                                <h3 class="description-title">
+                                    <i class="fas fa-info-circle"></i>
+                                    Observações
+                                </h3>
+                                <div class="description-content">
+                                    {{ vaga.observacao|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if vaga.atribuicoes %}
+                        <div class="job-description">
+                            <div class="description-section">
+                                <h3 class="description-title">
+                                    <i class="fas fa-tasks"></i>
+                                    Atribuições
+                                </h3>
+                                <div class="description-content">
+                                    {{ vaga.atribuicoes|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="job-details-grid">
+                        <div class="detail-card">
+                            <i class="fas fa-users detail-icon"></i>
+                            <div class="detail-label">Vagas Disponíveis</div>
+                            <div class="detail-value">{{ vaga.quantidadeVagas }}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <i class="fas fa-graduation-cap detail-icon"></i>
+                            <div class="detail-label">Escolaridade</div>
+                            <div class="detail-value">{{ vaga.escolaridade.nome }}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <i class="fas fa-clock detail-icon"></i>
+                            <div class="detail-label">Carga Horária</div>
+                            <div class="detail-value">{{ vaga.carga_horaria|default:"A definir" }}</div>
+                        </div>
+
+                        <div class="detail-card">
+                            <i class="fas fa-map-marker-alt detail-icon"></i>
+                            <div class="detail-label">Localização</div>
+                            <div class="detail-value">{{ vaga.empresa.bairro }}</div>
+                        </div>
+
+                        {% if vaga.salario %}
+                        <div class="detail-card">
+                            <i class="fas fa-dollar-sign detail-icon"></i>
+                            <div class="detail-label">Salário</div>
+                            <div class="detail-value">{{ vaga.salario }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if vaga.regime %}
+                        <div class="detail-card">
+                            <i class="fas fa-briefcase detail-icon"></i>
+                            <div class="detail-label">Regime</div>
+                            <div class="detail-value">{{ vaga.regime }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <!-- Navigation Indicator -->
+    <div class="navigation-indicator">
+        <div class="nav-instruction">
+            <i class="fas fa-hand-pointer"></i>
+            <span>ENTER para</span>
+        </div>
+        <div class="nav-instruction">
+            <strong>CANDIDATAR-SE</strong>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <!-- Slide Counter -->
+    <div class="slide-counter" id="slideCounter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">{{ vagas|length|add:1 }}</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class TotemSlideshow {
+            constructor() {
+                this.currentSlideIndex = 0;
+                this.slides = [];
+                this.totalSlides = 0;
+                this.isNavigating = false;
+                this.autoAdvanceTimer = null;
+                this.cookieName = 'totem_current_vaga';
+                
+                this.init();
+            }
+
+            init() {
+                this.setupSlides();
+                this.loadSavedPosition();
+                this.bindEvents();
+                this.updateUI();
+                this.updateProgressBar();
+                this.showLoadingOverlay(false);
+            }
+
+            // Cookie management functions
+            setCookie(name, value, days = 1) {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+            }
+
+            getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            saveCurrentVaga() {
+                const currentSlide = this.slides[this.currentSlideIndex];
+                if (currentSlide && currentSlide.dataset.vagaId) {
+                    this.setCookie(this.cookieName, currentSlide.dataset.vagaId);
+                }
+            }
+
+            clearSavedVaga() {
+                document.cookie = `${this.cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+
+            loadSavedPosition() {
+                const savedVagaId = this.getCookie(this.cookieName);
+                if (savedVagaId) {
+                    // Find the slide with the saved vaga ID
+                    const savedSlideIndex = this.slides.findIndex(slide => 
+                        slide.dataset.vagaId === savedVagaId
+                    );
+                    
+                    if (savedSlideIndex !== -1) {
+                        this.currentSlideIndex = savedSlideIndex;
+                        this.updateSlidePositions();
+                        
+                        // Show notification that we returned to saved position
+                        this.showReturnNotification();
+                    }
+                }
+            }
+
+            resetToStart() {
+                this.clearSavedVaga();
+                this.goToSlide(0);
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 2rem;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+                        color: white;
+                        padding: 1rem 2rem;
+                        border-radius: 15px;
+                        font-weight: 600;
+                        z-index: 2000;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                        animation: slideDown 0.5s ease-out;
+                    ">
+                        <i class="fas fa-home"></i>
+                        Voltando ao início
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideUp 0.5s ease-in forwards';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 500);
+                }, 2000);
+            }
+
+            showReturnNotification() {
+                const notification = document.createElement('div');
+                notification.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 2rem;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: linear-gradient(135deg, var(--totem-success), #059669);
+                        color: white;
+                        padding: 1rem 2rem;
+                        border-radius: 15px;
+                        font-weight: 600;
+                        z-index: 2000;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                        animation: slideDown 0.5s ease-out;
+                    ">
+                        <i class="fas fa-bookmark"></i>
+                        Retornando à vaga visualizada anteriormente
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideUp 0.5s ease-in forwards';
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 500);
+                }, 3000);
+            }
+
+            setupSlides() {
+                this.slides = Array.from(document.querySelectorAll('.slide'));
+                this.totalSlides = this.slides.length;
+                
+                // Initialize slide positions
+                this.slides.forEach((slide, index) => {
+                    slide.classList.remove('current', 'prev', 'next');
+                    if (index === 0) {
+                        slide.classList.add('current');
+                    } else {
+                        slide.classList.add('next');
+                    }
+                });
+
+                // Update total slides counter
+                const totalSlidesElement = document.getElementById('totalSlides');
+                if (totalSlidesElement) {
+                    totalSlidesElement.textContent = this.totalSlides;
+                }
+            }
+
+            updateSlidePositions() {
+                // Update slide positions without animation (for loading saved position)
+                this.slides.forEach((slide, index) => {
+                    slide.classList.remove('current', 'prev', 'next');
+                    if (index === this.currentSlideIndex) {
+                        slide.classList.add('current');
+                    } else if (index < this.currentSlideIndex) {
+                        slide.classList.add('prev');
+                    } else {
+                        slide.classList.add('next');
+                    }
+                });
+            }
+
+            bindEvents() {
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => this.handleKeydown(e));
+                
+                // Mouse wheel navigation
+                document.addEventListener('wheel', (e) => this.handleWheel(e), { passive: false });
+                
+                // Touch events for mobile
+                let touchStartY = null;
+                document.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    if (touchStartY === null) return;
+                    
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const deltaY = touchStartY - touchEndY;
+                    
+                    if (Math.abs(deltaY) > 50) { // Minimum swipe distance
+                        if (deltaY > 0) {
+                            this.nextSlide();
+                        } else {
+                            this.previousSlide();
+                        }
+                    }
+                    
+                    touchStartY = null;
+                }, { passive: true });
+
+                // Prevent default browser scroll behavior
+                window.addEventListener('keydown', (e) => {
+                    if(['ArrowUp', 'ArrowDown', 'Space', 'PageUp', 'PageDown'].includes(e.code)) {
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent scrolling
+                document.addEventListener('scroll', (e) => {
+                    window.scrollTo(0, 0);
+                });
+            }
+
+            handleKeydown(e) {
+                if (this.isNavigating) return;
+
+                switch(e.code) {
+                    case 'ArrowUp':
+                    case 'PageUp':
+                        e.preventDefault();
+                        this.previousSlide();
+                        break;
+                    case 'ArrowDown':
+                    case 'PageDown':
+                    case 'Space':
+                        e.preventDefault();
+                        this.nextSlide();
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        this.activateCurrentSlide();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        this.resetToStart();
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        this.goToSlide(this.totalSlides - 1);
+                        break;
+                    case 'Escape':
+                        e.preventDefault();
+                        this.goToSlide(0); // Return to intro
+                        break;
+                }
+            }
+
+            handleWheel(e) {
+                if (this.isNavigating) return;
+                
+                e.preventDefault();
+                
+                // Add some throttling to prevent too rapid scrolling
+                clearTimeout(this.wheelTimeout);
+                this.wheelTimeout = setTimeout(() => {
+                    if (e.deltaY > 0) {
+                        this.nextSlide();
+                    } else {
+                        this.previousSlide();
+                    }
+                }, 50);
+            }
+
+            nextSlide() {
+                if (this.isNavigating) return;
+                const nextIndex = (this.currentSlideIndex + 1) % this.totalSlides;
+                this.goToSlide(nextIndex);
+            }
+
+            previousSlide() {
+                if (this.isNavigating) return;
+                const prevIndex = this.currentSlideIndex === 0 
+                    ? this.totalSlides - 1 
+                    : this.currentSlideIndex - 1;
+                this.goToSlide(prevIndex);
+            }
+
+            goToSlide(targetIndex) {
+                if (this.isNavigating || targetIndex === this.currentSlideIndex) return;
+                
+                this.isNavigating = true;
+                
+                const currentSlide = this.slides[this.currentSlideIndex];
+                const targetSlide = this.slides[targetIndex];
+                
+                // Determine slide direction
+                const isMovingDown = targetIndex > this.currentSlideIndex || 
+                    (this.currentSlideIndex === this.totalSlides - 1 && targetIndex === 0);
+                
+                // Reset all slide classes
+                this.slides.forEach(slide => {
+                    slide.classList.remove('current', 'prev', 'next');
+                });
+                
+                // Set current slide as prev/next based on direction
+                if (isMovingDown) {
+                    currentSlide.classList.add('prev');
+                } else {
+                    currentSlide.classList.add('next');
+                }
+                
+                // Set target slide as current
+                targetSlide.classList.add('current');
+                
+                // Set all other slides
+                this.slides.forEach((slide, index) => {
+                    if (index !== this.currentSlideIndex && index !== targetIndex) {
+                        if (index < targetIndex) {
+                            slide.classList.add('prev');
+                        } else {
+                            slide.classList.add('next');
+                        }
+                    }
+                });
+                
+                this.currentSlideIndex = targetIndex;
+                
+                // Save current vaga to cookie
+                this.saveCurrentVaga();
+                
+                // Allow navigation after transition
+                setTimeout(() => {
+                    this.isNavigating = false;
+                }, 600);
+                
+                this.updateUI();
+                this.updateProgressBar();
+            }
+
+            activateCurrentSlide() {
+                const currentSlide = this.slides[this.currentSlideIndex];
+                
+                // Skip intro slide
+                if (this.currentSlideIndex === 0) {
+                    this.nextSlide();
+                    return;
+                }
+                
+                const url = currentSlide.getAttribute('data-url');
+                if (url) {
+                    this.showLoadingOverlay(true);
+                    
+                    // Add visual feedback
+                    currentSlide.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        window.location.href = url;
+                    }, 800);
+                }
+            }
+
+            updateUI() {
+                // Update slide counter
+                const currentSlideElement = document.getElementById('currentSlide');
+                if (currentSlideElement) {
+                    currentSlideElement.textContent = this.currentSlideIndex + 1;
+                    
+                    // Reset total slides to normal
+                    const totalSlidesElement = document.getElementById('totalSlides');
+                    if (totalSlidesElement) {
+                        totalSlidesElement.textContent = this.totalSlides;
+                    }
+                }
+                
+                // Update navigation indicator visibility
+                const navIndicator = document.querySelector('.navigation-indicator');
+                if (navIndicator) {
+                    if (this.currentSlideIndex === 0) {
+                        navIndicator.style.opacity = '0.5';
+                    } else {
+                        navIndicator.style.opacity = '1';
+                    }
+                }
+            }
+
+            updateProgressBar() {
+                const progressBar = document.getElementById('progressBar');
+                if (progressBar) {
+                    const progress = ((this.currentSlideIndex + 1) / this.totalSlides) * 100;
+                    progressBar.style.width = progress + '%';
+                }
+            }
+
+            showLoadingOverlay(show) {
+                const overlay = document.getElementById('loadingOverlay');
+                if (show) {
+                    overlay.classList.add('show');
+                } else {
+                    overlay.classList.remove('show');
+                }
+            }
+
+            // Auto-advance functionality (optional)
+            startAutoAdvance(intervalMs = 30000) { // 30 seconds
+                this.stopAutoAdvance();
+                this.autoAdvanceTimer = setInterval(() => {
+                    if (this.currentSlideIndex > 0) { // Don't auto-advance from intro
+                        this.nextSlide();
+                    }
+                }, intervalMs);
+            }
+
+            stopAutoAdvance() {
+                if (this.autoAdvanceTimer) {
+                    clearInterval(this.autoAdvanceTimer);
+                    this.autoAdvanceTimer = null;
+                }
+            }
+
+            // Reset to intro slide
+            reset() {
+                this.goToSlide(0);
+            }
+        }
+
+        // Initialize totem slideshow when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.totemSlideshow = new TotemSlideshow();
+            
+            // Optional: Start auto-advance after 2 minutes of inactivity
+            let inactivityTimer;
+            
+            const resetInactivityTimer = () => {
+                clearTimeout(inactivityTimer);
+                window.totemSlideshow.stopAutoAdvance();
+                
+                inactivityTimer = setTimeout(() => {
+                    window.totemSlideshow.startAutoAdvance(10000); // Auto-advance every 10 seconds
+                }, 120000); // After 2 minutes of inactivity
+            };
+            
+            // Reset timer on any user interaction
+            ['keydown', 'wheel', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetInactivityTimer);
+            });
+            
+            resetInactivityTimer();
+        });
+
+        // Accessibility improvements
+        document.addEventListener('DOMContentLoaded', () => {
+            // Announce navigation instructions for screen readers
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = 'Totem de vagas carregado. Use as setas do teclado para navegar entre as vagas. Pressione Enter para se candidatar.';
+            document.body.insertBefore(announcement, document.body.firstChild);
+            
+            // Add ARIA labels to slides
+            document.querySelectorAll('.slide').forEach((slide, index) => {
+                slide.setAttribute('aria-label', `Slide ${index + 1}`);
+                slide.setAttribute('role', 'region');
+            });
+        });
+
+        // Handle visibility change (for kiosk mode)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Page is hidden (user switched tabs/minimized)
+                if (window.totemSlideshow) {
+                    window.totemSlideshow.stopAutoAdvance();
+                }
+            } else {
+                // Page is visible again
+                if (window.totemSlideshow) {
+                    // Reset to intro after being hidden
+                    setTimeout(() => {
+                        window.totemSlideshow.reset();
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

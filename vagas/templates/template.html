@@ -78,7 +78,7 @@
                     <i class="fas fa-chevron-down"></i>
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end modern-dropdown" aria-labelledby="dropdownMenuPerfil">
-                    {% if request.user.is_staff %}
+                    {% if request.user.is_staff or request.user.is_superuser %}
                     <li>
                       <a class="dropdown-item" href="{% url 'vagas:painel_administrativo' %}">
                         <i class="fas fa-tachometer-alt"></i>
@@ -88,7 +88,7 @@
                     {% endif %}
                     {% if request.user.is_superuser %}
                     <li>
-                      <a class="dropdown-item" href="/admin/">
+                      <a class="dropdown-item" href="/admin/">  
                         <i class="fas fa-cog"></i>
                         <span>Administração</span>
                       </a>

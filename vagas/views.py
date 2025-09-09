@@ -388,6 +388,7 @@ def alterar_escolaridade(request, id):
 def cadastrar_vagaOfertada(request):
     if request.method == 'POST':
         gambiarra = {}
+        print('request', request.POST)
         for item in request.POST:
             if item == 'cargo':
                 try:
@@ -403,7 +404,10 @@ def cadastrar_vagaOfertada(request):
                     gambiarra[item] = request.POST[item]
             else:
                 gambiarra[item] = request.POST[item]
+            gambiarra['user'] = request.user.id
+            gambiarra['ativo'] = True
         form = CadastroInternoVagasForm(gambiarra)
+        print('gambiarra',gambiarra)
         if form.is_valid():
             form.save()
             context = {
@@ -413,6 +417,8 @@ def cadastrar_vagaOfertada(request):
                 'success': [True, 'Vaga cadastrada com sucesso!']
             }
             return render(request, 'vagas/cadastrar_vagaOfertada.html', context)
+        else:
+            print('form.errors', form.errors)
     else:
         form = CadastroInternoVagasForm(initial={'ativo': True, 'user': request.user})
     context = {
@@ -987,7 +993,7 @@ def candidatosporfuncionario(request):
         'ano': year
     }
 
-    return render(request, 'vagas/candidatos_por_funcionarios.html', context)
+    return render(request, 'vagas/indicadores_candidatos_por_funcionarios.html', context)
 
 
 @login_required
@@ -1361,3 +1367,87 @@ def meus_encaminhamentos(request):
        'encaminhamentos': candidato_encaminhamentos
     }
     return render(request, 'vagas/meus_encaminhamentos.html', context)
+
+def totem_v1(request):
+    """
+    View otimizada para totem com navegação por teclado (setas e enter)
+    e movimentos do mouse (wheel scroll)
+    """
+    vagas = Vaga_Emprego.objects.filter(ativo=True).select_related('cargo', 'empresa').order_by('cargo__nome')
+    
+    # Criar dicionário para agrupar vagas por cargo
+    vagas_por_cargo = {}
+    for vaga in vagas:
+        cargo_nome = vaga.cargo.nome
+        if cargo_nome not in vagas_por_cargo:
+            vagas_por_cargo[cargo_nome] = []
+        vagas_por_cargo[cargo_nome].append(vaga)
+
+    vagas_em_destaque = vagas.filter(destaque=True)
+
+    # Contar total de vagas
+    total_vagas = sum(vaga.quantidadeVagas for vaga in vagas)
+    
+    context = {
+        'vagas': vagas,
+        'vagas_por_cargo': vagas_por_cargo,  
+        'vagas_destaque': vagas_em_destaque,
+        'destaque': bool(vagas_em_destaque),
+        'bairros': Empresa.objects.order_by('bairro').values_list('bairro', flat=True).distinct(),
+        'escolaridades': Escolaridade.objects.all().values(),        
+        'qnt_cargos': len(vagas_por_cargo),
+        'qnt_vagas': total_vagas,        
+        'eventos': Slide.objects.all(),
+    }
+    return render(request, 'vagas/totem_v1.html', context)
+
+def totem_candidatarse(request, id):
+    """
+    View de candidatura específica para o totem
+    """
+    vaga = Vaga_Emprego.objects.get(id=id)
+    
+    if request.method == 'POST':
+        form = Form_Candidato(request.POST)
+        if form.is_valid():
+            try:
+                cpf = validate_CPF(request.POST['cpf'])
+                candidato = Candidato.objects.get(cpf=cpf, vaga_id=id)
+                form = Form_Candidato(request.POST, instance=candidato)
+            except Exception as e:
+                pass
+
+            candidato = form.save()
+            
+            # Redirect para página de sucesso do totem
+            return redirect('vagas:totem_candidatura_sucesso', id=candidato.id)
+        else:
+            # Se há erros no formulário, renderizar novamente com erros
+            context = {
+                'vaga': vaga,
+                'form': form,
+                'errors': form.errors
+            }
+            return render(request, 'vagas/totem_candidatarse.html', context)
+    else:
+        form = Form_Candidato(initial={'vaga': id, 'candidato_online': True})
+    
+    context = {
+        'vaga': vaga,
+        'form': form
+    }
+    return render(request, 'vagas/totem_candidatarse.html', context)
+
+
+def totem_candidatura_sucesso(request, id):
+    """
+    View de sucesso da candidatura para o totem
+    """
+    candidato = Candidato.objects.get(id=id)
+    vaga = candidato.vaga
+    
+    context = {
+        'candidato': candidato,
+        'vaga': vaga
+    }
+    return render(request, 'vagas/totem_candidatura_sucesso.html', context)

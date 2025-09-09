@@ -7,7 +7,6 @@
 {% endblock%}
 
 {% block head_js %}
-<script src="{% static 'assets/js/modal.js' %}"></script>
 {% endblock %}
 
 {% block main %}
@@ -177,6 +176,7 @@
                                     </p>
                                     
                                     <form id="excluir_candidato" class="delete-form">
+                                        {% csrf_token %}
                                         <div class="form-group mb-4">
                                             <label for="cpf" class="form-label fw-semibold">CPF do Candidato</label>
                                             <div class="input-group input-group-lg">
@@ -411,33 +411,76 @@
         if (confirmCheckbox && deleteBtn && cpfInput) {
             confirmCheckbox.addEventListener('change', updateDeleteButton);
             cpfInput.addEventListener('input', updateDeleteButton);
-
-            // Form submission
-            document.getElementById('excluir_candidato').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const cpf = cpfInput.value;
-                if (!cpf || cpf.length < 14) {
-                    showAlert('Por favor, digite um CPF válido.', 'warning');
-                    return;
-                }
-
-                if (!confirmCheckbox.checked) {
-                    showAlert('Você deve confirmar a exclusão antes de prosseguir.', 'warning');
-                    return;
-                }
-
-                // Show confirmation modal
-                if (confirm(`Tem certeza que deseja excluir permanentemente todos os dados relacionados ao CPF ${cpf}?\n\nEsta ação NÃO pode ser desfeita!`)) {
-                    showAlert('Solicitação de exclusão enviada. Os dados serão removidos em breve.', 'success');
-                    
-                    // Reset form
-                    cpfInput.value = '';
-                    confirmCheckbox.checked = false;
-                    updateDeleteButton();
-                }
-            });
         }
+
+        // Form submission handler - MOVIDO PARA DENTRO DO DOMContentLoaded
+        document.getElementById("excluir_candidato").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            console.log("Form submitted!"); // DEBUG
+            
+            const cpf = cpfInput.value.replace(/[^\d]+/g, '');
+            
+            console.log("CPF:", cpf); // DEBUG
+            
+            if (!validarCPF(cpf)) {
+                console.log("CPF inválido"); // DEBUG
+                alert("CPF inválido! Verifique o número digitado.");
+                cpfInput.focus();
+                return;
+            }
+
+            // Obter CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            try {
+                const response = await fetch("/excluir_cpf", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ cpf, step: 0 }),
+                });
+
+                if (!response.ok) {
+                    alert("Erro ao verificar CPF. Tente novamente.");
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.qnt_excluidos == 0) {
+                    alert(`Nenhum registro encontrado com o CPF ${cpfInput.value}!`);
+                    return;
+                }
+
+                const confirmacao = confirm(`Você realmente deseja excluir ${data.qnt_excluidos == 1 ? "o" : "os"} ${data.qnt_excluidos} ${data.qnt_excluidos == 1 ? "registro" : "registros"} com o CPF ${cpfInput.value}?\n\nEsta ação é irreversível!`);
+
+                if (confirmacao) {
+                    const deleteResponse = await fetch("/excluir_cpf", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    
+                    if (deleteResponse.ok) {
+                        alert(`${data.qnt_excluidos} registro(s) excluído(s) com sucesso!`);
+                        cpfInput.value = '';
+                        document.getElementById('confirmDelete').checked = false;
+                        updateDeleteButton();
+                    } else {
+                        alert("Erro ao excluir registros. Tente novamente.");
+                    }
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                alert("Erro inesperado. Tente novamente.");
+            }
+        });
 
         // Sidebar toggle
         const sidebarToggle = document.getElementById('sidebarToggle');
@@ -514,67 +557,6 @@
         
         return true;
     }
-
-    document.getElementById("excluir_candidato").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        const cpfInput = document.getElementById("cpf");
-        const cpf = cpfInput.value.replace(/[^\d]+/g, '');
-        
-        if (!validarCPF(cpf)) {
-            Message.push("CPF inválido! Verifique o número digitado.", 2);
-            cpfInput.focus();
-            return;
-        }
-
-        try {
-            const response = await fetch("/excluir_cpf", {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ cpf, step: 0 }),
-            });
-
-            if (!response.ok) {
-                Message.push("Erro ao verificar CPF. Tente novamente.", 2);
-                return;
-            }
-
-            const data = await response.json();
-
-            if (data.qnt_excluidos == 0) {
-                Message.push(`Nenhum registro encontrado com o CPF ${cpfInput.value}!`, 1);
-                return;
-            }
-
-            const confirmacao = await AcceptDeclineModal.dispatch(
-                `Você realmente deseja excluir ${data.qnt_excluidos == 1 ? "o" : "os"} <b>${data.qnt_excluidos}</b> ${data.qnt_excluidos == 1 ? "registro" : "registros"} com o CPF <b>${cpfInput.value}</b>?<br><br><span class="text-danger"><strong>Esta ação é irreversível!</strong></span>`
-            );
-
-            if (confirmacao) {
-                const deleteResponse = await fetch("/excluir_cpf", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": "{{ csrf_token }}",
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data),
-                });
-                
-                if (deleteResponse.ok) {
-                    Message.push(`${data.qnt_excluidos} registro(s) excluído(s) com sucesso!`, 1);
-                    cpfInput.value = '';
-                } else {
-                    Message.push("Erro ao excluir registros. Tente novamente.", 2);
-                }
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            Message.push("Erro inesperado. Tente novamente.", 2);
-        }
-    });
 
     // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');
