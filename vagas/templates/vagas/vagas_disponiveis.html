@@ -240,7 +240,11 @@
                 <p class="my-auto">
                   {% if request.user.is_staff %}
                   <span class="me-3 span-date">
+                    {% if vaga.dt_atualizacao %}
+                    {{vaga.dt_atualizacao | date:"d/m/Y"}}
+                    {% else %}
                     {{vaga.dt_inclusao | date:"d/m/Y"}}
+                    {% endif %}
                   </span>
                   {% endif %}
                   {% if vaga.tipo_de_vaga != 'NML' %}
@@ -380,8 +384,13 @@
                 {% if request.user.is_staff %}
                 <div class="job-date d-flex flex-column">
                   <div>
-                    <i class="fas fa-calendar-alt"></i>
-                    {{ vaga.dt_inclusao | date:"d/m/Y" }}
+                    
+                    {% if vaga.dt_atualizacao %}
+                    <i class="fa-solid fa-arrows-rotate me-1"></i>
+                    <span style="color: #1d4ed8; margin-right: 10px;">{{ vaga.dt_atualizacao | date:"d/m/y" }}</span>
+                    {% endif %}
+                    <i class="fas fa-calendar-alt me-1 "></i>{{ vaga.dt_inclusao | date:"d/m/y" }}
+                    
                   </div>
                   <br>
                   {% if vaga.experiencia == 'Sim' %}
