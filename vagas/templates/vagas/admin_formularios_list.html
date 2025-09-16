@@ -1,0 +1,239 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Gerenciar Formulários{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-file-alt me-2"></i>
+          Gerenciar Formulários
+        </h1>
+        <p class="page-subtitle">Administração de formulários para empresas</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Novo Formulário
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros</h5>
+        </div>
+        <div class="card-body">
+          <form method="GET" class="row g-3">
+            <div class="col-md-4">
+              <label for="status" class="form-label">Status</label>
+              <select name="status" id="status" class="form-select">
+                <option value="">Todos os status</option>
+                {% for choice in status_choices %}
+                  <option value="{{ choice.0 }}" {% if filtro_status == choice.0 %}selected{% endif %}>
+                    {{ choice.1 }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="empresa" class="form-label">Empresa</label>
+              <input type="text" name="empresa" id="empresa" class="form-control" 
+                     placeholder="Nome da empresa" value="{{ filtro_empresa }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-outline-primary me-2">
+                <i class="fas fa-search me-1"></i>Filtrar
+              </button>
+              <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-1"></i>Limpar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Lista de Formulários -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-list me-2"></i>Formulários 
+            <span class="badge bg-primary">{{ formularios.count }}</span>
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          {% if formularios %}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Empresa</th>
+                    <th>Cargo</th>
+                    <th>Status</th>
+                    <th>Criado em</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for formulario in formularios %}
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="ms-2">
+                            <h6 class="mb-0">{{ formulario.nome_da_empresa }}</h6>
+                            <small class="text-muted">{{ formulario.cnpj_da_empresa }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="fw-medium">{{ formulario.cargo_ofertado }}</span>
+                        <br>
+                        <small class="text-muted">{{ formulario.quantidade_de_vagas }} vaga{{ formulario.quantidade_de_vagas|pluralize }}</small>
+                      </td>
+                      <td>
+                        {% if formulario.status_requisicao == 'AG' %}
+                          <span class="badge bg-warning">Aguardando</span>
+                        {% elif formulario.status_requisicao == 'PE' %}
+                          <span class="badge bg-info">Pendente</span>
+                        {% elif formulario.status_requisicao == 'AP' %}
+                          <span class="badge bg-success">Aprovada</span>
+                        {% elif formulario.status_requisicao == 'RE' %}
+                          <span class="badge bg-danger">Rejeitada</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <span class="fw-medium">{{ formulario.dt_inclusao|date:"d/m/Y" }}</span>
+                        <br>
+                        <small class="text-muted">{{ formulario.dt_inclusao|time:"H:i" }}</small>
+                      </td>
+                      <td>
+                        <div class="btn-group" role="group">
+                          <a href="{% url 'vagas:admin_formularios_detail' formulario.pk %}" 
+                             class="btn btn-outline-primary btn-sm" title="Visualizar">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          {% if formulario.status_requisicao == 'AG' %}
+                            <button type="button" class="btn btn-outline-info btn-sm" 
+                                    onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{{ formulario.get_public_url }}')"
+                                    title="Copiar link público">
+                              <i class="fas fa-link"></i>
+                            </button>
+                          {% endif %}
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Nenhum formulário encontrado</h5>
+              <p class="text-muted">Crie o primeiro formulário para começar.</p>
+              <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Criar Primeiro Formulário
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Feedback visual
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Link copiado para a área de transferência!'
+        });
+    }).catch(function(err) {
+        console.error('Erro ao copiar: ', err);
+        alert('Erro ao copiar o link. Tente novamente.');
+    });
+}
+
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}

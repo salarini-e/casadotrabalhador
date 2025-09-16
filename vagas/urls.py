@@ -9,10 +9,8 @@ urlpatterns = [
     path('totem/candidatura-sucesso/<id>/', views.totem_candidatura_sucesso, name='totem_candidatura_sucesso'),
     path('exportar-vagas/', views.exportar_vagas_excel, name='exportar_vagas'), 
     path('meus-encaminhamentos/', views.meus_encaminhamentos, name='meus_encaminhamentos'),
-    # path('', views.manutencao, name = 'manutencao'),
     path('indicadores', views.indicadores, name='indicadores'),  
-
-
+    
     path('cadastrar-escolaridade', views.cadastrar_escolaridade, name='cadastrar_escolaridade'),
     path('cadastrar-vaga-ofertada/', views.cadastrar_vagaOfertada, name='cadastrar'),    
     path('cadastrar-empresa/', views.cadastrar_empresa, name='cadastrar_empresa'),    
@@ -43,8 +41,6 @@ urlpatterns = [
     path('get_vaga/', views.get_cargo, name='get_vaga' ),
     path('get_empresa/', views.get_empresa, name='get_empresa' ),
     path('get_candidatos/', views.get_candidatos, name='get_candidatos' ),
-    # path('logout/', views.sair, name='logout'),
-    # path('login/', views.login_view, name='login'),
     path('visualizar-vaga/alt0x#<id>001/<mes>/<ano>/listar-canditados/', views.candidatosporvaga, name='listar_candidatos'),
     path('vagas-com-candidatos/', views.vagascomcandidatos, name='vagas_com_candidatos'),
     path('empresa/info/', views.infoempresa, name='empresa_info'),
@@ -58,7 +54,14 @@ urlpatterns = [
     path('painel_administrativo/excluir_cpf', views.painel_administrativo_excluir_cpf, name="painel_administrativo_excluir_cpf"),
     path('excluir_cpf', views.excluir_cpf, name="excluir_cpf"),
     path('emails', views.emails, name="emails"),
-    path('emails/csv/<month>/<year>', views.download_emails, name='download_emails')
+    path('emails/csv/<month>/<year>', views.download_emails, name='download_emails'),
 
-    #path('euOdeioOLuis', views.euOdeioOLuis, name="euOdeioOLuis")
+    # URLs para sistema de formulários
+    path('admin/formularios/', views.admin_formularios_list, name='admin_formularios_list'),
+    path('admin/formularios/criar/', views.admin_formularios_create, name='admin_formularios_create'),
+    path('admin/formularios/<int:id>/', views.admin_formularios_detail, name='admin_formularios_detail'),
+    path('admin/formularios/<int:id>/status/', views.admin_formularios_update_status, name='admin_formularios_update_status'),
+    path('formulario/acesso/', views.formulario_autenticacao, name='formulario_autenticacao'),
+    path('formulario/<str:hash_id>/', views.formulario_publico, name='formulario_publico'),
+    path('formulario/sucesso/', views.formulario_sucesso, name='formulario_sucesso'),
 ]

@@ -1,0 +1,27 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Formulário não encontrado{% endblock %}
+
+{% block main %}
+<div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="fas fa-exclamation-triangle fa-5x text-warning"></i>
+        </div>
+        <h1 class="h2 mb-3">Formulário não encontrado</h1>
+        <p class="text-muted mb-4">
+            O link que você está tentando acessar não existe ou expirou.<br>
+            Verifique se o endereço está correto ou entre em contato com a Casa do Trabalhador.
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>Voltar ao Início
+            </a>
+            <a href="tel:(11)3333-3333" class="btn btn-outline-primary">
+                <i class="fas fa-phone me-2"></i>Entrar em Contato
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

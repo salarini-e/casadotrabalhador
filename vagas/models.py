@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from .validations import validate_CNPJ, validate_CPF, validate_TELEFONE
 from django.utils import timezone
+import hashlib
+import secrets
+import uuid
 # Create your models here.
 
 # class Candidato(models.Model):
@@ -187,3 +190,121 @@ class Slide(models.Model):
 
     def __str__(self):
         return '%s' % (self.titulo)
+
+class RequisicaoVaga(models.Model):
+
+    EXPERIENCIA_CHOICES=(
+                            ('Sim', 'Sim'),
+                            ('Não', 'Não'),
+                            ('Des', 'Desejável')
+    )
+    
+    TIPO_DE_VAGA_CHOICES=(
+                            ('NML', 'Padrão'),
+                            ('JAP', 'Jovem aprendiz'),
+                            ('PED', 'Pessoa com deficiência'),
+                            ('EST', 'Estágio')
+
+    )
+
+    REGIME_CHOICES=(
+                            ('CLT', 'CLT'),
+                            ('PJ', 'Pessoa Jurídica'),
+                            ('TEMP', 'Temporário'),
+                            ('EST', 'Estágio')
+    )
+    FAIXA_SALARIAL_CHOICES=(
+        ('ACB', 'À combinar'),
+        ('MIN', 'Mínimo'),
+        ('VALOR', 'Entrar com valor')
+    )
+
+    CARGA_HORARIA_CHOICES=(
+        ('40', '40 horas semanais'),
+        ('44', '44 horas semanais'),
+        ('OUT', 'Outra escala')
+    )
+    STATUS_CHOICES = (
+        ('AG', 'Aguardando'),
+        ('PE', 'Pendente'),
+        ('AP', 'Aprovada'),
+        ('RE', 'Rejeitada')        
+    )
+
+    hash_id = models.CharField(max_length=64, unique=True, editable=False)
+    chave_de_acesso = models.CharField(max_length=64, unique=True, editable=False)
+    auth_hash_temp = models.CharField(max_length=64, blank=True, null=True, editable=False)  # Hash temporário para autenticação
+
+    nome_do_responsavel_pela_divulgacao_da_vaga = models.CharField(max_length=150, verbose_name='Nome do responsável pela divulgação da vaga')
+    cpf_do_responsavel = models.CharField(max_length=14, validators=[validate_CPF], verbose_name='CPF do responsável', unique=True)
+    contato_do_responsavel = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Contato do responsável')
+
+    #DA EMPRESA
+    nome_da_empresa = models.CharField(max_length=150, verbose_name='Nome da empresa')
+    endereco_da_empresa = models.CharField(max_length=100, blank=True, verbose_name='Endereço da empresa')
+    cnpj_da_empresa = models.CharField(max_length=14, validators=[validate_CNPJ], verbose_name='CNPJ da empresa', unique=True)
+    telefone_da_empresa = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone da empresa')
+    email_da_empresa = models.EmailField(max_length=254, blank=True, verbose_name='Email da empresa')
+    segmento_da_empresa = models.CharField(max_length=100, blank=True, verbose_name='Segmento da empresa')
+    whatsapp_da_empresa = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Whatsapp da empresa')
+
+    #DA VAGA
+    quantidade_de_vagas = models.IntegerField(blank=False, null=False, verbose_name='Quantidade de vagas')
+    cargo_ofertado = models.CharField(max_length=100, verbose_name='Cargo ofertado')
+    tipo_de_vaga = models.CharField(max_length=3, choices=TIPO_DE_VAGA_CHOICES, default='NML')
+    regime = models.CharField(max_length=100, default='', blank=True)
+    faixa_salarial = models.CharField(max_length=6, choices=FAIXA_SALARIAL_CHOICES, default='ACB', verbose_name='Faixa salarial')
+    valor_salario = models.CharField(max_length=50, default='', blank=True, verbose_name='Valor do salário')
+    
+    #BENEFICIOS
+    vale_transporte = models.BooleanField(default=False, verbose_name='Vale transporte')
+    vale_alimentacao = models.BooleanField(default=False, verbose_name='Vale alimentação')
+    outros_beneficios = models.TextField(default='', blank=True, verbose_name='Outros benefícios')
+    carga_horaria = models.CharField(max_length=3, choices=CARGA_HORARIA_CHOICES, default='40', verbose_name='Carga horária')
+    outra_carga_horaria = models.CharField(max_length=50, default='', blank=True, verbose_name='Informe a carga horária')
+
+    #REQUISITOS
+    escolaridade = models.ForeignKey(Escolaridade, on_delete=models.CASCADE)
+    experiencia = models.CharField(max_length=3, choices=EXPERIENCIA_CHOICES, verbose_name='Experiência')        
+    observacao = models.TextField(default='', blank=True, verbose_name='Descreva as demais competências e outras observações que forem pertinentes à vaga')
+
+    enviar_curriculo_para_email = models.BooleanField(default=False, verbose_name='Enviar currículos para o email da empresa')
+    email_para_envio = models.EmailField(max_length=254, verbose_name="Email p/ envio dos currículos", blank=True, null=True)
+    levar_curriculo_direto_ao_local = models.BooleanField(default=False, verbose_name='Levar currículo direto ao local da vaga')
+    endereco_para_levar_curriculo = models.CharField(max_length=100, blank=True, verbose_name='Endereço para levar currículo')
+    via_telefone_ou_whatsapp = models.BooleanField(default=False, verbose_name='Via telefone ou whatsapp')  
+    telefone_ou_whatsapp = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone ou whatsapp')
+    outra_forma_de_contato = models.BooleanField(default=False, verbose_name='Outra forma de contato')  
+    outra_forma_de_contato_descricao = models.CharField(max_length=100, blank=True, verbose_name='Descreva a outra forma de contato')
+    dt_inclusao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Inclusão')
+    
+    status_requisicao = models.CharField(max_length=2, choices=STATUS_CHOICES, default='AG', verbose_name='Status da requisição')
+    
+    class Meta:
+        verbose_name = "Requisição de Vaga"
+        verbose_name_plural = "Requisições de Vagas"
+        ordering = ['-dt_inclusao']
+    
+    def __str__(self):
+        return f"{self.cargo_ofertado} - {self.nome_da_empresa}"
+    
+    def save(self, *args, **kwargs):
+        # Gerar hash_id único se não existir
+        if not self.hash_id:
+            self.hash_id = hashlib.sha256(f"{uuid.uuid4()}{timezone.now()}".encode()).hexdigest()
+        
+        # Gerar chave de acesso única se não existir
+        if not self.chave_de_acesso:
+            self.chave_de_acesso = secrets.token_urlsafe(32)
+        
+        super().save(*args, **kwargs)
+    
+    def get_public_url(self):
+        """Retorna a URL pública do formulário (página de autenticação)"""
+        from django.urls import reverse
+        return reverse('vagas:formulario_autenticacao')
+    
+    def get_admin_url(self):
+        """Retorna a URL do admin para esta requisição"""
+        from django.urls import reverse
+        return reverse('vagas:admin_requisicao_detail', kwargs={'pk': self.pk})

@@ -4,6 +4,7 @@ import json
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.contrib import messages
 # AUTH
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -1451,3 +1452,252 @@ def totem_candidatura_sucesso(request, id):
         'vaga': vaga
     }
     return render(request, 'vagas/totem_candidatura_sucesso.html', context)
+
+
+# ===== VIEWS PARA ADMINISTRAÇÃO DE FORMULÁRIOS =====
+
+@login_required
+def admin_formularios_list(request):
+    """Lista todos os formulários de requisição"""
+    formularios = RequisicaoVaga.objects.all().order_by('-dt_inclusao')
+    
+    # Filtros
+    status = request.GET.get('status')
+    empresa = request.GET.get('empresa')
+    
+    if status:
+        formularios = formularios.filter(status_requisicao=status)
+    if empresa:
+        formularios = formularios.filter(nome_da_empresa__icontains=empresa)
+    
+    context = {
+        'formularios': formularios,
+        'status_choices': RequisicaoVaga.STATUS_CHOICES,
+        'filtro_status': status,
+        'filtro_empresa': empresa,
+    }
+    return render(request, 'vagas/admin_formularios_list.html', context)
+
+
+@login_required 
+def admin_formularios_create(request):
+    """Criar novo formulário de requisição"""
+    if request.method == 'POST':
+        # Chave de acesso é obrigatória
+        chave_acesso = request.POST.get('chave_de_acesso', '').strip()
+        
+        if not chave_acesso:
+            messages.error(request, 'A chave de acesso é obrigatória!')
+            return render(request, 'vagas/admin_formularios_create.html')
+        
+        # Verificar se a chave já existe
+        if RequisicaoVaga.objects.filter(chave_de_acesso=chave_acesso).exists():
+            messages.error(request, 'Esta chave de acesso já está sendo usada. Escolha outra!')
+            return render(request, 'vagas/admin_formularios_create.html')
+        
+        # Dados opcionais da empresa
+        nome_empresa = request.POST.get('nome_da_empresa', '').strip()
+        cnpj_empresa = request.POST.get('cnpj_da_empresa', '').strip()
+        email_empresa = request.POST.get('email_da_empresa', '').strip()
+        
+        # Criar nova requisição com dados iniciais
+        requisicao = RequisicaoVaga.objects.create(
+            # Dados do responsável (serão preenchidos no formulário público)
+            nome_do_responsavel_pela_divulgacao_da_vaga='A definir',
+            cpf_do_responsavel='00000000000',  # Será alterado no formulário público
+            
+            # Dados da empresa (opcionais na criação)
+            nome_da_empresa=nome_empresa or 'A definir',
+            cnpj_da_empresa=cnpj_empresa or '00000000000000',
+            email_da_empresa=email_empresa or 'nao-informado@email.com',
+            
+            # Dados da vaga (padrões)
+            quantidade_de_vagas=1,
+            cargo_ofertado='A definir',
+            escolaridade_id=1,  # Assumindo que existe escolaridade com ID 1
+            
+            # Chave de acesso obrigatória
+            chave_de_acesso=chave_acesso
+        )
+        
+        messages.success(request, f'Formulário criado com sucesso! Chave de acesso: {chave_acesso}')
+        return redirect('vagas:admin_formularios_detail', id=requisicao.pk)
+    
+    return render(request, 'vagas/admin_formularios_create.html')
+
+
+@login_required
+def admin_formularios_detail(request, id):
+    """Visualizar detalhes de um formulário"""
+    try:
+        formulario = RequisicaoVaga.objects.get(pk=id)
+    except RequisicaoVaga.DoesNotExist:
+        raise Http404("Formulário não encontrado")
+    
+    context = {
+        'formulario': formulario,
+        'public_url': request.build_absolute_uri(formulario.get_public_url()),
+    }
+    return render(request, 'vagas/admin_formularios_detail.html', context)
+
+
+@login_required
+def admin_formularios_update_status(request, id):
+    """Atualizar status de um formulário"""
+    if request.method == 'POST':
+        try:
+            formulario = RequisicaoVaga.objects.get(pk=id)
+            novo_status = request.POST.get('status')
+            
+            if novo_status in [choice[0] for choice in RequisicaoVaga.STATUS_CHOICES]:
+                formulario.status_requisicao = novo_status
+                formulario.save()
+                
+        except RequisicaoVaga.DoesNotExist:
+            pass
+    
+    return redirect('vagas:admin_formularios_detail', id=id)
+
+
+# ===== VIEW PÚBLICA PARA EMPRESAS =====
+
+def formulario_autenticacao(request):
+    """Página de autenticação com chave de acesso"""
+    if request.method == 'POST':
+        chave_acesso = request.POST.get('chave_acesso', '').strip()
+        
+        if not chave_acesso:
+            messages.error(request, 'Por favor, digite a chave de acesso.')
+            return render(request, 'vagas/formulario_autenticacao.html')
+        
+        # Verificar se a chave existe
+        try:
+            requisicao = RequisicaoVaga.objects.get(chave_de_acesso=chave_acesso)
+            
+            # Gerar hash de autenticação para o cookie
+            import hashlib
+            import secrets
+            timestamp = str(timezone.now().timestamp())
+            auth_hash = hashlib.sha256(f"{chave_acesso}{timestamp}{secrets.token_hex(16)}".encode()).hexdigest()
+            
+            # Criar resposta e definir cookie
+            response = redirect('vagas:formulario_publico', hash_id=requisicao.hash_id)
+            
+            # Cookie seguro com o hash de autenticação
+            response.set_cookie(
+                'formulario_auth',
+                auth_hash,
+                max_age=3600,  # 1 hora
+                secure=False,  # True em produção com HTTPS
+                httponly=True,
+                samesite='Lax'
+            )
+            
+            # Salvar o hash no objeto para verificação posterior
+            requisicao.auth_hash_temp = auth_hash
+            requisicao.save()
+            
+            return response
+            
+        except RequisicaoVaga.DoesNotExist:
+            messages.error(request, 'Chave de acesso inválida. Verifique e tente novamente.')
+            return render(request, 'vagas/formulario_autenticacao.html')
+    
+    return render(request, 'vagas/formulario_autenticacao.html')
+
+
+def formulario_publico(request, hash_id):
+    """Formulário público para empresas preencherem"""
+    try:
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return render(request, 'vagas/formulario_nao_encontrado.html')
+    
+    # Verificar autenticação via cookie
+    auth_cookie = request.COOKIES.get('formulario_auth')
+    if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
+        messages.error(request, 'Acesso não autorizado. Faça a autenticação novamente.')
+        return redirect('vagas:formulario_autenticacao')
+    
+    # Verificar se já foi preenchido
+    if requisicao.status_requisicao in ['AP', 'RE']:
+        return render(request, 'vagas/formulario_ja_processado.html', {'requisicao': requisicao})
+    
+    if request.method == 'POST':
+        # Verificar novamente a autenticação no envio
+        auth_cookie_post = request.COOKIES.get('formulario_auth')
+        if not auth_cookie_post or auth_cookie_post != requisicao.auth_hash_temp:
+            messages.error(request, 'Sessão expirada. Faça a autenticação novamente.')
+            return redirect('vagas:formulario_autenticacao')
+        
+        # Atualizar todos os campos do formulário
+        requisicao.nome_do_responsavel_pela_divulgacao_da_vaga = request.POST.get('nome_responsavel', '')
+        requisicao.cpf_do_responsavel = request.POST.get('cpf_responsavel', '')
+        requisicao.contato_do_responsavel = request.POST.get('contato_responsavel', '')
+        
+        # Empresa
+        requisicao.endereco_da_empresa = request.POST.get('endereco_empresa', '')
+        requisicao.telefone_da_empresa = request.POST.get('telefone_empresa', '')
+        requisicao.segmento_da_empresa = request.POST.get('segmento_empresa', '')
+        requisicao.whatsapp_da_empresa = request.POST.get('whatsapp_empresa', '')
+        
+        # Vaga
+        requisicao.quantidade_de_vagas = int(request.POST.get('quantidade_vagas', 1))
+        requisicao.cargo_ofertado = request.POST.get('cargo_ofertado', '')
+        requisicao.tipo_de_vaga = request.POST.get('tipo_vaga', 'NML')
+        requisicao.regime = request.POST.get('regime', '')
+        requisicao.faixa_salarial = request.POST.get('faixa_salarial', 'ACB')
+        requisicao.valor_salario = request.POST.get('valor_salario', '')
+        
+        # Benefícios
+        requisicao.vale_transporte = bool(request.POST.get('vale_transporte'))
+        requisicao.vale_alimentacao = bool(request.POST.get('vale_alimentacao'))
+        requisicao.outros_beneficios = request.POST.get('outros_beneficios', '')
+        requisicao.carga_horaria = request.POST.get('carga_horaria', '40')
+        requisicao.outra_carga_horaria = request.POST.get('outra_carga_horaria', '')
+        
+        # Requisitos
+        escolaridade_id = request.POST.get('escolaridade')
+        if escolaridade_id:
+            requisicao.escolaridade_id = int(escolaridade_id)
+        requisicao.experiencia = request.POST.get('experiencia', 'Não')
+        requisicao.observacao = request.POST.get('observacao', '')
+        
+        # Formas de contato
+        requisicao.enviar_curriculo_para_email = bool(request.POST.get('enviar_email'))
+        requisicao.email_para_envio = request.POST.get('email_envio', '')
+        requisicao.levar_curriculo_direto_ao_local = bool(request.POST.get('levar_curriculo'))
+        requisicao.endereco_para_levar_curriculo = request.POST.get('endereco_curriculo', '')
+        requisicao.via_telefone_ou_whatsapp = bool(request.POST.get('via_telefone'))
+        requisicao.telefone_ou_whatsapp = request.POST.get('telefone_whatsapp', '')
+        requisicao.outra_forma_de_contato = bool(request.POST.get('outra_forma'))
+        requisicao.outra_forma_de_contato_descricao = request.POST.get('outra_forma_descricao', '')
+        
+        # Atualizar status para pendente e limpar hash temporário
+        requisicao.status_requisicao = 'PE'
+        requisicao.auth_hash_temp = None  # Limpar hash após uso
+        requisicao.save()
+        
+        # Criar resposta e limpar cookie
+        response = render(request, 'vagas/formulario_sucesso.html', {'requisicao': requisicao})
+        response.delete_cookie('formulario_auth')
+        return response
+    
+    # Buscar escolaridades para o formulário
+    escolaridades = Escolaridade.objects.all()
+    
+    context = {
+        'requisicao': requisicao,
+        'escolaridades': escolaridades,
+        'tipo_vaga_choices': RequisicaoVaga.TIPO_DE_VAGA_CHOICES,
+        'regime_choices': RequisicaoVaga.REGIME_CHOICES,
+        'faixa_salarial_choices': RequisicaoVaga.FAIXA_SALARIAL_CHOICES,
+        'carga_horaria_choices': RequisicaoVaga.CARGA_HORARIA_CHOICES,
+        'experiencia_choices': RequisicaoVaga.EXPERIENCIA_CHOICES,
+    }
+    return render(request, 'vagas/formulario_publico.html', context)
+
+
+def formulario_sucesso(request):
+    """Página de sucesso após envio do formulário"""
+    return render(request, 'vagas/formulario_sucesso.html')

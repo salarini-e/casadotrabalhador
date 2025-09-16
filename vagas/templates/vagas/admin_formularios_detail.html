@@ -1,0 +1,428 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Formulário{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-eye me-2"></i>
+          Detalhes do Formulário
+        </h1>
+        <p class="page-subtitle">{{ formulario.nome_da_empresa }} - {{ formulario.cargo_ofertado }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+          </a>
+          {% if formulario.status_requisicao == 'AG' %}
+            <button type="button" class="btn btn-primary" onclick="copyToClipboard('{{ public_url }}')">
+              <i class="fas fa-link me-2"></i>Copiar Link
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <div class="row">
+        <!-- Status e Ações -->
+        <div class="col-lg-4 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Status e Ações</h5>
+            </div>
+            <div class="card-body">
+              <!-- Status Atual -->
+              <div class="mb-3">
+                <label class="form-label">Status Atual:</label>
+                <div>
+                  {% if formulario.status_requisicao == 'AG' %}
+                    <span class="badge bg-warning fs-6">Aguardando Preenchimento</span>
+                  {% elif formulario.status_requisicao == 'PE' %}
+                    <span class="badge bg-info fs-6">Pendente Análise</span>
+                  {% elif formulario.status_requisicao == 'AP' %}
+                    <span class="badge bg-success fs-6">Aprovada</span>
+                  {% elif formulario.status_requisicao == 'RE' %}
+                    <span class="badge bg-danger fs-6">Rejeitada</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Atualizar Status -->
+              {% if formulario.status_requisicao == 'PE' %}
+                <form method="POST" action="{% url 'vagas:admin_formularios_update_status' formulario.pk %}">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <label for="status" class="form-label">Atualizar Status:</label>
+                    <select name="status" id="status" class="form-select">
+                      <option value="PE" selected>Pendente</option>
+                      <option value="AP">Aprovar</option>
+                      <option value="RE">Rejeitar</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-save me-2"></i>Atualizar Status
+                  </button>
+                </form>
+              {% endif %}
+
+              <!-- Link Público e Chave de Acesso -->
+              {% if formulario.status_requisicao == 'AG' %}
+                <div class="mt-4">
+                  <!-- Chave de Acesso -->
+                  <div class="mb-3">
+                    <label class="form-label">Chave de Acesso:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" value="{{ formulario.chave_de_acesso }}" readonly id="chaveAcesso">
+                      <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ formulario.chave_de_acesso }}')">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="form-text">
+                      <i class="fas fa-key me-1"></i>
+                      A empresa precisará desta chave para acessar o formulário
+                    </div>
+                  </div>
+
+                  <!-- Link Público -->
+                  <div class="mb-3">
+                    <label class="form-label">Link de Acesso:</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" value="{{ public_url }}" readonly id="publicUrl">
+                      <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ public_url }}')">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Envie este link junto com a chave de acesso para a empresa
+                    </div>
+                  </div>
+
+                  <!-- Instruções -->
+                  <div class="alert alert-info">
+                    <h6 class="alert-heading">
+                      <i class="fas fa-lightbulb me-2"></i>Como enviar para a empresa:
+                    </h6>
+                    <ol class="mb-0">
+                      <li>Copie o <strong>link de acesso</strong> acima</li>
+                      <li>Copie a <strong>chave de acesso</strong>: <code>{{ formulario.chave_de_acesso }}</code></li>
+                      <li>Envie ambos para a empresa por email ou WhatsApp</li>
+                      <li>A empresa acessará o link e digitará a chave para preencher o formulário</li>
+                    </ol>
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Informações Técnicas -->
+              <div class="mt-4">
+                <h6>Informações Técnicas:</h6>
+                <ul class="list-unstyled small">
+                  <li><strong>ID:</strong> {{ formulario.pk }}</li>
+                  <li><strong>Hash:</strong> <code>{{ formulario.hash_id|truncatechars:16 }}...</code></li>
+                  <li><strong>Criado em:</strong> {{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</li>
+                  <li><strong>Chave de Acesso:</strong> <code>{{ formulario.chave_de_acesso|truncatechars:16 }}...</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalhes do Formulário -->
+        <div class="col-lg-8">
+          <!-- Dados da Empresa -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-building me-2"></i>Dados da Empresa</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nome da Empresa:</label>
+                  <p class="mb-0">{{ formulario.nome_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CNPJ:</label>
+                  <p class="mb-0">{{ formulario.cnpj_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Email:</label>
+                  <p class="mb-0">{{ formulario.email_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Telefone:</label>
+                  <p class="mb-0">{{ formulario.telefone_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Endereço:</label>
+                  <p class="mb-0">{{ formulario.endereco_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Segmento:</label>
+                  <p class="mb-0">{{ formulario.segmento_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">WhatsApp:</label>
+                  <p class="mb-0">{{ formulario.whatsapp_da_empresa|default:"Não informado" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dados do Responsável -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-user me-2"></i>Dados do Responsável</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nome:</label>
+                  <p class="mb-0">{{ formulario.nome_do_responsavel_pela_divulgacao_da_vaga|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CPF:</label>
+                  <p class="mb-0">{{ formulario.cpf_do_responsavel|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Contato:</label>
+                  <p class="mb-0">{{ formulario.contato_do_responsavel|default:"Não informado" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dados da Vaga -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Dados da Vaga</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Cargo:</label>
+                  <p class="mb-0">{{ formulario.cargo_ofertado|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Quantidade de Vagas:</label>
+                  <p class="mb-0">{{ formulario.quantidade_de_vagas }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Tipo de Vaga:</label>
+                  <p class="mb-0">{{ formulario.get_tipo_de_vaga_display }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Regime:</label>
+                  <p class="mb-0">{{ formulario.regime|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Faixa Salarial:</label>
+                  <p class="mb-0">
+                    {{ formulario.get_faixa_salarial_display }}
+                    {% if formulario.valor_salario %}
+                      - R$ {{ formulario.valor_salario }}
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Carga Horária:</label>
+                  <p class="mb-0">
+                    {{ formulario.get_carga_horaria_display }}
+                    {% if formulario.outra_carga_horaria %}
+                      - {{ formulario.outra_carga_horaria }}
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Escolaridade:</label>
+                  <p class="mb-0">{{ formulario.escolaridade.nome|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Experiência:</label>
+                  <p class="mb-0">{{ formulario.get_experiencia_display|default:"Não informado" }}</p>
+                </div>
+                {% if formulario.observacao %}
+                  <div class="col-12">
+                    <label class="form-label fw-bold">Observações:</label>
+                    <p class="mb-0">{{ formulario.observacao }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Benefícios -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-gift me-2"></i>Benefícios</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.vale_transporte %}checked{% endif %} disabled>
+                    <label class="form-check-label">Vale Transporte</label>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.vale_alimentacao %}checked{% endif %} disabled>
+                    <label class="form-check-label">Vale Alimentação</label>
+                  </div>
+                </div>
+                {% if formulario.outros_beneficios %}
+                  <div class="col-12">
+                    <label class="form-label fw-bold">Outros Benefícios:</label>
+                    <p class="mb-0">{{ formulario.outros_beneficios }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Formas de Contato -->
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-phone me-2"></i>Formas de Contato</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.enviar_curriculo_para_email %}checked{% endif %} disabled>
+                    <label class="form-check-label">Enviar por Email</label>
+                  </div>
+                  {% if formulario.email_para_envio %}
+                    <small class="text-muted">Email: {{ formulario.email_para_envio }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.levar_curriculo_direto_ao_local %}checked{% endif %} disabled>
+                    <label class="form-check-label">Levar Diretamente</label>
+                  </div>
+                  {% if formulario.endereco_para_levar_curriculo %}
+                    <small class="text-muted">Endereço: {{ formulario.endereco_para_levar_curriculo }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.via_telefone_ou_whatsapp %}checked{% endif %} disabled>
+                    <label class="form-check-label">Via Telefone/WhatsApp</label>
+                  </div>
+                  {% if formulario.telefone_ou_whatsapp %}
+                    <small class="text-muted">Telefone: {{ formulario.telefone_ou_whatsapp }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.outra_forma_de_contato %}checked{% endif %} disabled>
+                    <label class="form-check-label">Outra Forma</label>
+                  </div>
+                  {% if formulario.outra_forma_de_contato_descricao %}
+                    <small class="text-muted">Descrição: {{ formulario.outra_forma_de_contato_descricao }}</small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Feedback visual
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Link copiado para a área de transferência!'
+        });
+    }).catch(function(err) {
+        console.error('Erro ao copiar: ', err);
+        alert('Erro ao copiar o link. Tente novamente.');
+    });
+}
+
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}
