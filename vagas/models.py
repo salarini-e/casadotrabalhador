@@ -97,6 +97,7 @@ class Vaga_Emprego(models.Model):
     empresa=models.ForeignKey(Empresa, on_delete=models.CASCADE) 
     email=models.CharField(max_length=254, verbose_name="Email p/ encaminhamento", blank=True, null=True)     
     cargo=models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    requisicao_vaga=models.ForeignKey('RequisicaoVaga', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Requisição de Vaga', help_text='Requisição que originou esta vaga')
     quantidadeVagas=models.IntegerField(blank=False, null=False, verbose_name='Quantidade de vagas')
     tipo_de_vaga=models.CharField(max_length=3, choices=TIPO_DE_VAGA_CHOICES, default='NML')
     escolaridade=models.ForeignKey(Escolaridade, on_delete=models.CASCADE)
@@ -236,17 +237,17 @@ class RequisicaoVaga(models.Model):
     auth_hash_temp = models.CharField(max_length=64, blank=True, null=True, editable=False)  # Hash temporário para autenticação
 
     nome_do_responsavel_pela_divulgacao_da_vaga = models.CharField(max_length=150, verbose_name='Nome do responsável pela divulgação da vaga')
-    cpf_do_responsavel = models.CharField(max_length=14, validators=[validate_CPF], verbose_name='CPF do responsável', unique=True)
-    contato_do_responsavel = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Contato do responsável')
+    cpf_do_responsavel = models.CharField(max_length=14, validators=[validate_CPF], verbose_name='CPF do responsável')
+    contato_do_responsavel = models.CharField(max_length=15, validators=[validate_TELEFONE], blank=True, verbose_name='Contato do responsável')
 
     #DA EMPRESA
     nome_da_empresa = models.CharField(max_length=150, verbose_name='Nome da empresa')
     endereco_da_empresa = models.CharField(max_length=100, blank=True, verbose_name='Endereço da empresa')
-    cnpj_da_empresa = models.CharField(max_length=14, validators=[validate_CNPJ], verbose_name='CNPJ da empresa', unique=True)
-    telefone_da_empresa = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone da empresa')
+    cnpj_da_empresa = models.CharField(max_length=14, validators=[validate_CNPJ], verbose_name='CNPJ da empresa')
+    telefone_da_empresa = models.CharField(max_length=15, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone da empresa')
     email_da_empresa = models.EmailField(max_length=254, blank=True, verbose_name='Email da empresa')
     segmento_da_empresa = models.CharField(max_length=100, blank=True, verbose_name='Segmento da empresa')
-    whatsapp_da_empresa = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Whatsapp da empresa')
+    whatsapp_da_empresa = models.CharField(max_length=15, validators=[validate_TELEFONE], blank=True, verbose_name='Whatsapp da empresa')
 
     #DA VAGA
     quantidade_de_vagas = models.IntegerField(blank=False, null=False, verbose_name='Quantidade de vagas')
@@ -273,12 +274,14 @@ class RequisicaoVaga(models.Model):
     levar_curriculo_direto_ao_local = models.BooleanField(default=False, verbose_name='Levar currículo direto ao local da vaga')
     endereco_para_levar_curriculo = models.CharField(max_length=100, blank=True, verbose_name='Endereço para levar currículo')
     via_telefone_ou_whatsapp = models.BooleanField(default=False, verbose_name='Via telefone ou whatsapp')  
-    telefone_ou_whatsapp = models.CharField(max_length=11, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone ou whatsapp')
+    telefone_ou_whatsapp = models.CharField(max_length=15, validators=[validate_TELEFONE], blank=True, verbose_name='Telefone ou whatsapp')
     outra_forma_de_contato = models.BooleanField(default=False, verbose_name='Outra forma de contato')  
     outra_forma_de_contato_descricao = models.CharField(max_length=100, blank=True, verbose_name='Descreva a outra forma de contato')
     dt_inclusao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Inclusão')
+    dt_atualizacao = models.DateTimeField(auto_now=True, verbose_name='Dt. Atualização')
     
     status_requisicao = models.CharField(max_length=2, choices=STATUS_CHOICES, default='AG', verbose_name='Status da requisição')
+    observacao_interna = models.TextField(blank=True, null=True, verbose_name='Observação interna')
     
     class Meta:
         verbose_name = "Requisição de Vaga"
@@ -297,14 +300,118 @@ class RequisicaoVaga(models.Model):
         if not self.chave_de_acesso:
             self.chave_de_acesso = secrets.token_urlsafe(32)
         
+        # Limpar campos de telefone (remover máscaras)
+        if self.contato_do_responsavel:
+            self.contato_do_responsavel = ''.join(filter(str.isdigit, self.contato_do_responsavel))
+        
+        if self.telefone_da_empresa:
+            self.telefone_da_empresa = ''.join(filter(str.isdigit, self.telefone_da_empresa))
+        
+        if self.whatsapp_da_empresa:
+            self.whatsapp_da_empresa = ''.join(filter(str.isdigit, self.whatsapp_da_empresa))
+            
+        if self.telefone_ou_whatsapp:
+            self.telefone_ou_whatsapp = ''.join(filter(str.isdigit, self.telefone_ou_whatsapp))
+        
+        # Limpar campos de CPF e CNPJ (remover máscaras)
+        if self.cpf_do_responsavel:
+            self.cpf_do_responsavel = ''.join(filter(str.isdigit, self.cpf_do_responsavel))
+            
+        if self.cnpj_da_empresa:
+            self.cnpj_da_empresa = ''.join(filter(str.isdigit, self.cnpj_da_empresa))
+        
         super().save(*args, **kwargs)
     
     def get_public_url(self):
-        """Retorna a URL pública do formulário (página de autenticação)"""
+        """Retorna a URL pública do formulário (página de autenticação com hash)"""
         from django.urls import reverse
-        return reverse('vagas:formulario_autenticacao')
+        return reverse('vagas:formulario_autenticacao', kwargs={'hash_id': self.hash_id})
     
     def get_admin_url(self):
         """Retorna a URL do admin para esta requisição"""
         from django.urls import reverse
         return reverse('vagas:admin_requisicao_detail', kwargs={'pk': self.pk})
+
+    def get_vaga(self):
+        return Vaga_Emprego.objects.filter(requisicao_vaga=self).last()
+
+class HistoricoRequisicao(models.Model):
+    """
+    Modelo para rastrear mudanças de status e observações das requisições
+    """
+    
+    ACAO_CHOICES = (
+        ('CR', 'Criação'),
+        ('ST', 'Mudança de Status'),
+        ('OB', 'Observação'),
+        ('ED', 'Edição'),
+    )
+    
+    requisicao = models.ForeignKey(RequisicaoVaga, on_delete=models.CASCADE, related_name='historico')
+    acao = models.CharField(max_length=2, choices=ACAO_CHOICES, verbose_name='Ação')
+    status_anterior = models.CharField(max_length=2, choices=RequisicaoVaga.STATUS_CHOICES, blank=True, null=True)
+    status_novo = models.CharField(max_length=2, choices=RequisicaoVaga.STATUS_CHOICES, blank=True, null=True)
+    observacao = models.TextField(blank=True, null=True, verbose_name='Observação')
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuário')
+    dt_criacao = models.DateTimeField(auto_now_add=True, verbose_name='Data/Hora')
+    
+    class Meta:
+        verbose_name = "Histórico de Requisição"
+        verbose_name_plural = "Históricos de Requisições"
+        ordering = ['-dt_criacao']
+    
+    def __str__(self):
+        return f"{self.requisicao} - {self.get_acao_display()} em {self.dt_criacao.strftime('%d/%m/%Y %H:%M')}"
+
+
+class CandidatoSelecionado(models.Model):
+    """
+    Modelo para rastrear candidatos selecionados/aprovados para vagas específicas
+    através do sistema de formulários externos
+    """
+    
+    STATUS_CHOICES = (
+        ('PE', 'Pendente'),
+        ('AP', 'Aprovado'), 
+        ('RE', 'Rejeitado'),
+        ('CO', 'Contratado'),
+    )
+    
+    requisicao_vaga = models.ForeignKey(RequisicaoVaga, on_delete=models.CASCADE, related_name='candidatos_selecionados')
+    vaga = models.ForeignKey('Vaga_Emprego', on_delete=models.CASCADE, null=True, blank=True, related_name='candidatos_selecionados')
+    
+    # Dados do candidato (copiados no momento da seleção)
+    nome = models.CharField(max_length=100, verbose_name='Nome do candidato')
+    cpf = models.CharField(max_length=14, verbose_name='CPF do candidato')
+    data_nascimento = models.DateField(verbose_name='Data de nascimento')
+    sexo = models.CharField(max_length=1, choices=Candidato.SEXO_CHOICES, verbose_name='Sexo')
+    email = models.EmailField(max_length=254, verbose_name='Email', blank=True)
+    celular = models.CharField(max_length=15, verbose_name='Celular')
+    bairro = models.CharField(max_length=100, verbose_name='Bairro', blank=True)
+    escolaridade = models.ForeignKey(Escolaridade, on_delete=models.CASCADE)
+    
+    # Controle de seleção
+    status_selecao = models.CharField(max_length=2, choices=STATUS_CHOICES, default='PE', verbose_name='Status da Seleção')
+    observacao_selecao = models.TextField(blank=True, null=True, verbose_name='Observação da Seleção')
+    
+    # Metadados
+    dt_selecao = models.DateTimeField(auto_now_add=True, verbose_name='Data de Seleção')
+    dt_atualizacao = models.DateTimeField(auto_now=True, verbose_name='Última Atualização')
+    usuario_selecao = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Usuário que Selecionou')
+    
+    class Meta:
+        verbose_name = "Candidato Selecionado"
+        verbose_name_plural = "Candidatos Selecionados"
+        ordering = ['-dt_selecao']
+        unique_together = ['requisicao_vaga', 'cpf']  # Um candidato por requisição
+    
+    def __str__(self):
+        return f"{self.nome} - {self.requisicao_vaga.cargo_ofertado}"
+    
+    def idade(self):
+        from datetime import date
+        today = date.today()
+        return today.year - self.data_nascimento.year - ((today.month, today.day) < (self.data_nascimento.month, self.data_nascimento.day))
+    
+    def get_cpf_formatado(self):
+        return f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"

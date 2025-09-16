@@ -1,0 +1,569 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Cadastrar Vaga - {{ requisicao.nome_da_empresa }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-plus-square me-2"></i>
+          Cadastrar Vaga no Sistema
+        </h1>
+        <p class="page-subtitle">{{ requisicao.nome_da_empresa }} - {{ requisicao.cargo_ofertado }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:admin_formularios_detail' requisicao.pk %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <!-- Mensagens -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% if message.tags == 'error' %}
+              <i class="fas fa-exclamation-triangle me-2"></i>
+            {% else %}
+              <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- 3 Colunas -->
+      <div class="row g-4">
+                <!-- COLUNA 1: Dados do Formulário -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-alt me-2"></i>
+                                Dados do Formulário
+                            </h5>
+                            <small>Informações enviadas pela empresa</small>
+                        </div>
+                        <div class="card-body p-3" style="max-height: 70vh; overflow-y: auto;">
+                            <!-- Empresa -->
+                            <div class="mb-3">
+                                <h6 class="text-info fw-bold">
+                                    <i class="fas fa-building me-1"></i>Empresa
+                                </h6>
+                                <div class="small">
+                                    <div><strong>Nome:</strong> {{ requisicao.nome_da_empresa }}</div>
+                                    <div><strong>CNPJ:</strong> {{ requisicao.cnpj_da_empresa }}</div>
+                                    <div><strong>Email:</strong> {{ requisicao.email_da_empresa|default:"Não informado" }}</div>
+                                    <div><strong>Telefone:</strong> {{ requisicao.telefone_da_empresa|default:"Não informado" }}</div>
+                                    <div><strong>Endereço:</strong> {{ requisicao.endereco_da_empresa|default:"Não informado" }}</div>
+                                    <div><strong>Segmento:</strong> {{ requisicao.segmento_da_empresa|default:"Não informado" }}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Responsável -->
+                            <div class="mb-3">
+                                <h6 class="text-info fw-bold">
+                                    <i class="fas fa-user me-1"></i>Responsável
+                                </h6>
+                                <div class="small">
+                                    <div><strong>Nome:</strong> {{ requisicao.nome_do_responsavel_pela_divulgacao_da_vaga }}</div>
+                                    <div><strong>CPF:</strong> {{ requisicao.cpf_do_responsavel }}</div>
+                                    <div><strong>Contato:</strong> {{ requisicao.contato_do_responsavel|default:"Não informado" }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Vaga -->
+                            <div class="mb-3">
+                                <h6 class="text-info fw-bold">
+                                    <i class="fas fa-briefcase me-1"></i>Vaga
+                                </h6>
+                                <div class="small">
+                                    <div><strong>Cargo:</strong> {{ requisicao.cargo_ofertado }}</div>
+                                    <div><strong>Quantidade:</strong> {{ requisicao.quantidade_de_vagas }}</div>
+                                    <div><strong>Tipo:</strong> {{ requisicao.get_tipo_de_vaga_display }}</div>
+                                    <div><strong>Escolaridade:</strong> {{ requisicao.escolaridade.nome }}</div>
+                                    <div><strong>Experiência:</strong> {{ requisicao.get_experiencia_display }}</div>
+                                    <div><strong>Salário:</strong> {{ requisicao.get_faixa_salarial_display }}</div>
+                                    {% if requisicao.valor_salario %}
+                                        <div><strong>Valor:</strong> R$ {{ requisicao.valor_salario }}</div>
+                                    {% endif %}
+                                    <div><strong>Carga Horária:</strong> {{ requisicao.get_carga_horaria_display }}</div>
+                                    {% if requisicao.outra_carga_horaria %}
+                                        <div><strong>Outra CH:</strong> {{ requisicao.outra_carga_horaria }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Benefícios -->
+                            <div class="mb-3">
+                                <h6 class="text-info fw-bold">
+                                    <i class="fas fa-gift me-1"></i>Benefícios
+                                </h6>
+                                <div class="small">
+                                    {% if requisicao.vale_transporte %}<div>✓ Vale Transporte</div>{% endif %}
+                                    {% if requisicao.vale_alimentacao %}<div>✓ Vale Alimentação</div>{% endif %}
+                                    {% if requisicao.outros_beneficios %}
+                                        <div><strong>Outros:</strong> {{ requisicao.outros_beneficios }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Observações -->
+                            {% if requisicao.observacao %}
+                            <div class="mb-3">
+                                <h6 class="text-info fw-bold">
+                                    <i class="fas fa-comment me-1"></i>Observações
+                                </h6>
+                                <div class="small">{{ requisicao.observacao }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUNA 2: Dados do Sistema -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-database me-2"></i>
+                                Dados do Sistema
+                            </h5>
+                            <small>Empresas e cargos cadastrados</small>
+                        </div>
+                        <div class="card-body p-3" style="max-height: 70vh; overflow-y: auto;">
+                            <!-- Empresas Similares -->
+                            <div class="mb-4">
+                                <h6 class="text-warning fw-bold">
+                                    <i class="fas fa-building me-1"></i>Empresas Similares
+                                    <span class="badge bg-warning text-dark">{{ empresas_similares.count }}</span>
+                                </h6>
+                                {% if empresas_similares %}
+                                    {% for empresa in empresas_similares %}
+                                        <div class="border rounded p-2 mb-2 cursor-pointer empresa-item" 
+                                             data-empresa-id="{{ empresa.id }}"
+                                             data-empresa-nome="{{ empresa.nome }}"
+                                             onclick="selecionarEmpresa(this)">
+                                            <div class="small">
+                                                <div class="fw-bold">{{ empresa.nome }}</div>
+                                                <div class="text-muted">CNPJ: {{ empresa.get_cnpj }}</div>
+                                                <div class="text-muted">{{ empresa.email|default:"Email não informado" }}</div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small">Nenhuma empresa similar encontrada</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Cargos Similares -->
+                            <div class="mb-4">
+                                <h6 class="text-warning fw-bold">
+                                    <i class="fas fa-briefcase me-1"></i>Cargos Similares
+                                    <span class="badge bg-warning text-dark">{{ cargos_similares.count }}</span>
+                                </h6>
+                                {% if cargos_similares %}
+                                    {% for cargo in cargos_similares %}
+                                        <div class="border rounded p-2 mb-2 cursor-pointer cargo-item" 
+                                             data-cargo-id="{{ cargo.id }}"
+                                             data-cargo-nome="{{ cargo.nome }}"
+                                             onclick="selecionarCargo(this)">
+                                            <div class="small fw-bold">{{ cargo.nome }}</div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted small">Nenhum cargo similar encontrado</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUNA 3: Formulário Final -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 1rem;">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-save me-2"></i>
+                                Cadastrar Vaga
+                            </h5>
+                            <small>Formulário final para cadastro</small>
+                        </div>
+                        <div class="card-body p-3" style="max-height: 70vh; overflow-y: auto;">
+                            <form method="POST" action="">
+                                {% csrf_token %}
+                                
+                                <!-- Empresa -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">
+                                        <i class="fas fa-building me-1"></i>Empresa *
+                                    </label>
+                                    <input type="text" name="empresa" id="empresa_input" class="form-control form-control-sm" 
+                                           placeholder="Digite o nome da empresa..." value="{{ requisicao.nome_da_empresa }}" required>
+                                    <input type="hidden" name="empresa_id" id="empresa_id">
+                                    <div class="autocomplete-results" id="empresa_results"></div>
+                                </div>
+
+                                <!-- Cargo -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">
+                                        <i class="fas fa-briefcase me-1"></i>Cargo *
+                                    </label>
+                                    <input type="text" name="cargo" id="cargo_input" class="form-control form-control-sm" 
+                                           placeholder="Digite o cargo..." value="{{ requisicao.cargo_ofertado }}" required>
+                                    <input type="hidden" name="cargo_id" id="cargo_id">
+                                    <div class="autocomplete-results" id="cargo_results"></div>
+                                </div>
+
+                                <!-- Outros campos da vaga -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Quantidade de Vagas *</label>
+                                    <input type="number" name="quantidade_vagas" class="form-control form-control-sm" 
+                                           value="{{ requisicao.quantidade_de_vagas }}" required min="1">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Tipo de Vaga</label>
+                                    <select name="tipo_de_vaga" class="form-select form-select-sm">
+                                        <option value="NML" {% if requisicao.tipo_de_vaga == 'NML' %}selected{% endif %}>Padrão</option>
+                                        <option value="JAP" {% if requisicao.tipo_de_vaga == 'JAP' %}selected{% endif %}>Jovem Aprendiz</option>
+                                        <option value="PED" {% if requisicao.tipo_de_vaga == 'PED' %}selected{% endif %}>Pessoa com Deficiência</option>
+                                        <option value="EST" {% if requisicao.tipo_de_vaga == 'EST' %}selected{% endif %}>Estágio</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Escolaridade *</label>
+                                    <select name="escolaridade" class="form-select form-select-sm" required>
+                                        {% for escolaridade in escolaridades %}
+                                            <option value="{{ escolaridade.id }}" 
+                                                    {% if escolaridade.id == requisicao.escolaridade.id %}selected{% endif %}>
+                                                {{ escolaridade.nome }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Salário</label>
+                                    <input type="text" name="salario" class="form-control form-control-sm" 
+                                           value="{% if requisicao.valor_salario %}{{ requisicao.valor_salario }}{% else %}{{ requisicao.get_faixa_salarial_display }}{% endif %}"
+                                           placeholder="Ex: R$ 1.500,00 ou À combinar">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Carga Horária</label>
+                                    <input type="text" name="carga_horaria" class="form-control form-control-sm" 
+                                           value="{% if requisicao.outra_carga_horaria %}{{ requisicao.outra_carga_horaria }}{% else %}{{ requisicao.get_carga_horaria_display }}{% endif %}"
+                                           placeholder="Ex: 40 horas semanais">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Regime de Trabalho</label>
+                                    <input type="text" name="regime" class="form-control form-control-sm" 
+                                           value="{{ requisicao.regime }}" placeholder="Ex: CLT, PJ, Temporário">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Experiência *</label>
+                                    <select name="experiencia" class="form-select form-select-sm" required>
+                                        <option value="Sim" {% if requisicao.experiencia == 'Sim' %}selected{% endif %}>Sim</option>
+                                        <option value="Não" {% if requisicao.experiencia == 'Não' %}selected{% endif %}>Não</option>
+                                        <option value="Des" {% if requisicao.experiencia == 'Des' %}selected{% endif %}>Desejável</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Atribuições</label>
+                                    <textarea name="atribuicoes" class="form-control form-control-sm" rows="3"
+                                              placeholder="Descreva as atribuições do cargo..."></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Observações</label>
+                                    <textarea name="observacao" class="form-control form-control-sm" rows="3"
+                                              placeholder="Observações sobre a vaga...">{{ requisicao.observacao }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-success">Email para Encaminhamento</label>
+                                    <input type="email" name="email" class="form-control form-control-sm" 
+                                           value="{{ requisicao.email_da_empresa }}" 
+                                           placeholder="Email específico para esta vaga (opcional)">
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" name="destaque" id="destaque">
+                                    <label class="form-check-label" for="destaque">
+                                        Destacar esta vaga
+                                    </label>
+                                </div>
+
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save me-2"></i>Cadastrar Vaga
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+
+// Dados para autocomplete
+const EMPRESAS_DATA = {{ todas_empresas_json|safe }};
+const CARGOS_DATA = {{ todos_cargos_json|safe }};
+
+// Função para selecionar empresa da lista de similares
+function selecionarEmpresa(element) {
+    const empresaId = element.dataset.empresaId;
+    const empresaNome = element.dataset.empresaNome;
+    
+    // Preencher o input
+    document.getElementById('empresa_input').value = empresaNome;
+    document.getElementById('empresa_id').value = empresaId;
+    
+    // Destacar item selecionado
+    document.querySelectorAll('.empresa-item').forEach(item => {
+        item.classList.remove('border-success', 'bg-success-subtle');
+    });
+    element.classList.add('border-success', 'bg-success-subtle');
+}
+
+// Função para selecionar cargo da lista de similares
+function selecionarCargo(element) {
+    const cargoId = element.dataset.cargoId;
+    const cargoNome = element.dataset.cargoNome;
+    
+    // Preencher o input
+    document.getElementById('cargo_input').value = cargoNome;
+    document.getElementById('cargo_id').value = cargoId;
+    
+    // Destacar item selecionado
+    document.querySelectorAll('.cargo-item').forEach(item => {
+        item.classList.remove('border-success', 'bg-success-subtle');
+    });
+    element.classList.add('border-success', 'bg-success-subtle');
+}
+
+// Autocomplete para empresa
+function searchEmpresa(input) {
+    const query = input.value;
+    const resultsDiv = document.getElementById('empresa_results');
+    
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    // Filtrar empresas
+    const empresasFiltered = EMPRESAS_DATA.filter(empresa => 
+        empresa.nome.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 5);
+    
+    let htmlContent = '';
+    empresasFiltered.forEach(empresa => {
+        htmlContent += `
+            <div class="autocomplete-item" onclick="selectEmpresa('${empresa.id}', '${empresa.nome}')">
+                <strong>${empresa.nome}</strong><br>
+                <small class="text-muted">${empresa.cnpj || 'CNPJ não informado'}</small>
+            </div>
+        `;
+    });
+    
+    // Opção para criar nova empresa
+    if (query.length > 2) {
+        htmlContent += `
+            <div class="autocomplete-item create-new" onclick="createNewEmpresa('${query}')">
+                <i class="fas fa-plus me-2"></i>Criar nova empresa: "${query}"
+            </div>
+        `;
+    }
+    
+    resultsDiv.innerHTML = htmlContent;
+}
+
+// Autocomplete para cargo
+function searchCargo(input) {
+    const query = input.value;
+    const resultsDiv = document.getElementById('cargo_results');
+    
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    // Filtrar cargos
+    const cargosFiltered = CARGOS_DATA.filter(cargo => 
+        cargo.nome.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 5);
+    
+    let htmlContent = '';
+    cargosFiltered.forEach(cargo => {
+        htmlContent += `
+            <div class="autocomplete-item" onclick="selectCargo('${cargo.id}', '${cargo.nome}')">
+                ${cargo.nome}
+            </div>
+        `;
+    });
+    
+    // Opção para criar novo cargo
+    if (query.length > 2) {
+        htmlContent += `
+            <div class="autocomplete-item create-new" onclick="createNewCargo('${query}')">
+                <i class="fas fa-plus me-2"></i>Criar novo cargo: "${query}"
+            </div>
+        `;
+    }
+    
+    resultsDiv.innerHTML = htmlContent;
+}
+
+// Selecionar empresa do autocomplete
+function selectEmpresa(id, nome) {
+    document.getElementById('empresa_input').value = nome;
+    document.getElementById('empresa_id').value = id;
+    document.getElementById('empresa_results').innerHTML = '';
+}
+
+// Selecionar cargo do autocomplete
+function selectCargo(id, nome) {
+    document.getElementById('cargo_input').value = nome;
+    document.getElementById('cargo_id').value = id;
+    document.getElementById('cargo_results').innerHTML = '';
+}
+
+// Criar nova empresa
+function createNewEmpresa(nome) {
+    document.getElementById('empresa_input').value = nome;
+    document.getElementById('empresa_id').value = 'nova';
+    document.getElementById('empresa_results').innerHTML = '';
+}
+
+// Criar novo cargo
+function createNewCargo(nome) {
+    document.getElementById('cargo_input').value = nome;
+    document.getElementById('cargo_id').value = 'novo';
+    document.getElementById('cargo_results').innerHTML = '';
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Autocomplete events
+    const empresaInput = document.getElementById('empresa_input');
+    const cargoInput = document.getElementById('cargo_input');
+    
+    if (empresaInput) {
+        empresaInput.addEventListener('input', function() {
+            searchEmpresa(this);
+        });
+    }
+    
+    if (cargoInput) {
+        cargoInput.addEventListener('input', function() {
+            searchCargo(this);
+        });
+    }
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.autocomplete-wrapper')) {
+            document.getElementById('empresa_results').innerHTML = '';
+            document.getElementById('cargo_results').innerHTML = '';
+        }
+    });
+    
+    // Form submission validation
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const empresaInput = document.getElementById('empresa_input').value;
+            const cargoInput = document.getElementById('cargo_input').value;
+            
+            if (!empresaInput || !cargoInput) {
+                e.preventDefault();
+                alert('Por favor, selecione uma empresa e um cargo.');
+                return;
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

@@ -39,6 +39,28 @@ class Pessoa(models.Model):
         super().save(force_insert, force_update, *args, **kwargs)
         self.__original_email = self.email
         self.__original_nome = self.nome
+    
+    def idade(self):
+        """Calcula a idade baseada na data de nascimento"""
+        if self.dt_nascimento:
+            from datetime import date
+            today = date.today()
+            return today.year - self.dt_nascimento.year - ((today.month, today.day) < (self.dt_nascimento.month, self.dt_nascimento.day))
+        return None
+    
+    def get_sexo_display(self):
+        """Método para compatibilidade com o template que espera sexo"""
+        # Como o modelo Pessoa não tem campo sexo, retorna "Não informado"
+        return "Não informado"
+    
+    @property
+    def escolaridade(self):
+        """Propriedade para compatibilidade - pode ser implementada futuramente"""
+        # Como não há relação com escolaridade no modelo Pessoa atual,
+        # retorna um objeto mock para evitar erros no template
+        class MockEscolaridade:
+            nome = "Não informado"
+        return MockEscolaridade()
 # class Contribuinte(models.Model):
 #     cnpj
 #     nome_da_empresa

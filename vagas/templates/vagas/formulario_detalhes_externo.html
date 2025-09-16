@@ -1,0 +1,839 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Formulário{% endblock %}
+
+{% block main %}
+<div class="container-fluid bg-light min-vh-100 py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-file-alt text-primary me-2"></i>
+                        Detalhes do Formulário
+                    </h1>
+                    <p class="text-muted mb-0">Visualize os dados enviados da sua requisição de vaga</p>
+                </div>
+                <div>
+                    <span class="badge bg-{% if requisicao.status_requisicao == 'PE' %}info{% elif requisicao.status_requisicao == 'AP' %}success{% elif requisicao.status_requisicao == 'RE' %}danger{% endif %} fs-6">
+                        {% if requisicao.status_requisicao == 'PE' %}
+                            Pendente Análise
+                        {% elif requisicao.status_requisicao == 'AP' %}
+                            Aprovada
+                        {% elif requisicao.status_requisicao == 'RE' %}
+                            Rejeitada
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Mensagens -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {% if message.tags == 'error' %}
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Menu de Navegação -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body py-3">
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                {% if requisicao.status_requisicao == 'PE' %}
+                                    <a href="{% url 'vagas:formulario_publico' requisicao.hash_id %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-edit me-2"></i>Editar Formulário
+                                    </a>
+                                {% endif %}
+                                <a href="tel:(11)3333-3333" class="btn btn-outline-success">
+                                    <i class="fas fa-phone me-2"></i>Entrar em Contato
+                                </a>
+                                <button onclick="limparSessao()" class="btn btn-outline-secondary">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Status e Histórico em duas colunas -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Status da Requisição</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    {% if requisicao.status_requisicao == 'PE' %}
+                                        <div class="alert alert-info mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-clock me-2"></i>Pendente de Análise
+                                            </h6>
+                                            <p class="mb-0">Sua requisição foi enviada com sucesso e está sendo analisada pela Casa do Trabalhador. Você receberá um retorno em breve.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Observação da análise:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% elif requisicao.status_requisicao == 'AP' %}
+                                        <div class="alert alert-success mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-check-circle me-2"></i>Requisição Aprovada
+                                            </h6>
+                                            <p class="mb-0">Parabéns! Sua requisição foi aprovada. A Casa do Trabalhador entrará em contato para os próximos passos.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Observação:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% elif requisicao.status_requisicao == 'RE' %}
+                                        <div class="alert alert-danger mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-times-circle me-2"></i>Requisição Rejeitada
+                                            </h6>
+                                            <p class="mb-0">Sua requisição não foi aprovada desta vez. Entre em contato para mais informações ou para uma nova solicitação.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Motivo da rejeição:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <p class="text-muted small mb-1">Data de Envio:</p>
+                                    <p class="fw-bold">{{ requisicao.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                                    {% if requisicao.dt_atualizacao and requisicao.dt_atualizacao != requisicao.dt_inclusao %}
+                                        <p class="text-muted small mb-1 mt-2">Última Atualização:</p>
+                                        <p class="fw-bold small">{{ requisicao.dt_atualizacao|date:"d/m/Y H:i" }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico de Mudanças -->
+                {% if requisicao.historico.all %}
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Atualizações</h5>
+                        </div>
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            <div class="timeline">
+                                {% for item in requisicao.historico.all %}
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker">
+                                            {% if item.acao == 'CR' %}
+                                                <i class="fas fa-plus-circle text-success"></i>
+                                            {% elif item.acao == 'ST' %}
+                                                <i class="fas fa-exchange-alt text-primary"></i>
+                                            {% elif item.acao == 'OB' %}
+                                                <i class="fas fa-comment text-info"></i>
+                                            {% elif item.acao == 'ED' %}
+                                                <i class="fas fa-edit text-warning"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-header">
+                                                <h6 class="mb-1 small">
+                                                    {{ item.get_acao_display }}
+                                                    {% if item.acao == 'ST' %}
+                                                        {% if item.status_anterior %}
+                                                            <span class="badge bg-secondary small">{{ item.get_status_anterior_display }}</span>
+                                                            <i class="fas fa-arrow-right mx-1"></i>
+                                                        {% endif %}
+                                                        {% if item.status_novo %}
+                                                            <span class="badge small
+                                                                {% if item.status_novo == 'PE' %}bg-info
+                                                                {% elif item.status_novo == 'AP' %}bg-success
+                                                                {% elif item.status_novo == 'RE' %}bg-danger
+                                                                {% elif item.status_novo == 'AG' %}bg-warning
+                                                                {% endif %}">
+                                                                {{ item.get_status_novo_display }}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ item.dt_criacao|date:"d/m/Y H:i" }}
+                                                </small>
+                                            </div>
+                                            {% if item.observacao %}
+                                                <div class="timeline-body mt-2">
+                                                    <p class="mb-0 small">{{ item.observacao|truncatechars:100 }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informações do Responsável -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-user me-2"></i>Responsável pela Vaga</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <label class="form-label text-muted">Nome:</label>
+                                    <p class="fw-bold">{{ requisicao.nome_do_responsavel_pela_divulgacao_da_vaga|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label class="form-label text-muted">CPF:</label>
+                                    <p class="fw-bold">{{ requisicao.cpf_do_responsavel|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-3">
+                                    <label class="form-label text-muted">Contato:</label>
+                                    <p class="fw-bold">{{ requisicao.contato_do_responsavel|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações da Empresa -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-building me-2"></i>Dados da Empresa</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">Nome da Empresa:</label>
+                                    <p class="fw-bold">{{ requisicao.nome_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">CNPJ:</label>
+                                    <p class="fw-bold">{{ requisicao.cnpj_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">Email:</label>
+                                    <p class="fw-bold">{{ requisicao.email_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">Telefone:</label>
+                                    <p class="fw-bold">{{ requisicao.telefone_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">WhatsApp:</label>
+                                    <p class="fw-bold">{{ requisicao.whatsapp_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-lg-4">
+                                    <label class="form-label text-muted">Segmento:</label>
+                                    <p class="fw-bold">{{ requisicao.segmento_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted">Endereço:</label>
+                                    <p class="fw-bold">{{ requisicao.endereco_da_empresa|default:"Não informado" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalhes da Vaga, Benefícios e Formas de Contato em 3 colunas -->
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Detalhes da Vaga</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Cargo Ofertado:</label>
+                                    <p class="fw-bold">{{ requisicao.cargo_ofertado|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted">Quantidade:</label>
+                                    <p class="fw-bold">{{ requisicao.quantidade_de_vagas|default:"1" }} vaga{{ requisicao.quantidade_de_vagas|pluralize }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted">Tipo de Vaga:</label>
+                                    <p class="fw-bold">{{ requisicao.get_tipo_de_vaga_display|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Regime:</label>
+                                    <p class="fw-bold">{{ requisicao.regime|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Faixa Salarial:</label>
+                                    <p class="fw-bold">
+                                        {{ requisicao.get_faixa_salarial_display|default:"Não informado" }}
+                                        {% if requisicao.valor_salario %}
+                                            - R$ {{ requisicao.valor_salario }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Carga Horária:</label>
+                                    <p class="fw-bold">
+                                        {{ requisicao.get_carga_horaria_display|default:"Não informado" }}
+                                        {% if requisicao.outra_carga_horaria %}
+                                            - {{ requisicao.outra_carga_horaria }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">Escolaridade Mínima:</label>
+                                    <p class="fw-bold">{{ requisicao.escolaridade.nome|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted">Experiência:</label>
+                                    <p class="fw-bold">{{ requisicao.get_experiencia_display|default:"Não informado" }}</p>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label text-muted">Observações:</label>
+                                    <p class="fw-bold">{{ requisicao.observacao|default:"Nenhuma observação" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefícios e Formas de Contato em uma coluna -->
+                <div class="col-lg-5">
+                    <div class="row g-4">
+                        <!-- Benefícios -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-gift me-2"></i>Benefícios</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" {% if requisicao.vale_transporte %}checked{% endif %} disabled>
+                                                <label class="form-check-label">Vale Transporte</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" {% if requisicao.vale_alimentacao %}checked{% endif %} disabled>
+                                                <label class="form-check-label">Vale Alimentação</label>
+                                            </div>
+                                        </div>
+                                        {% if requisicao.outros_beneficios %}
+                                            <div class="col-12">
+                                                <label class="form-label text-muted">Outros Benefícios:</label>
+                                                <p class="fw-bold small">{{ requisicao.outros_beneficios }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formas de Contato -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-address-book me-2"></i>Formas de Contato</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <!-- Email -->
+                                        {% if requisicao.enviar_curriculo_para_email %}
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="fas fa-envelope text-primary me-2"></i>
+                                                    <strong class="small">Envio por Email</strong>
+                                                </div>
+                                                <p class="mb-0 small text-muted">{{ requisicao.email_para_envio|default:"Email não informado" }}</p>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Presencial -->
+                                        {% if requisicao.levar_curriculo_direto_ao_local %}
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="fas fa-map-marker-alt text-success me-2"></i>
+                                                    <strong class="small">Entrega Presencial</strong>
+                                                </div>
+                                                <p class="mb-0 small text-muted">{{ requisicao.endereco_para_levar_curriculo|default:"Endereço não informado" }}</p>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Telefone/WhatsApp -->
+                                        {% if requisicao.via_telefone_ou_whatsapp %}
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="fas fa-phone text-info me-2"></i>
+                                                    <strong class="small">Telefone/WhatsApp</strong>
+                                                </div>
+                                                <p class="mb-0 small text-muted">{{ requisicao.telefone_ou_whatsapp|default:"Telefone não informado" }}</p>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- Outra forma -->
+                                        {% if requisicao.outra_forma_de_contato %}
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <i class="fas fa-comment text-warning me-2"></i>
+                                                    <strong class="small">Outra Forma</strong>
+                                                </div>
+                                                <p class="mb-0 small text-muted">{{ requisicao.outra_forma_de_contato_descricao|default:"Não especificado" }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Candidatos (apenas se existe vaga vinculada) -->
+                {% if vaga_vinculada %}
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Candidatos Disponíveis
+                                <span class="badge bg-primary ms-2">{{ candidatos_da_vaga.count }} candidatos</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if candidatos_da_vaga %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Sua vaga foi publicada!</strong> Selecione os candidatos de interesse abaixo. 
+                                    Vagas disponíveis: <strong>{{ vaga_vinculada.quantidadeVagas }}</strong>
+                                </div>
+                                
+                                <!-- Lista de Candidatos -->
+                                <div class="row g-3">
+                                    {% for candidato in candidatos_da_vaga %}
+                                    <div class="col-lg-6">
+                                        <div class="card h-100 candidate-card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title mb-1">{{ candidato.nome }}</h6>
+                                                    {% if candidato.cpf in candidatos_selecionados_cpfs %}
+                                                        {% for selected in candidatos_selecionados %}
+                                                            {% if selected.cpf == candidato.cpf %}
+                                                                <span class="badge bg-{% if selected.status == 'PE' %}warning{% elif selected.status == 'AP' %}success{% elif selected.status == 'RE' %}danger{% elif selected.status == 'CO' %}info{% endif %}">
+                                                                    {% if selected.status == 'PE' %}Pendente{% elif selected.status == 'AP' %}Aprovado{% elif selected.status == 'RE' %}Rejeitado{% elif selected.status == 'CO' %}Contratado{% endif %}
+                                                                </span>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="badge bg-light text-dark">Disponível</span>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <div class="row g-2 mb-3">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">Idade:</small>
+                                                        <div class="fw-bold">{{ candidato.idade }} anos</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">Sexo:</small>
+                                                        <div class="fw-bold">{{ candidato.get_sexo_display }}</div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Escolaridade:</small>
+                                                        <div class="fw-bold">{{ candidato.escolaridade.nome|default:"Não informado" }}</div>
+                                                    </div>
+                                                    {% if candidato.objetivo %}
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Objetivo:</small>
+                                                        <div class="fw-bold small">{{ candidato.objetivo|truncatechars:80 }}</div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <!-- Botões de Ação -->
+                                                <div class="d-flex gap-2">
+                                                    {% if candidato.cpf not in candidatos_selecionados_cpfs %}
+                                                        <button type="button" class="btn btn-success btn-sm flex-fill" 
+                                                                onclick="selecionarCandidato('{{ candidato.cpf }}')">
+                                                            <i class="fas fa-check me-1"></i>Selecionar
+                                                        </button>
+                                                    {% else %}
+                                                        {% for selected in candidatos_selecionados %}
+                                                            {% if selected.cpf == candidato.cpf %}
+                                                                {% if selected.status == 'PE' %}
+                                                                    <button type="button" class="btn btn-outline-success btn-sm" 
+                                                                            onclick="aprovarCandidato('{{ selected.id }}')">
+                                                                        <i class="fas fa-check me-1"></i>Aprovar
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                                            onclick="rejeitarCandidato('{{ selected.id }}')">
+                                                                        <i class="fas fa-times me-1"></i>Rejeitar
+                                                                    </button>
+                                                                {% elif selected.status == 'AP' %}
+                                                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                                            onclick="contratarCandidato('{{ selected.id }}')">
+                                                                        <i class="fas fa-handshake me-1"></i>Contratar
+                                                                    </button>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    <a href="{% url 'curriculo:view_curriculo' candidato.cpf %}" 
+                                                       class="btn btn-outline-primary btn-sm" target="_blank">
+                                                        <i class="fas fa-eye me-1"></i>Ver Currículo
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Ainda não há candidatos interessados nesta vaga. Os candidatos aparecerão aqui conforme se candidatarem.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informações do Status -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Status da Requisição</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    {% if requisicao.status_requisicao == 'PE' %}
+                                        <div class="alert alert-info mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-clock me-2"></i>Pendente de Análise
+                                            </h6>
+                                            <p class="mb-0">Sua requisição foi enviada com sucesso e está sendo analisada pela Casa do Trabalhador. Você receberá um retorno em breve.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Observação da análise:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% elif requisicao.status_requisicao == 'AP' %}
+                                        <div class="alert alert-success mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-check-circle me-2"></i>Requisição Aprovada
+                                            </h6>
+                                            <p class="mb-0">Parabéns! Sua requisição foi aprovada. A Casa do Trabalhador entrará em contato para os próximos passos.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Observação:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% elif requisicao.status_requisicao == 'RE' %}
+                                        <div class="alert alert-danger mb-0">
+                                            <h6 class="alert-heading">
+                                                <i class="fas fa-times-circle me-2"></i>Requisição Rejeitada
+                                            </h6>
+                                            <p class="mb-0">Sua requisição não foi aprovada desta vez. Entre em contato para mais informações ou para uma nova solicitação.</p>
+                                            {% if requisicao.observacao_interna %}
+                                                <hr>
+                                                <div class="mt-2">
+                                                    <strong><i class="fas fa-comment me-1"></i>Motivo da rejeição:</strong>
+                                                    <p class="mb-0 mt-1">{{ requisicao.observacao_interna }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <p class="text-muted small mb-1">Data de Envio:</p>
+                                    <p class="fw-bold">{{ requisicao.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                                    {% if requisicao.dt_atualizacao and requisicao.dt_atualizacao != requisicao.dt_inclusao %}
+                                        <p class="text-muted small mb-1 mt-2">Última Atualização:</p>
+                                        <p class="fw-bold small">{{ requisicao.dt_atualizacao|date:"d/m/Y H:i" }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function limparSessao() {
+    if (confirm('Tem certeza que deseja sair? Você precisará inserir a chave de acesso novamente para voltar.')) {
+        // Limpar cookie
+        document.cookie = 'formulario_auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Redirecionar para página inicial
+        window.location.href = '/';
+    }
+}
+
+// Funções para gerenciar candidatos
+function selecionarCandidato(cpf) {
+    if (confirm('Deseja selecionar este candidato?')) {
+        fetch('{% url "vagas:selecionar_candidato" requisicao.hash_id %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                'cpf': cpf,
+                'acao': 'selecionar'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação.');
+        });
+    }
+}
+
+function aprovarCandidato(candidatoId) {
+    if (confirm('Deseja aprovar este candidato?')) {
+        atualizarStatusCandidato(candidatoId, 'AP');
+    }
+}
+
+function rejeitarCandidato(candidatoId) {
+    if (confirm('Deseja rejeitar este candidato?')) {
+        atualizarStatusCandidato(candidatoId, 'RE');
+    }
+}
+
+function contratarCandidato(candidatoId) {
+    if (confirm('Confirma a contratação deste candidato?')) {
+        atualizarStatusCandidato(candidatoId, 'CO');
+    }
+}
+
+function atualizarStatusCandidato(candidatoId, status) {
+    fetch('{% url "vagas:atualizar_status_candidato" requisicao.hash_id %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            'candidato_id': candidatoId,
+            'status': status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao processar solicitação.');
+    });
+}
+
+// Função para obter cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.form-check-input:disabled {
+    opacity: 0.7;
+}
+
+.text-primary { color: #007bff !important; }
+.text-success { color: #28a745 !important; }
+.text-info { color: #17a2b8 !important; }
+.text-warning { color: #ffc107 !important; }
+
+/* Candidatos */
+.candidate-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.candidate-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.candidate-card .card-body {
+    padding: 1rem;
+}
+
+.candidate-card .card-title {
+    color: #333;
+    font-weight: 600;
+}
+
+.candidate-card .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-left: 8px;
+}
+
+.timeline-header h6 {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.timeline-body {
+    padding-top: 8px;
+    border-top: 1px solid #dee2e6;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 1rem !important;
+    }
+    
+    .h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        left: -12px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+    
+    .timeline-content {
+        margin-left: 4px;
+    }
+
+    .candidate-card .d-flex.gap-2 {
+        flex-direction: column;
+    }
+    
+    .candidate-card .btn-sm {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+
+{% endblock %}

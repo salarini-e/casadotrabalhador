@@ -61,7 +61,12 @@ urlpatterns = [
     path('admin/formularios/criar/', views.admin_formularios_create, name='admin_formularios_create'),
     path('admin/formularios/<int:id>/', views.admin_formularios_detail, name='admin_formularios_detail'),
     path('admin/formularios/<int:id>/status/', views.admin_formularios_update_status, name='admin_formularios_update_status'),
-    path('formulario/acesso/', views.formulario_autenticacao, name='formulario_autenticacao'),
+    path('admin/formularios/<int:id>/cadastrar-vaga/', views.cadastrar_vaga_aprovada, name='cadastrar_vaga_aprovada'),
+    path('admin/vagas/<int:vaga_id>/candidatos/', views.candidatos_vaga, name='candidatos_vaga'),
+    path('formulario/<str:hash_id>/acesso/', views.formulario_autenticacao, name='formulario_autenticacao'),
     path('formulario/<str:hash_id>/', views.formulario_publico, name='formulario_publico'),
+    path('formulario/<str:hash_id>/detalhes/', views.formulario_detalhes_externo, name='formulario_detalhes_externo'),
+    path('formulario/<str:hash_id>/selecionar-candidato/', views.selecionar_candidato, name='selecionar_candidato'),
+    path('formulario/<str:hash_id>/atualizar-status-candidato/', views.atualizar_status_candidato, name='atualizar_status_candidato'),
     path('formulario/sucesso/', views.formulario_sucesso, name='formulario_sucesso'),
 ]

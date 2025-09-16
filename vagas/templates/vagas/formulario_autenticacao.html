@@ -32,17 +32,39 @@
                         {% endfor %}
                     {% endif %}
 
-                    <!-- Informações -->
+                    <!-- Informações do Formulário -->
                     <div class="alert alert-info mb-4">
                         <h6 class="alert-heading">
                             <i class="fas fa-info-circle me-2"></i>
-                            Instruções de Acesso
+                            Acesso ao Formulário
                         </h6>
-                        <p class="mb-2">Para acessar o formulário de requisição de vaga, você precisa da <strong>chave de acesso</strong> fornecida pela Casa do Trabalhador.</p>
-                        <p class="mb-0 small">
-                            <i class="fas fa-phone me-1"></i>
-                            Em caso de dúvidas, entre em contato: <strong>(11) 3333-3333</strong>
-                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>ID do Formulário:</strong></p>
+                                <code class="text-primary">{{ hash_id }}</code>
+                            </div>
+                            <div class="col-md-6">
+                                {% if requisicao.nome_da_empresa and requisicao.nome_da_empresa != 'A definir' %}
+                                    <p class="mb-2"><strong>Empresa:</strong></p>
+                                    <span class="text-success">{{ requisicao.nome_da_empresa }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <p class="mb-0 small">Para acessar este formulário, digite a <strong>chave de acesso</strong> fornecida pela Casa do Trabalhador.</p>
+                    </div>
+
+                    <!-- Instruções -->
+                    <div class="alert alert-warning mb-4">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-key me-2"></i>
+                            Como funciona?
+                        </h6>
+                        <ol class="mb-0 small">
+                            <li>Você recebeu este <strong>link único</strong> com o ID do formulário</li>
+                            <li>Digite a <strong>chave de acesso</strong> que foi enviada separadamente</li>
+                            <li>Após a autenticação, você poderá preencher ou visualizar o formulário</li>
+                        </ol>
                     </div>
 
                     <!-- Formulário de Autenticação -->
@@ -54,13 +76,18 @@
                                 <i class="fas fa-key me-2 text-primary"></i>
                                 Chave de Acesso
                             </label>
-                            <input type="text" 
-                                   class="form-control form-control-lg" 
-                                   id="chave_acesso" 
-                                   name="chave_acesso" 
-                                   placeholder="Digite sua chave de acesso"
-                                   required
-                                   autocomplete="off">
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control form-control-lg" 
+                                       id="chave_acesso" 
+                                       name="chave_acesso" 
+                                       placeholder="Digite sua chave de acesso"
+                                       required
+                                       autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
                             <div class="form-text">
                                 <i class="fas fa-shield-alt me-1"></i>
                                 Digite exatamente como foi fornecida
@@ -153,9 +180,24 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formAutenticacao');
     const chaveInput = document.getElementById('chave_acesso');
+    const toggleBtn = document.getElementById('togglePassword');
+    const toggleIcon = document.getElementById('toggleIcon');
     
     // Foco automático no campo
     chaveInput.focus();
+    
+    // Toggle password visibility
+    toggleBtn.addEventListener('click', function() {
+        if (chaveInput.type === 'password') {
+            chaveInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            chaveInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
     
     // Animação no submit
     form.addEventListener('submit', function(e) {

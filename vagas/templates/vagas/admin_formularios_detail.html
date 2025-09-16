@@ -112,16 +112,68 @@
                   {% csrf_token %}
                   <div class="mb-3">
                     <label for="status" class="form-label">Atualizar Status:</label>
-                    <select name="status" id="status" class="form-select">
+                    <select name="status" id="status" class="form-select" onchange="toggleObservacaoField()">
                       <option value="PE" selected>Pendente</option>
                       <option value="AP">Aprovar</option>
                       <option value="RE">Rejeitar</option>
                     </select>
                   </div>
+                  
+                  <!-- Campo de Observação (sempre visível para PE) -->
+                  <div class="mb-3" id="observacaoField">
+                    <label for="observacao" class="form-label">
+                      <i class="fas fa-comment me-1"></i>
+                      Observação:
+                    </label>
+                    <textarea name="observacao" id="observacao" class="form-control" rows="3" 
+                              placeholder="Adicione uma observação sobre o status ou pendências...">{{ formulario.observacao_interna|default:"" }}</textarea>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Esta observação será visível para a empresa no painel externo
+                    </div>
+                  </div>
+                  
                   <button type="submit" class="btn btn-primary w-100">
                     <i class="fas fa-save me-2"></i>Atualizar Status
                   </button>
                 </form>
+              {% endif %}
+
+              <!-- Botão para cadastrar vaga (se aprovada e não tiver vaga vinculada) -->
+              {% if formulario.status_requisicao == 'AP' and not vaga_vinculada %}
+                <div class="mt-3">
+                  <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
+                  </a>
+                </div>
+              {% endif %}
+
+              <!-- Vaga Vinculada (se existir) -->
+              {% if vaga_vinculada %}
+                <div class="mt-4">
+                  <h6><i class="fas fa-link me-2"></i>Vaga no Sistema:</h6>
+                  <div class="card border-success">
+                    <div class="card-body p-3">
+                      <h6 class="card-title text-success mb-2">
+                        <i class="fas fa-briefcase me-2"></i>{{ vaga_vinculada.cargo.nome }}
+                      </h6>
+                      <p class="card-text small mb-2">
+                        <strong>Empresa:</strong> {{ vaga_vinculada.empresa.nome }}<br>
+                        <strong>Vagas:</strong> {{ vaga_vinculada.quantidadeVagas }}<br>
+                        <strong>Candidatos:</strong> {{ candidatos_da_vaga.count }}<br>
+                        <strong>Criada em:</strong> {{ vaga_vinculada.dt_inclusao|date:"d/m/Y H:i" }}
+                      </p>
+                      <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-sm btn-outline-success">
+                          <i class="fas fa-eye me-1"></i>Ver Vaga
+                        </a>
+                        <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-users me-1"></i>Candidatos ({{ candidatos_da_vaga.count }})
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               {% endif %}
 
               <!-- Link Público e Chave de Acesso -->
@@ -162,12 +214,16 @@
                     <h6 class="alert-heading">
                       <i class="fas fa-lightbulb me-2"></i>Como enviar para a empresa:
                     </h6>
-                    <ol class="mb-0">
-                      <li>Copie o <strong>link de acesso</strong> acima</li>
+                    <ol class="mb-2">
+                      <li>Copie o <strong>link de acesso</strong> acima (já contém o ID único)</li>
                       <li>Copie a <strong>chave de acesso</strong>: <code>{{ formulario.chave_de_acesso }}</code></li>
                       <li>Envie ambos para a empresa por email ou WhatsApp</li>
-                      <li>A empresa acessará o link e digitará a chave para preencher o formulário</li>
+                      <li>A empresa acessará o link e digitará a chave para autenticar</li>
                     </ol>
+                    <div class="small text-muted">
+                      <i class="fas fa-shield-alt me-1"></i>
+                      <strong>Segurança:</strong> O link contém o ID do formulário, mas a chave de acesso funciona como senha
+                    </div>
                   </div>
                 </div>
               {% endif %}
@@ -184,6 +240,69 @@
               </div>
             </div>
           </div>
+
+          <!-- Histórico de Mudanças -->
+          {% if formulario.historico.all %}
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Mudanças</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+              <div class="timeline">
+                {% for item in formulario.historico.all %}
+                  <div class="timeline-item">
+                    <div class="timeline-marker">
+                      {% if item.acao == 'CR' %}
+                        <i class="fas fa-plus-circle text-success"></i>
+                      {% elif item.acao == 'ST' %}
+                        <i class="fas fa-exchange-alt text-primary"></i>
+                      {% elif item.acao == 'OB' %}
+                        <i class="fas fa-comment text-info"></i>
+                      {% elif item.acao == 'ED' %}
+                        <i class="fas fa-edit text-warning"></i>
+                      {% endif %}
+                    </div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <h6 class="mb-1">
+                          {{ item.get_acao_display }}
+                          {% if item.acao == 'ST' %}
+                            {% if item.status_anterior %}
+                              <span class="badge bg-secondary">{{ item.get_status_anterior_display }}</span>
+                              <i class="fas fa-arrow-right mx-1"></i>
+                            {% endif %}
+                            {% if item.status_novo %}
+                              <span class="badge 
+                                {% if item.status_novo == 'PE' %}bg-info
+                                {% elif item.status_novo == 'AP' %}bg-success
+                                {% elif item.status_novo == 'RE' %}bg-danger
+                                {% elif item.status_novo == 'AG' %}bg-warning
+                                {% endif %}">
+                                {{ item.get_status_novo_display }}
+                              </span>
+                            {% endif %}
+                          {% endif %}
+                        </h6>
+                        <small class="text-muted">
+                          <i class="fas fa-clock me-1"></i>
+                          {{ item.dt_criacao|date:"d/m/Y H:i" }}
+                          {% if item.usuario %}
+                            por {{ item.usuario.get_full_name|default:item.usuario.username }}
+                          {% endif %}
+                        </small>
+                      </div>
+                      {% if item.observacao %}
+                        <div class="timeline-body mt-2">
+                          <p class="mb-0">{{ item.observacao }}</p>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
 
         <!-- Detalhes do Formulário -->
@@ -339,7 +458,7 @@
           </div>
 
           <!-- Formas de Contato -->
-          <div class="card">
+          <div class="card mb-4">
             <div class="card-header">
               <h5 class="mb-0"><i class="fas fa-phone me-2"></i>Formas de Contato</h5>
             </div>
@@ -384,6 +503,71 @@
               </div>
             </div>
           </div>
+
+          <!-- Seção de Candidatos da Vaga (se existir vaga vinculada) -->
+          {% if vaga_vinculada and candidatos_da_vaga %}
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-users me-2"></i>Candidatos da Vaga
+                <span class="badge bg-primary ms-2">{{ candidatos_da_vaga.count }}</span>
+              </h5>
+            </div>
+            <div class="card-body">
+              {% if candidatos_da_vaga.count > 0 %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Escolaridade</th>
+                        <th>Bairro</th>
+                        <th>Data Candidatura</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for candidato in candidatos_da_vaga|slice:":10" %}
+                      <tr>
+                        <td>
+                          <strong>{{ candidato.nome }}</strong><br>
+                          <small class="text-muted">{{ candidato.get_cpf }}</small>
+                        </td>
+                        <td>{{ candidato.idade }} anos</td>
+                        <td>{{ candidato.escolaridade.nome }}</td>
+                        <td>{{ candidato.bairro|default:"Não informado" }}</td>
+                        <td>{{ candidato.dt_inclusao|date:"d/m/Y H:i" }}</td>
+                        <td>
+                          <div class="btn-group" role="group">
+                            <a href="{% url 'curriculo:view_curriculo' candidato.cpf %}" 
+                               class="btn btn-sm btn-outline-primary" target="_blank">
+                              <i class="fas fa-eye me-1"></i>Ver Currículo
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {% if candidatos_da_vaga.count > 10 %}
+                <div class="text-center mt-3">
+                  <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}" class="btn btn-primary">
+                    <i class="fas fa-users me-2"></i>Ver Todos os {{ candidatos_da_vaga.count }} Candidatos
+                  </a>
+                </div>
+                {% endif %}
+              {% else %}
+                <div class="alert alert-info mb-0">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Ainda não há candidatos para esta vaga.
+                </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -412,6 +596,23 @@ function copyToClipboard(text) {
     });
 }
 
+function toggleObservacaoField() {
+    const statusSelect = document.getElementById('status');
+    const observacaoField = document.getElementById('observacaoField');
+    const observacaoTextarea = document.getElementById('observacao');
+    
+    if (statusSelect.value === 'PE') {
+        observacaoField.style.display = 'block';
+        observacaoTextarea.placeholder = 'Adicione uma observação sobre pendências ou questões a serem resolvidas...';
+    } else if (statusSelect.value === 'RE') {
+        observacaoField.style.display = 'block';
+        observacaoTextarea.placeholder = 'Informe o motivo da rejeição para que a empresa possa corrigir...';
+    } else {
+        observacaoField.style.display = 'block';
+        observacaoTextarea.placeholder = 'Observação sobre a aprovação (opcional)...';
+    }
+}
+
 // Sidebar toggle
 document.addEventListener('DOMContentLoaded', function() {
     const sidebarToggle = document.getElementById('sidebarToggle');
@@ -422,7 +623,90 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.toggle('collapsed');
         });
     }
+    
+    // Inicializar o campo de observação
+    toggleObservacaoField();
 });
 </script>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-left: 8px;
+}
+
+.timeline-header h6 {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.timeline-body {
+    padding-top: 8px;
+    border-top: 1px solid #dee2e6;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        left: -12px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+    
+    .timeline-content {
+        margin-left: 4px;
+    }
+}
+</style>
 
 {% endblock %}

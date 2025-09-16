@@ -123,13 +123,15 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label for="nome_empresa" class="form-label">Nome da Empresa</label>
-                        <input type="text" class="form-control" value="{{ requisicao.nome_da_empresa }}" readonly>
-                        <div class="form-text">Este campo não pode ser alterado</div>
+                        <input type="text" class="form-control" id="nome_empresa" name="nome_empresa" 
+                               value="{{ requisicao.nome_da_empresa }}" required>
+                        <div class="form-text">Informe a razão social ou nome fantasia</div>
                     </div>
                     <div class="col-md-6">
                         <label for="cnpj_empresa" class="form-label">CNPJ</label>
-                        <input type="text" class="form-control" value="{{ requisicao.cnpj_da_empresa }}" readonly>
-                        <div class="form-text">Este campo não pode ser alterado</div>
+                        <input type="text" class="form-control" id="cnpj_empresa" name="cnpj_empresa" 
+                               value="{{ requisicao.cnpj_da_empresa }}" placeholder="00.000.000/0000-00" required>
+                        <div class="form-text">CNPJ da empresa</div>
                     </div>
                     <div class="col-md-6">
                         <label for="endereco_empresa" class="form-label">Endereço da Empresa</label>
@@ -389,6 +391,16 @@ document.getElementById('cpf_responsavel').addEventListener('input', function(e)
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d)/, '$1.$2');
     value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = value;
+});
+
+// Máscara para CNPJ
+document.getElementById('cnpj_empresa').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
     e.target.value = value;
 });
 

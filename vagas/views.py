@@ -29,7 +29,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from urllib.parse import quote
 
-from .models import Slide
+from .models import Slide, Vaga_Emprego, CandidatoSelecionado
 from django.http import HttpResponseForbidden, HttpResponse
 
 from autenticacao.models import Pessoa
@@ -1534,8 +1534,17 @@ def admin_formularios_detail(request, id):
     except RequisicaoVaga.DoesNotExist:
         raise Http404("Formulário não encontrado")
     
+    # Verificar se existe vaga vinculada usando o método get_vaga()
+    vaga_vinculada = formulario.get_vaga()
+    candidatos_da_vaga = []
+    
+    if vaga_vinculada:
+        candidatos_da_vaga = Candidato.objects.filter(vaga=vaga_vinculada).order_by('-dt_inclusao')
+    
     context = {
         'formulario': formulario,
+        'vaga_vinculada': vaga_vinculada,
+        'candidatos_da_vaga': candidatos_da_vaga,
         'public_url': request.build_absolute_uri(formulario.get_public_url()),
     }
     return render(request, 'vagas/admin_formularios_detail.html', context)
@@ -1548,62 +1557,92 @@ def admin_formularios_update_status(request, id):
         try:
             formulario = RequisicaoVaga.objects.get(pk=id)
             novo_status = request.POST.get('status')
+            observacao = request.POST.get('observacao', '').strip()
             
             if novo_status in [choice[0] for choice in RequisicaoVaga.STATUS_CHOICES]:
+                # Capturar status anterior
+                status_anterior = formulario.status_requisicao
+                
+                # Atualizar formulário
                 formulario.status_requisicao = novo_status
+                if observacao:
+                    formulario.observacao_interna = observacao
                 formulario.save()
                 
+                # Criar entrada no histórico
+                from .models import HistoricoRequisicao
+                HistoricoRequisicao.objects.create(
+                    requisicao=formulario,
+                    acao='ST',  # Mudança de Status
+                    status_anterior=status_anterior,
+                    status_novo=novo_status,
+                    observacao=observacao,
+                    usuario=request.user
+                )
+                
+                messages.success(request, 'Status atualizado com sucesso!')
+                
         except RequisicaoVaga.DoesNotExist:
-            pass
+            messages.error(request, 'Formulário não encontrado.')
     
     return redirect('vagas:admin_formularios_detail', id=id)
 
 
 # ===== VIEW PÚBLICA PARA EMPRESAS =====
 
-def formulario_autenticacao(request):
-    """Página de autenticação com chave de acesso"""
+def formulario_autenticacao(request, hash_id):
+    """Página de autenticação com hash e chave de acesso"""
+    # Verificar se o formulário existe pelo hash
+    try:
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return render(request, 'vagas/formulario_nao_encontrado.html')
+    
     if request.method == 'POST':
         chave_acesso = request.POST.get('chave_acesso', '').strip()
         
         if not chave_acesso:
             messages.error(request, 'Por favor, digite a chave de acesso.')
-            return render(request, 'vagas/formulario_autenticacao.html')
+            return render(request, 'vagas/formulario_autenticacao.html', {'hash_id': hash_id, 'requisicao': requisicao})
         
-        # Verificar se a chave existe
-        try:
-            requisicao = RequisicaoVaga.objects.get(chave_de_acesso=chave_acesso)
-            
-            # Gerar hash de autenticação para o cookie
-            import hashlib
-            import secrets
-            timestamp = str(timezone.now().timestamp())
-            auth_hash = hashlib.sha256(f"{chave_acesso}{timestamp}{secrets.token_hex(16)}".encode()).hexdigest()
-            
-            # Criar resposta e definir cookie
-            response = redirect('vagas:formulario_publico', hash_id=requisicao.hash_id)
-            
-            # Cookie seguro com o hash de autenticação
-            response.set_cookie(
-                'formulario_auth',
-                auth_hash,
-                max_age=3600,  # 1 hora
-                secure=False,  # True em produção com HTTPS
-                httponly=True,
-                samesite='Lax'
-            )
-            
-            # Salvar o hash no objeto para verificação posterior
-            requisicao.auth_hash_temp = auth_hash
-            requisicao.save()
-            
-            return response
-            
-        except RequisicaoVaga.DoesNotExist:
-            messages.error(request, 'Chave de acesso inválida. Verifique e tente novamente.')
-            return render(request, 'vagas/formulario_autenticacao.html')
+        # Verificar se a chave de acesso confere
+        if chave_acesso != requisicao.chave_de_acesso:
+            messages.error(request, 'Chave de acesso incorreta. Verifique e tente novamente.')
+            return render(request, 'vagas/formulario_autenticacao.html', {'hash_id': hash_id, 'requisicao': requisicao})
+        
+        # Gerar hash de autenticação para o cookie
+        import hashlib
+        import secrets
+        timestamp = str(timezone.now().timestamp())
+        auth_hash = hashlib.sha256(f"{chave_acesso}{timestamp}{secrets.token_hex(16)}".encode()).hexdigest()
+        
+        # Salvar o hash no objeto para verificação posterior
+        requisicao.auth_hash_temp = auth_hash
+        requisicao.save()
+        
+        # Redirecionar para o formulário com cookie
+        if requisicao.status_requisicao == 'AG':
+            response = redirect('vagas:formulario_publico', hash_id=hash_id)
+        else:
+            response = redirect('vagas:formulario_detalhes_externo', hash_id=hash_id)
+        
+        # Cookie seguro com o hash de autenticação
+        response.set_cookie(
+            'formulario_auth',
+            auth_hash,
+            max_age=3600,  # 1 hora
+            secure=False,  # True em produção com HTTPS
+            httponly=True,
+            samesite='Lax'
+        )
+        
+        return response
     
-    return render(request, 'vagas/formulario_autenticacao.html')
+    context = {
+        'hash_id': hash_id,
+        'requisicao': requisicao,
+    }
+    return render(request, 'vagas/formulario_autenticacao.html', context)
 
 
 def formulario_publico(request, hash_id):
@@ -1617,7 +1656,7 @@ def formulario_publico(request, hash_id):
     auth_cookie = request.COOKIES.get('formulario_auth')
     if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
         messages.error(request, 'Acesso não autorizado. Faça a autenticação novamente.')
-        return redirect('vagas:formulario_autenticacao')
+        return redirect('vagas:formulario_autenticacao', hash_id=hash_id)
     
     # Verificar se já foi preenchido
     if requisicao.status_requisicao in ['AP', 'RE']:
@@ -1628,14 +1667,16 @@ def formulario_publico(request, hash_id):
         auth_cookie_post = request.COOKIES.get('formulario_auth')
         if not auth_cookie_post or auth_cookie_post != requisicao.auth_hash_temp:
             messages.error(request, 'Sessão expirada. Faça a autenticação novamente.')
-            return redirect('vagas:formulario_autenticacao')
+            return redirect('vagas:formulario_autenticacao', hash_id=hash_id)
         
         # Atualizar todos os campos do formulário
         requisicao.nome_do_responsavel_pela_divulgacao_da_vaga = request.POST.get('nome_responsavel', '')
         requisicao.cpf_do_responsavel = request.POST.get('cpf_responsavel', '')
         requisicao.contato_do_responsavel = request.POST.get('contato_responsavel', '')
         
-        # Empresa
+        # Empresa (incluindo nome e CNPJ que podem ser editados)
+        requisicao.nome_da_empresa = request.POST.get('nome_empresa', '')
+        requisicao.cnpj_da_empresa = request.POST.get('cnpj_empresa', '')
         requisicao.endereco_da_empresa = request.POST.get('endereco_empresa', '')
         requisicao.telefone_da_empresa = request.POST.get('telefone_empresa', '')
         requisicao.segmento_da_empresa = request.POST.get('segmento_empresa', '')
@@ -1673,15 +1714,13 @@ def formulario_publico(request, hash_id):
         requisicao.outra_forma_de_contato = bool(request.POST.get('outra_forma'))
         requisicao.outra_forma_de_contato_descricao = request.POST.get('outra_forma_descricao', '')
         
-        # Atualizar status para pendente e limpar hash temporário
+        # Atualizar status para pendente mas manter o hash para visualização dos detalhes
         requisicao.status_requisicao = 'PE'
-        requisicao.auth_hash_temp = None  # Limpar hash após uso
         requisicao.save()
         
-        # Criar resposta e limpar cookie
-        response = render(request, 'vagas/formulario_sucesso.html', {'requisicao': requisicao})
-        response.delete_cookie('formulario_auth')
-        return response
+        # Redirecionar para página de detalhes (mantendo o cookie ativo)
+        messages.success(request, 'Formulário enviado com sucesso! Você pode visualizar os detalhes abaixo.')
+        return redirect('vagas:formulario_detalhes_externo', hash_id=hash_id)
     
     # Buscar escolaridades para o formulário
     escolaridades = Escolaridade.objects.all()
@@ -1698,6 +1737,326 @@ def formulario_publico(request, hash_id):
     return render(request, 'vagas/formulario_publico.html', context)
 
 
+def formulario_detalhes_externo(request, hash_id):
+    """Página de detalhes externa para a empresa visualizar o formulário preenchido"""
+    try:
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return render(request, 'vagas/formulario_nao_encontrado.html')
+    
+    # Verificar autenticação via cookie
+    auth_cookie = request.COOKIES.get('formulario_auth')
+    if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
+        messages.error(request, 'Acesso não autorizado. Faça a autenticação novamente.')
+        return redirect('vagas:formulario_autenticacao', hash_id=hash_id)
+    
+    # Verificar se o formulário foi preenchido
+    if requisicao.status_requisicao == 'AG':
+        messages.info(request, 'Este formulário ainda não foi preenchido.')
+        return redirect('vagas:formulario_publico', hash_id=hash_id)
+    
+    # Verificar se existe vaga vinculada usando o método get_vaga()
+    vaga_vinculada = requisicao.get_vaga()
+    candidatos_selecionados = []
+    candidatos_selecionados_cpfs = []
+    candidatos_da_vaga = []
+    
+    if vaga_vinculada:
+        candidatos_selecionados = CandidatoSelecionado.objects.filter(requisicao_vaga=requisicao)
+        candidatos_selecionados_cpfs = list(candidatos_selecionados.values_list('cpf', flat=True))
+        
+        # Buscar pessoas que se candidataram a esta vaga
+        # Primeiro, buscar os candidatos do modelo Candidato
+        candidatos_modelo = Candidato.objects.filter(vaga=vaga_vinculada)
+        
+        # Depois buscar as pessoas correspondentes no modelo Pessoa
+        from autenticacao.models import Pessoa
+        cpfs_candidatos = candidatos_modelo.values_list('cpf', flat=True)
+        candidatos_da_vaga = Pessoa.objects.filter(cpf__in=cpfs_candidatos)
+    
+    context = {
+        'requisicao': requisicao,
+        'vaga_vinculada': vaga_vinculada,
+        'candidatos_selecionados': candidatos_selecionados,
+        'candidatos_selecionados_cpfs': candidatos_selecionados_cpfs,
+        'candidatos_da_vaga': candidatos_da_vaga,
+        'escolaridades': Escolaridade.objects.all(),
+    }
+    return render(request, 'vagas/formulario_detalhes_externo.html', context)
+
+
 def formulario_sucesso(request):
     """Página de sucesso após envio do formulário"""
     return render(request, 'vagas/formulario_sucesso.html')
+
+
+def cadastrar_vaga_aprovada(request, id):
+    """Tela para cadastrar vaga baseada em formulário aprovado"""
+    # Verificar se o formulário existe
+    try:
+        requisicao = RequisicaoVaga.objects.get(pk=id)
+    except RequisicaoVaga.DoesNotExist:
+        messages.error(request, 'Requisição não encontrada.')
+        return redirect('vagas:admin_formularios_list')
+    
+    # Verificar se foi aprovado
+    if requisicao.status_requisicao != 'AP':
+        messages.error(request, 'Esta requisição precisa estar aprovada para cadastrar a vaga.')
+        return redirect('vagas:admin_formularios_detail', id=id)
+    
+    if request.method == 'POST':
+        # Processar formulário de cadastro de vaga
+        try:
+            # Verificar se vai criar nova empresa ou usar existente
+            empresa_id = request.POST.get('empresa_id')
+            if empresa_id == 'nova' or not empresa_id:
+                # Verificar se já existe empresa com esse CNPJ
+                try:
+                    empresa = Empresa.objects.get(cnpj=requisicao.cnpj_da_empresa)
+                except Empresa.DoesNotExist:
+                    # Criar nova empresa baseada nos dados da requisição
+                    empresa = Empresa.objects.create(
+                        nome=requisicao.nome_da_empresa,
+                        cnpj=requisicao.cnpj_da_empresa,
+                        email=requisicao.email_da_empresa,
+                        telefone=requisicao.telefone_da_empresa,
+                        whatsapp=requisicao.whatsapp_da_empresa,
+                        endereco=requisicao.endereco_da_empresa,
+                        user=request.user
+                    )
+            else:
+                empresa = Empresa.objects.get(pk=empresa_id)
+            
+            # Verificar se vai criar novo cargo ou usar existente
+            cargo_id = request.POST.get('cargo_id')
+            if cargo_id == 'novo' or not cargo_id:
+                # Verificar se já existe cargo com esse nome
+                try:
+                    cargo = Cargo.objects.get(nome=requisicao.cargo_ofertado)
+                except Cargo.DoesNotExist:
+                    # Criar novo cargo baseado no nome da requisição
+                    cargo = Cargo.objects.create(
+                        nome=requisicao.cargo_ofertado,
+                        user=request.user
+                    )
+            else:
+                cargo = Cargo.objects.get(pk=cargo_id)
+            
+            # Validar dados obrigatórios
+            quantidade_vagas = request.POST.get('quantidade_vagas')
+            escolaridade_id = request.POST.get('escolaridade')
+            experiencia = request.POST.get('experiencia')
+            
+            if not quantidade_vagas or not escolaridade_id or not experiencia:
+                messages.error(request, 'Por favor, preencha todos os campos obrigatórios.')
+                return redirect('vagas:cadastrar_vaga_aprovada', id=id)
+            
+            # Criar a vaga
+            vaga = Vaga_Emprego.objects.create(
+                empresa=empresa,
+                cargo=cargo,
+                requisicao_vaga=requisicao,  # Vincular à requisição
+                quantidadeVagas=int(quantidade_vagas),
+                escolaridade_id=int(escolaridade_id),
+                salario=request.POST.get('salario', ''),
+                experiencia=experiencia,
+                observacao=request.POST.get('observacao', ''),
+                tipo_de_vaga=request.POST.get('tipo_de_vaga'),
+                carga_horaria=request.POST.get('carga_horaria', ''),
+                regime=request.POST.get('regime', ''),
+                atribuicoes=request.POST.get('atribuicoes', ''),
+                email=request.POST.get('email', ''),
+                destaque=request.POST.get('destaque') == 'on',
+                user=request.user
+            )
+            
+            # Criar histórico
+            from .models import HistoricoRequisicao
+            HistoricoRequisicao.objects.create(
+                requisicao=requisicao,
+                acao='ED',  # Edição/Processamento
+                observacao=f'Vaga cadastrada no sistema: {vaga}',
+                usuario=request.user
+            )
+            
+            messages.success(request, f'Vaga "{cargo.nome}" cadastrada com sucesso!')
+            return redirect('vagas:admin_formularios_detail', id=id)
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao cadastrar vaga: {str(e)}')
+    
+    # Buscar empresas e cargos similares no sistema
+    empresas_similares = Empresa.objects.filter(
+        models.Q(nome__icontains=requisicao.nome_da_empresa) |
+        models.Q(cnpj=requisicao.cnpj_da_empresa)
+    ).distinct()[:5]
+    
+    cargos_similares = Cargo.objects.filter(
+        nome__icontains=requisicao.cargo_ofertado
+    ).distinct()[:5]
+    
+    # Dados para o autocomplete JavaScript
+    import json
+    todas_empresas = list(Empresa.objects.values('id', 'nome', 'cnpj')[:100])  # Limitar para performance
+    todos_cargos = list(Cargo.objects.values('id', 'nome'))
+    
+    context = {
+        'requisicao': requisicao,
+        'empresas_similares': empresas_similares,
+        'cargos_similares': cargos_similares,
+        'todas_empresas_json': json.dumps(todas_empresas),
+        'todos_cargos_json': json.dumps(todos_cargos),
+        'escolaridades': Escolaridade.objects.all(),
+    }
+    
+    return render(request, 'vagas/cadastrar_vaga_aprovada.html', context)
+
+
+@login_required
+def candidatos_vaga(request, vaga_id):
+    """Listar candidatos de uma vaga específica"""
+    try:
+        vaga = Vaga_Emprego.objects.get(pk=vaga_id)
+    except Vaga_Emprego.DoesNotExist:
+        messages.error(request, 'Vaga não encontrada.')
+        return redirect('vagas:painel_administrativo')
+    
+    # Buscar candidatos desta vaga
+    candidatos = Candidato.objects.filter(vaga=vaga).order_by('-dt_inclusao')
+    
+    # Estatísticas
+    total_candidatos = candidatos.count()
+    candidatos_ativos = candidatos.filter(candidato_ativo=True).count()
+    candidatos_contratados = candidatos.filter(conseguiu_vaga=True).count()
+    
+    context = {
+        'vaga': vaga,
+        'candidatos': candidatos,
+        'total_candidatos': total_candidatos,
+        'candidatos_ativos': candidatos_ativos,
+        'candidatos_contratados': candidatos_contratados,
+    }
+    
+    return render(request, 'vagas/candidatos_vaga.html', context)
+
+
+def selecionar_candidato(request, hash_id):
+    """Selecionar candidato para requisição via interface externa"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+    
+    try:
+        # Verificar se a requisição existe
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Requisição não encontrada'})
+    
+    # Verificar autenticação via cookie
+    auth_cookie = request.COOKIES.get('formulario_auth')
+    if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
+        return JsonResponse({'success': False, 'message': 'Acesso não autorizado'})
+    
+    # Verificar se existe vaga vinculada
+    try:
+        vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
+    except Vaga_Emprego.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Vaga não encontrada'})
+    
+    import json
+    data = json.loads(request.body)
+    cpf = data.get('cpf')
+    
+    if not cpf:
+        return JsonResponse({'success': False, 'message': 'CPF não informado'})
+    
+    # Verificar se o candidato existe na vaga
+    try:
+        from autenticacao.models import Pessoa
+        candidato = Pessoa.objects.get(cpf=cpf)
+        if not candidato.vagas.filter(id=vaga_vinculada.id).exists():
+            return JsonResponse({'success': False, 'message': 'Candidato não está inscrito nesta vaga'})
+    except Pessoa.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Candidato não encontrado'})
+    
+    # Verificar se já foi selecionado
+    if CandidatoSelecionado.objects.filter(requisicao_vaga=requisicao, cpf=cpf).exists():
+        return JsonResponse({'success': False, 'message': 'Candidato já foi selecionado'})
+    
+    # Criar seleção
+    try:
+        candidato_selecionado = CandidatoSelecionado.objects.create(
+            requisicao_vaga=requisicao,
+            cpf=cpf,
+            nome=candidato.nome,
+            status='PE',  # Pendente
+            usuario_selecao=request.user if request.user.is_authenticated else None
+        )
+        return JsonResponse({'success': True, 'message': 'Candidato selecionado com sucesso'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Erro ao selecionar candidato: {str(e)}'})
+
+
+def atualizar_status_candidato(request, hash_id):
+    """Atualizar status de candidato selecionado via interface externa"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+    
+    try:
+        # Verificar se a requisição existe
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Requisição não encontrada'})
+    
+    # Verificar autenticação via cookie
+    auth_cookie = request.COOKIES.get('formulario_auth')
+    if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
+        return JsonResponse({'success': False, 'message': 'Acesso não autorizado'})
+    
+    import json
+    data = json.loads(request.body)
+    candidato_id = data.get('candidato_id')
+    novo_status = data.get('status')
+    
+    if not candidato_id or not novo_status:
+        return JsonResponse({'success': False, 'message': 'Dados incompletos'})
+    
+    # Verificar se o status é válido
+    status_validos = ['PE', 'AP', 'RE', 'CO']
+    if novo_status not in status_validos:
+        return JsonResponse({'success': False, 'message': 'Status inválido'})
+    
+    try:
+        candidato_selecionado = CandidatoSelecionado.objects.get(
+            id=candidato_id, 
+            requisicao_vaga=requisicao
+        )
+        
+        # Verificar se a mudança é válida
+        if candidato_selecionado.status == 'CO':
+            return JsonResponse({'success': False, 'message': 'Candidato já foi contratado'})
+        
+        # Atualizar status
+        status_anterior = candidato_selecionado.status
+        candidato_selecionado.status = novo_status
+        candidato_selecionado.dt_atualizacao_status = timezone.now()
+        candidato_selecionado.save()
+        
+        # Se contratado, reduzir vagas disponíveis
+        if novo_status == 'CO':
+            vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
+            if vaga_vinculada.vagas_disponiveis > 0:
+                vaga_vinculada.vagas_disponiveis -= 1
+                vaga_vinculada.save()
+        
+        # Se mudou de contratado para outro status, aumentar vagas disponíveis
+        elif status_anterior == 'CO' and novo_status != 'CO':
+            vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
+            vaga_vinculada.vagas_disponiveis += 1
+            vaga_vinculada.save()
+        
+        return JsonResponse({'success': True, 'message': 'Status atualizado com sucesso'})
+        
+    except CandidatoSelecionado.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Candidato selecionado não encontrado'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Erro ao atualizar status: {str(e)}'})
