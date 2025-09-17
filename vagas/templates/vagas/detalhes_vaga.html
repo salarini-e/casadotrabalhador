@@ -1,0 +1,575 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Vaga - {{ vaga.cargo.nome }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.detail-card {
+  border-left: 4px solid #4e73df;
+  transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.progress-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: conic-gradient(#28a745 0deg, #28a745 var(--progress), #e9ecef var(--progress), #e9ecef 360deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-circle::before {
+  content: '';
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+}
+
+.progress-text {
+  position: relative;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #495057;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.section-header {
+  border-bottom: 2px solid #e3e6f0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem == 'vagas' %}active{% endif %}">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem == 'empresa' %}active{% endif %}">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem != 'empresa' and origem != 'vagas' %}active{% endif %}">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Breadcrumb and Actions -->
+      <div class="row mb-4">
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                {% if origem == 'empresa' %}
+                  <a href="{% url 'vagas:empresa_info' %}">Empresas</a>
+                {% elif origem == 'vagas' %}
+                  <a href="{% url 'vagas:admin_vagas_list' %}">Vagas</a>
+                {% else %}
+                  <a href="{% url 'vagas:admin_formularios_list' %}">Formulários</a>
+                {% endif %}
+              </li>
+              <li class="breadcrumb-item active">REF #{{ vaga.id }} - {{ vaga.cargo.nome }}</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto">
+          <div class="action-buttons">
+            <a href="{% url 'vagas:editar_vaga' vaga.id %}" class="btn btn-primary">
+              <i class="fas fa-edit me-2"></i>Editar Vaga
+            </a>
+            <button class="btn btn-info">
+              <i class="fas fa-file-download me-2"></i>Exportar Candidatos
+            </button>
+            {% if vaga.ativo %}
+              <button class="btn btn-warning">
+                <i class="fas fa-pause me-2"></i>Pausar Vaga
+              </button>
+            {% else %}
+              <button class="btn btn-success">
+                <i class="fas fa-play me-2"></i>Reativar Vaga
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Informações Principais da Vaga -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card detail-card">
+            <div class="card-header">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h4 class="mb-0">
+                    <i class="fas fa-briefcase me-2 text-primary"></i>
+                    {{ vaga.cargo.nome }}
+                    <span class="badge bg-light text-dark ms-2">REF #{{ vaga.id }}</span>
+                  </h4>
+                </div>
+                <div class="col-auto">
+                  {% if vaga.ativo %}
+                    <span class="status-badge bg-success text-white">
+                      <i class="fas fa-check me-1"></i>Ativa
+                    </span>
+                  {% else %}
+                    <span class="status-badge bg-secondary text-white">
+                      <i class="fas fa-pause me-1"></i>Inativa
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-body">
+              <div class="row">
+                <!-- Informações da Empresa -->
+                <div class="col-lg-6 mb-3">
+                  <div class="section-header">
+                    <h6><i class="fas fa-building me-2"></i>Informações da Empresa</h6>
+                  </div>
+                  <div class="row">
+                    <div class="col-12 mb-3">
+                      <div class="info-label">Empresa</div>
+                      <div class="info-value">{{ vaga.empresa.nome }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="info-label">CNPJ</div>
+                      <div class="info-value">{{ vaga.empresa.get_cnpj }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="info-label">Telefone</div>
+                      <div class="info-value">
+                        {% if vaga.empresa.telefone %}
+                          {{ vaga.empresa.telefone }}
+                          <a class="ms-2" href="WEBEXTEL://{{ vaga.empresa.telefone }}" title="Ligar">
+                            <i class="fas fa-phone text-primary"></i>
+                          </a>
+                          <a class="ms-1" href="https://wa.me/{{ vaga.empresa.telefone}}" target="_blank" title="WhatsApp">
+                            <i class="fab fa-whatsapp text-success"></i>
+                          </a>
+                        {% else %}
+                          <span class="text-muted">Não informado</span>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Informações da Vaga -->
+                <div class="col-lg-6 mb-3">
+                  <div class="section-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>Detalhes da Vaga</h6>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4 mb-2">
+                      <div class="info-label">Posições</div>
+                      <div class="info-value">{{ vaga.quantidadeVagas }}</div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="info-label">Preenchidas</div>
+                      <div class="info-value text-success">{{ posicoes_preenchidas }}</div>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="info-label">Restantes</div>
+                      <div class="info-value text-warning">{{ posicoes_restantes }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="info-label">Criada em</div>
+                      <div class="info-value">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <div class="info-label">Dias publicada</div>
+                      <div class="info-value">{{ dias_publicada }} dias</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Observações da Vaga -->
+                {% if vaga.observacao %}
+                <div class="col-12">
+                  <div class="section-header">
+                    <h6><i class="fas fa-comment me-2"></i>Observações</h6>
+                  </div>
+                  <div class="bg-light p-3 rounded">
+                    <p class="mb-0">{{ vaga.observacao }}</p>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas dos Candidatos -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-primary">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Candidatos</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_candidatos }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-users fa-2x text-primary"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-success">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Contratados</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ candidatos_contratados }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-handshake fa-2x text-success"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-info">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Online</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ candidatos_online }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-globe fa-2x text-info"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-warning">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Balcão</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ candidatos_balcao }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-store fa-2x text-warning"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Candidatos -->
+      <div class="card">
+        <div class="card-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Candidatos da Vaga
+              </h5>
+            </div>
+            <div class="col-auto">
+              <div class="input-group" style="width: 300px;">
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar candidatos...">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if candidatos %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Nome</th>
+                    <th class="text-center">CPF</th>
+                    <th class="text-center">Telefone</th>
+                    <th class="text-center">Origem</th>
+                    <th class="text-center">Data Inscrição</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for candidato in candidatos %}
+                  <tr>
+                    <td>
+                      <div class="fw-bold">{{ candidato.pessoa.nome }}</div>
+                      {% if candidato.pessoa.email %}
+                        <small class="text-muted">{{ candidato.pessoa.email }}</small>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="font-monospace">{{ candidato.pessoa.get_cpf }}</span>
+                    </td>
+                    <td class="text-center">
+                      {% if candidato.pessoa.telefone %}
+                        {{ candidato.pessoa.telefone }}
+                        <br>
+                        <a href="WEBEXTEL://{{ candidato.pessoa.telefone }}" class="me-1" title="Ligar">
+                          <i class="fas fa-phone text-primary"></i>
+                        </a>
+                        <a href="https://wa.me/{{ candidato.pessoa.telefone }}" target="_blank" title="WhatsApp">
+                          <i class="fab fa-whatsapp text-success"></i>
+                        </a>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      {% if candidato.origem_cadastro == 'online' %}
+                        <span class="badge bg-info">
+                          <i class="fas fa-globe me-1"></i>Online
+                        </span>
+                      {% else %}
+                        <span class="badge bg-warning">
+                          <i class="fas fa-store me-1"></i>Balcão
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <span class="fw-medium">{{ candidato.dt_inclusao|date:"d/m/Y" }}</span>
+                      <br>
+                      <small class="text-muted">{{ candidato.dt_inclusao|time:"H:i" }}</small>
+                    </td>
+                    <td class="text-center">
+                      {% if candidato.conseguiu_vaga %}
+                        <span class="badge bg-success">
+                          <i class="fas fa-handshake me-1"></i>Contratado
+                        </span>
+                      {% elif candidato.candidato_ativo %}
+                        <span class="badge bg-primary">
+                          <i class="fas fa-user-check me-1"></i>Ativo
+                        </span>
+                      {% else %}
+                        <span class="badge bg-secondary">
+                          <i class="fas fa-user-slash me-1"></i>Inativo
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <div class="btn-group" role="group">
+                        <a href="{% url 'curriculo:ver_pessoa' candidato.pessoa.pk %}" 
+                           class="btn btn-sm btn-outline-primary" 
+                           title="Ver currículo">
+                          <i class="fas fa-file-alt"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-success" 
+                                title="Marcar como contratado">
+                          <i class="fas fa-handshake"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-users fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Nenhum candidato encontrado</h5>
+              <p class="text-muted">Esta vaga ainda não possui candidatos inscritos.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('table tbody');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let shouldShow = false;
+                
+                if (searchTerm === '') {
+                    shouldShow = true;
+                } else {
+                    // Search in nome, CPF, and email
+                    const nome = cells[0]?.textContent?.toLowerCase() || '';
+                    const cpf = cells[1]?.textContent?.toLowerCase() || '';
+                    
+                    shouldShow = nome.includes(searchTerm) || 
+                               cpf.includes(searchTerm);
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        });
+    }
+});
+
+// Progress circle calculation
+document.addEventListener('DOMContentLoaded', function() {
+    const totalPosicoes = {{ vaga.quantidadeVagas }};
+    const preenchidas = {{ posicoes_preenchidas }};
+    const progress = totalPosicoes > 0 ? (preenchidas / totalPosicoes) * 360 : 0;
+    
+    document.documentElement.style.setProperty('--progress', progress + 'deg');
+});
+</script>
+{% endblock %}

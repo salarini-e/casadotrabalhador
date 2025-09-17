@@ -36,12 +36,12 @@
               <span>Dashboard</span>
             </a>
           </li>
-          <!-- <li class="nav-item">
-            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
               <i class="fas fa-briefcase"></i>
               <span>Vagas</span>
             </a>
-          </li> -->
+          </li>
           <li class="nav-item">
             <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
               <i class="fas fa-users"></i>
@@ -162,71 +162,165 @@
 
       
       <!-- Vagas Ativas - 31 Dias -->
-      <div class="stat-card primary">
-        <div class="stat-period-badge recent-badge">
+      <div class="metric-card metric-primary">
+        <div class="metric-period-badge recent-badge">
           <i class="fas fa-calendar-day"></i>
           <span>31 DIAS</span>
         </div>
-        <!-- <div class="stat-icon">
+        <div class="metric-icon">
           <i class="fas fa-briefcase"></i>
-        </div> -->
-        <div class="stat-content">
-          <div class="stat-number">{{ vagas_ativas_31_dias }}</div>
-          <div class="stat-label">Cargos Ativos</div>
-          <div class="stat-sublabel">Últimos 31 dias</div>
-          <!-- <div class="stat-sublabel">{{ posicoes_abertas_31_dias }} posições abertas</div> -->
         </div>
-
+        <div class="metric-content">
+          <div class="metric-value">{{ vagas_ativas_31_dias }}</div>
+          <div class="metric-label">Cargos Ativos</div>
+          <div class="metric-detail">Últimos 31 dias</div>
+        </div>
       </div>
 
       
       <!-- Empresas Ativas - 31 Dias -->
-      <div class="stat-card success">
-        <div class="stat-period-badge recent-badge">
+      <div class="metric-card metric-success">
+        <div class="metric-period-badge recent-badge">
           <i class="fas fa-calendar-day"></i>
           <span>31 DIAS</span>
         </div>
-        <!-- <div class="stat-icon">
+        <div class="metric-icon">
           <i class="fas fa-building"></i>
-        </div> -->
-        <div class="stat-content">
-          <div class="stat-number">{{ empresas_ativas_31_dias }}</div>
-          <div class="stat-label">Vagas Ativas</div>
-          <div class="stat-sublabel">Últimos 31 dias</div>
         </div>
-
+        <div class="metric-content">
+          <div class="metric-value">{{ empresas_ativas_31_dias }}</div>
+          <div class="metric-label">Vagas Ativas</div>
+          <div class="metric-detail">Últimos 31 dias</div>
+        </div>
       </div>
       
       <!-- Candidatos - 31 Dias -->
-      <div class="stat-card info">
-        <div class="stat-period-badge recent-badge">
+      <div class="metric-card metric-info">
+        <div class="metric-period-badge recent-badge">
           <i class="fas fa-calendar-day"></i>
           <span>31 DIAS</span>
         </div>
-        <!-- <div class="stat-icon">
+        <div class="metric-icon">
           <i class="fas fa-users"></i>
-        </div> -->
-        <div class="stat-content">
-          <div class="stat-number">{{ candidatos_31_dias }}</div>
-          <div class="stat-label">Novos Candidatos</div>
-          <div class="stat-sublabel"><span class="text-success">{{ candidatos_online_31_dias }}</span> online e <span class="text-danger">{{ candidatos_balcao_31_dias }}</span> balcão</div>
         </div>
-
+        <div class="metric-content">
+          <div class="metric-value">{{ candidatos_31_dias }}</div>
+          <div class="metric-label">Novos Candidatos</div>
+          <div class="metric-detail">
+            <span class="metric-success">{{ candidatos_online_31_dias }} online</span> • 
+            <span class="metric-danger">{{ candidatos_balcao_31_dias }} balcão</span>
+          </div>
+        </div>
       </div>
 
        <!-- Candidatos - Total -->
-      <div class="stat-card info">
-        <div class="stat-period-badge total-badge">
+      <div class="metric-card metric-info">
+        <div class="metric-period-badge total-badge">
           <i class="fas fa-infinity"></i>
           <span>TOTAL</span>
         </div>
-        <!-- <div class="stat-icon">
+        <div class="metric-icon">
           <i class="fas fa-users"></i>
-        </div> -->
-        <div class="stat-content">
-          <div class="stat-number">{{ total_candidatos }}</div>
-          <div class="stat-label">Total Candidatos</div>
-          <div class="stat-sublabel"><span class="text-success">{{ candidatos_online }}</span> online e <span class="text-danger">{{ candidatos_balcao }}</span> balcão</div>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ total_candidatos }}</div>
+          <div class="metric-label">Total Candidatos</div>
+          <div class="metric-detail">
+            <span class="metric-success">{{ candidatos_online }} online</span> • 
+            <span class="metric-danger">{{ candidatos_balcao }} balcão</span>
+          </div>
+        </div>
+      </div>
+
+      </div>
+
+      <!-- Nova Seção: Métricas Avançadas -->
+      <div class="section-title mt-5">
+        <h2><i class="fas fa-chart-line me-2"></i>Métricas Avançadas</h2>
+        <p>Indicadores de performance e qualidade dos serviços</p>
+      </div>
+
+      <div class="stats-grid">
+        
+        <!-- Tempo Médio de Aprovação -->
+        <div class="stat-card warning">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-clock"></i>
+            <span>TEMPO</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ tempo_medio_aprovacao }}h</div>
+            <div class="stat-label">Tempo Médio Aprovação</div>
+            <div class="stat-sublabel">Formulários para vagas</div>
+          </div>
+        </div>
+
+        <!-- Taxa de Contratação -->
+        <div class="stat-card success">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-percentage"></i>
+            <span>TAXA</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ taxa_contratacao }}%</div>
+            <div class="stat-label">Taxa de Contratação</div>
+            <div class="stat-sublabel">{{ total_contratacoes }} candidatos contratados</div>
+          </div>
+        </div>
+
+        <!-- Taxa de Preenchimento -->
+        <div class="stat-card info">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-check-circle"></i>
+            <span>EFIC.</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ taxa_preenchimento_vagas }}%</div>
+            <div class="stat-label">Vagas Preenchidas</div>
+            <div class="stat-sublabel">{{ vagas_com_contratacao }} vagas com contratação</div>
+          </div>
+        </div>
+
+        <!-- Satisfação Empresas -->
+        <div class="stat-card primary">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-heart"></i>
+            <span>SAT.</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ taxa_renovacao_empresas }}%</div>
+            <div class="stat-label">Renovação Empresas</div>
+            <div class="stat-sublabel">{{ empresas_com_multiplos_formularios }} empresas retornaram</div>
+          </div>
+        </div>
+
+        <!-- Ciclo de Vida -->
+        <div class="stat-card secondary">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-calendar-alt"></i>
+            <span>CICLO</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ ciclo_vida_medio }}</div>
+            <div class="stat-label">Dias Médios Vaga</div>
+            <div class="stat-sublabel">Criação até encerramento</div>
+          </div>
+        </div>
+
+        <!-- Formulários Status -->
+        <div class="stat-card gradient">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-file-alt"></i>
+            <span>FORM.</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ total_formularios }}</div>
+            <div class="stat-label">Total Formulários</div>
+            <div class="stat-sublabel">
+              <span class="text-success">{{ formularios_aprovados }} aprovados</span> | 
+              <span class="text-warning">{{ formularios_pendentes }} pendentes</span>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -369,6 +463,73 @@
             </div>
           </div>
         </div>
+
+        <!-- Novo: Mapa de Calor Geográfico -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-map"></i>
+              Mapa de Calor - Candidatos por Bairro
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="bairrosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Sazonalidade por Cargo -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-line"></i>
+              Sazonalidade - Vagas por Cargo (12 meses)
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="sazonalidadeChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Picos de Demanda -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-area"></i>
+              Picos de Demanda - Candidatos
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="picosDemandaChart"></canvas>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -584,6 +745,80 @@
   font-size: 0.9rem;
 }
 
+/* Estilos para os cards avançados */
+.stat-card {
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.primary {
+  border-left: 4px solid #2c3e50;
+}
+
+.stat-card.success {
+  border-left: 4px solid #27ae60;
+}
+
+.stat-card.info {
+  border-left: 4px solid #17a2b8;
+}
+
+.stat-card.warning {
+  border-left: 4px solid #f39c12;
+}
+
+.stat-card.secondary {
+  border-left: 4px solid #6c757d;
+}
+
+.stat-card.gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.stat-card.gradient .stat-number {
+  color: white !important;
+}
+
+.stat-card.gradient .stat-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-subtitle {
+  font-size: 0.8rem;
+  color: #95a5a6;
+  font-style: italic;
+  margin-top: 3px;
+}
+
 @media (max-width: 768px) {
   .dashboard-actions-grid {
     grid-template-columns: 1fr;
@@ -591,6 +826,195 @@
   
   .dashboard-stat-number {
     font-size: 2rem !important;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+}
+
+/* Novos estilos otimizados para metric-card */
+.dashboard-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e3e6f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.metric-card:hover::before {
+  width: 6px;
+}
+
+.metric-card.metric-primary::before {
+  background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+}
+
+.metric-card.metric-success::before {
+  background: linear-gradient(180deg, #1cc88a 0%, #13855c 100%);
+}
+
+.metric-card.metric-info::before {
+  background: linear-gradient(180deg, #36b9cc 0%, #258391 100%);
+}
+
+.metric-card.metric-warning::before {
+  background: linear-gradient(180deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.metric-card.metric-orange::before {
+  background: linear-gradient(180deg, #fd7e14 0%, #e55a00 100%);
+}
+
+.metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+  font-size: 24px;
+  color: white;
+}
+
+.metric-primary .metric-icon {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.metric-success .metric-icon {
+  background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.metric-info .metric-icon {
+  background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.metric-warning .metric-icon {
+  background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.metric-orange .metric-icon {
+  background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+}
+
+.metric-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-value {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 600;
+  margin: 4px 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-detail {
+  font-size: 0.85rem;
+  color: #858796;
+  line-height: 1.4;
+}
+
+.metric-success {
+  color: #1cc88a !important;
+  font-weight: 600;
+}
+
+.metric-danger {
+  color: #e74a3b !important;
+  font-weight: 600;
+}
+
+.metric-warning {
+  color: #f6c23e !important;
+  font-weight: 600;
+}
+
+.metric-muted {
+  color: #6c757d !important;
+}
+
+.metric-period-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #6c757d;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .metric-card {
+    padding: 20px;
+  }
+  
+  .metric-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+  }
+  
+  .metric-label {
+    font-size: 0.8rem;
   }
 }
 </style>
@@ -1136,6 +1560,191 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // ========== NOVOS GRÁFICOS AVANÇADOS ==========
+
+    // Mapa de Calor - Candidatos por Bairro
+    const bairrosCtx = document.getElementById('bairrosChart').getContext('2d');
+    const bairrosChart = new Chart(bairrosCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for bairro in candidatos_por_bairro %}
+                '{{ bairro.bairro|truncatechars:15 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos por Bairro',
+                data: [
+                    {% for bairro in candidatos_por_bairro %}
+                    {{ bairro.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Top 20 Bairros com Mais Candidatos'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Sazonalidade por Cargo
+    const sazonalidadeCtx = document.getElementById('sazonalidadeChart').getContext('2d');
+    const cores = [
+        'rgba(255, 99, 132, 0.8)',
+        'rgba(54, 162, 235, 0.8)',
+        'rgba(255, 205, 86, 0.8)',
+        'rgba(75, 192, 192, 0.8)',
+        'rgba(153, 102, 255, 0.8)'
+    ];
+    
+    const sazonalidadeChart = new Chart(sazonalidadeCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% if vagas_por_cargo_mes %}
+                    {% for mes_data in vagas_por_cargo_mes.0.dados %}
+                    '{{ mes_data.mes }}',
+                    {% endfor %}
+                {% endif %}
+            ],
+            datasets: [
+                {% for cargo_data in vagas_por_cargo_mes %}
+                {
+                    label: '{{ cargo_data.cargo|truncatechars:20 }}',
+                    data: [
+                        {% for mes_data in cargo_data.dados %}
+                        {{ mes_data.total }},
+                        {% endfor %}
+                    ],
+                    borderColor: cores[{{ forloop.counter0 }} % cores.length],
+                    backgroundColor: cores[{{ forloop.counter0 }} % cores.length].replace('0.8', '0.1'),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Evolução de Vagas por Cargo - 12 Meses'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Picos de Demanda - Candidatos
+    const picosDemandaCtx = document.getElementById('picosDemandaChart').getContext('2d');
+    const picosDemandaChart = new Chart(picosDemandaCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for pico in picos_demanda_candidatos %}
+                '{{ pico.mes }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos por Mês',
+                data: [
+                    {% for pico in picos_demanda_candidatos %}
+                    {{ pico.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: function(context) {
+                    const value = context.parsed.y;
+                    const max = Math.max(...context.dataset.data);
+                    const intensity = value / max;
+                    return `rgba(75, 192, 192, ${0.3 + intensity * 0.7})`;
+                },
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Variação Mensal de Candidatos'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // ========== FIM NOVOS GRÁFICOS ==========
 
     // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');

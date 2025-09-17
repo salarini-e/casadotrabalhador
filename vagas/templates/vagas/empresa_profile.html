@@ -1,0 +1,605 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Perfil da Empresa - {{ empresa.nome }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.sortable i {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.sortable:hover i {
+  opacity: 1;
+}
+
+.sortable.sort-asc i:before {
+  content: "\f0de"; /* fa-sort-up */
+}
+
+.sortable.sort-desc i:before {
+  content: "\f0dd"; /* fa-sort-down */
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-building me-2"></i>
+          Perfil da Empresa
+        </h1>
+        <p class="page-subtitle">{{ empresa.nome }} - {{ empresa.get_cnpj }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:empresa_info' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+          </a>
+          <a href="{% url 'vagas:admin_formularios_create' %}?empresa_cnpj={{ empresa.cnpj }}&origem=empresa&empresa_id={{ empresa.pk }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Criar Formulário
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      
+      <!-- Company Info Cards -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-primary">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Vagas Ativas</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ vagas_ativas }}</div>
+                  <small class="text-muted">de {{ total_vagas }} total</small>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-briefcase fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-success">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Candidatos Únicos</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ candidatos_unicos }}</div>
+                  <small class="text-muted">{{ total_candidatos }} inscrições total</small>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-users fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-info">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Formulários Aprovados</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ formularios_aprovados }}</div>
+                  <small class="text-muted">de {{ total_formularios }} total</small>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-file-check fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-warning">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Taxa de Aprovação</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {% if total_formularios > 0 %}
+                      {% widthratio formularios_aprovados total_formularios 100 %}%
+                    {% else %}
+                      0%
+                    {% endif %}
+                  </div>
+                  <small class="text-muted">de formulários</small>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Details -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-building me-2"></i>Informações da Empresa</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nome:</label>
+                  <p class="mb-0">{{ empresa.nome }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CNPJ:</label>
+                  <p class="mb-0">{{ empresa.get_cnpj }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Endereço:</label>
+                  <p class="mb-0">{{ empresa.endereco|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Bairro:</label>
+                  <p class="mb-0">{{ empresa.bairro|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Telefone:</label>
+                  <p class="mb-0">{{ empresa.telefone|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">WhatsApp:</label>
+                  <p class="mb-0">{{ empresa.whatsapp|default:"Não informado" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs for Jobs and Forms -->
+      <div class="card">
+        <div class="card-header">
+          <ul class="nav nav-pills" id="companyTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="jobs-tab" data-bs-toggle="pill" data-bs-target="#jobs" type="button" role="tab">
+                <i class="fas fa-briefcase me-2"></i>Vagas ({{ total_vagas }})
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="forms-tab" data-bs-toggle="pill" data-bs-target="#forms" type="button" role="tab">
+                <i class="fas fa-file-alt me-2"></i>Formulários ({{ total_formularios }})
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <div class="tab-content" id="companyTabsContent">
+            
+            <!-- Jobs Tab -->
+            <div class="tab-pane fade show active" id="jobs" role="tabpanel">
+              {% if vagas %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="text-center sortable" data-column="id">
+                          REF <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="sortable" data-column="cargo">
+                          Cargo <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="quantidade">
+                          Quantidade <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="candidatos">
+                          Candidatos <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="status">
+                          Status <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="dt_inclusao">
+                          Criada em <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="dt_atualizacao">
+                          Atualizada em <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for vaga in vagas %}
+                      <tr>
+                        <td class="text-center">
+                          <span class="badge bg-light text-dark">#{{ vaga.id }}</span>
+                        </td>
+                        <td>
+                          <div class="fw-bold">{{ vaga.cargo.nome }}</div>
+                          {% if vaga.descricao %}
+                            <small class="text-muted">{{ vaga.descricao|truncatewords:10 }}</small>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">{{ vaga.quantidadeVagas }}</td>
+                        <td class="text-center">
+                          <span class="badge bg-primary">{{ vaga.candidato_set.count }}</span>
+                        </td>
+                        <td class="text-center">
+                          {% if vaga.ativo %}
+                            <span class="badge bg-success">Ativa</span>
+                          {% else %}
+                            <span class="badge bg-secondary">Inativa</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">
+                          <span class="fw-medium">{{ vaga.dt_inclusao|date:"d/m/Y" }}</span>
+                          <br>
+                          <small class="text-muted">{{ vaga.dt_inclusao|time:"H:i" }}</small>
+                        </td>
+                        <td class="text-center">
+                          {% if vaga.dt_atualizacao %}
+                            <span class="fw-medium">{{ vaga.dt_atualizacao|date:"d/m/Y" }}</span>
+                            <br>
+                            <small class="text-muted">{{ vaga.dt_atualizacao|time:"H:i" }}</small>
+                          {% else %}
+                            <span class="text-muted">-</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">
+                          <a href="{% url 'vagas:candidatos_vaga' vaga.pk %}?origem=empresa&empresa_id={{ empresa.pk }}" 
+                             class="btn btn-sm btn-outline-primary"
+                             title="Ver candidatos">
+                            <i class="fas fa-users"></i>
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">Nenhuma vaga encontrada</h5>
+                  <p class="text-muted">Esta empresa ainda não possui vagas cadastradas.</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Forms Tab -->
+            <div class="tab-pane fade" id="forms" role="tabpanel">
+              {% if formularios %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="sortable" data-column="cargo_ofertado">
+                          Cargo <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="sortable" data-column="nome_do_responsavel_pela_divulgacao_da_vaga">
+                          Responsável <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="quantidade_de_vagas">
+                          Vagas <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="status_requisicao">
+                          Status <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center sortable" data-column="dt_inclusao">
+                          Criado em <i class="fas fa-sort ms-1"></i>
+                        </th>
+                        <th class="text-center">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for formulario in formularios %}
+                      <tr>
+                        <td>
+                          <div class="fw-bold">{{ formulario.cargo_ofertado }}</div>
+                          <small class="text-muted">{{ formulario.get_tipo_de_vaga_display }}</small>
+                        </td>
+                        <td>
+                          <div>{{ formulario.nome_do_responsavel_pela_divulgacao_da_vaga }}</div>
+                          <small class="text-muted">{{ formulario.contato_do_responsavel }}</small>
+                        </td>
+                        <td class="text-center">{{ formulario.quantidade_de_vagas }}</td>
+                        <td class="text-center">
+                          {% if formulario.status_requisicao == 'AG' %}
+                            <span class="badge bg-warning">Aguardando</span>
+                          {% elif formulario.status_requisicao == 'PE' %}
+                            <span class="badge bg-info">Pendente</span>
+                          {% elif formulario.status_requisicao == 'AP' %}
+                            <span class="badge bg-success">Aprovada</span>
+                          {% elif formulario.status_requisicao == 'RE' %}
+                            <span class="badge bg-danger">Rejeitada</span>
+                          {% elif formulario.status_requisicao == 'AE' %}
+                            <span class="badge bg-warning">Aguard. Encerramento</span>
+                          {% elif formulario.status_requisicao == 'EN' %}
+                            <span class="badge bg-secondary">Encerrada</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-center">
+                          <span class="fw-medium">{{ formulario.dt_inclusao|date:"d/m/Y" }}</span>
+                          <br>
+                          <small class="text-muted">{{ formulario.dt_inclusao|time:"H:i" }}</small>
+                        </td>
+                        <td class="text-center">
+                          <a href="{% url 'vagas:admin_formularios_detail' formulario.pk %}" 
+                             class="btn btn-sm btn-outline-primary"
+                             title="Ver detalhes">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">Nenhum formulário encontrado</h5>
+                  <p class="text-muted mb-3">Esta empresa ainda não possui formulários cadastrados.</p>
+                  <a href="{% url 'vagas:admin_formularios_create' %}?empresa_cnpj={{ empresa.cnpj }}&origem=empresa&empresa_id={{ empresa.pk }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Criar Primeiro Formulário
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Tab navigation
+const tabButtons = document.querySelectorAll('[data-bs-toggle="pill"]');
+tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        // Remove active class from all buttons
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        // Hide all tab panes
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        tabPanes.forEach(pane => {
+            pane.classList.remove('show', 'active');
+        });
+        
+        // Show target tab pane
+        const target = document.querySelector(this.getAttribute('data-bs-target'));
+        if (target) {
+            target.classList.add('show', 'active');
+        }
+    });
+});
+
+// Table sorting functionality
+function sortTable(table, column, direction) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const sortedRows = rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        // Get cell content based on column
+        const aCells = a.querySelectorAll('td');
+        const bCells = b.querySelectorAll('td');
+        
+        // Determine column index based on header
+        const headers = table.querySelectorAll('th');
+        let columnIndex = -1;
+        headers.forEach((header, index) => {
+            if (header.dataset.column === column) {
+                columnIndex = index;
+            }
+        });
+        
+        if (columnIndex === -1) return 0;
+        
+        // Get values for comparison
+        if (column === 'dt_inclusao' || column === 'dt_atualizacao') {
+            // For dates, extract from data attributes or parse displayed text
+            aValue = aCells[columnIndex]?.querySelector('.fw-medium')?.textContent?.trim() || '';
+            bValue = bCells[columnIndex]?.querySelector('.fw-medium')?.textContent?.trim() || '';
+            
+            // Convert DD/MM/YYYY to YYYY-MM-DD for proper comparison
+            if (aValue.includes('/')) {
+                const [day, month, year] = aValue.split('/');
+                aValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            if (bValue.includes('/')) {
+                const [day, month, year] = bValue.split('/');
+                bValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+        } else if (column === 'quantidade' || column === 'candidatos' || column === 'quantidade_de_vagas') {
+            // For numbers
+            aValue = parseInt(aCells[columnIndex]?.textContent?.trim() || '0');
+            bValue = parseInt(bCells[columnIndex]?.textContent?.trim() || '0');
+        } else {
+            // For text
+            aValue = aCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+            bValue = bCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+        }
+        
+        // Compare values
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return direction === 'asc' ? aValue - bValue : bValue - aValue;
+        } else {
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+            return 0;
+        }
+    });
+    
+    // Clear tbody and append sorted rows
+    tbody.innerHTML = '';
+    sortedRows.forEach(row => tbody.appendChild(row));
+}
+
+// Add click handlers to sortable headers
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.column;
+            const table = this.closest('table');
+            
+            // Reset all other headers
+            sortableHeaders.forEach(h => {
+                if (h !== this) {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                }
+            });
+            
+            // Determine sort direction
+            let direction = 'asc';
+            if (this.classList.contains('sort-asc')) {
+                direction = 'desc';
+                this.classList.remove('sort-asc');
+                this.classList.add('sort-desc');
+            } else {
+                direction = 'asc';
+                this.classList.remove('sort-desc');
+                this.classList.add('sort-asc');
+            }
+            
+            // Sort the table
+            sortTable(table, column, direction);
+        });
+    });
+});
+</script>
+{% endblock %}

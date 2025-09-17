@@ -61,7 +61,33 @@ class Empresa(models.Model):
 
     def get_cnpj(self):
         cnpj_formated = f"{self.cnpj[:2]}.{self.cnpj[2:5]}.{self.cnpj[5:8]}/{self.cnpj[8:12]}-{self.cnpj[12:]}"
-        return cnpj_formated                                                                                                                                                                            
+        return cnpj_formated
+    
+    def get_total_vagas_count(self):
+        """Retorna o número total de vagas oferecidas pela empresa"""
+        return self.vaga_emprego_set.count()
+    
+    def get_active_vagas_count(self):
+        """Retorna o número de vagas ativas da empresa"""
+        return self.vaga_emprego_set.filter(ativo=True).count()
+    
+    def get_total_candidatos_count(self):
+        """Retorna o número total de candidatos únicos (por CPF) da empresa"""
+        from django.db.models import Count
+        return Candidato.objects.filter(
+            vaga__empresa=self
+        ).values('cpf').distinct().count()
+    
+    def get_total_formularios_count(self):
+        """Retorna o número total de formulários criados para a empresa (por CNPJ)"""
+        return RequisicaoVaga.objects.filter(cnpj_da_empresa=self.cnpj).count()
+    
+    def get_approved_formularios_count(self):
+        """Retorna o número de formulários aprovados da empresa"""
+        return RequisicaoVaga.objects.filter(
+            cnpj_da_empresa=self.cnpj, 
+            status_requisicao='AP'
+        ).count()                                                                                                                                                                            
 
 class Cargo(models.Model):
 
@@ -229,11 +255,13 @@ class RequisicaoVaga(models.Model):
         ('AG', 'Aguardando'),
         ('PE', 'Pendente'),
         ('AP', 'Aprovada'),
-        ('RE', 'Rejeitada')        
+        ('RE', 'Rejeitada'),
+        ('AE', 'Aguardando Encerramento'),
+        ('EN', 'Encerrada')
     )
 
     hash_id = models.CharField(max_length=64, unique=True, editable=False)
-    chave_de_acesso = models.CharField(max_length=64, unique=True, editable=False)
+    chave_de_acesso = models.CharField(max_length=64, editable=False)
     auth_hash_temp = models.CharField(max_length=64, blank=True, null=True, editable=False)  # Hash temporário para autenticação
 
     nome_do_responsavel_pela_divulgacao_da_vaga = models.CharField(max_length=150, verbose_name='Nome do responsável pela divulgação da vaga')

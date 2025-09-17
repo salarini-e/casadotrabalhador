@@ -33,21 +33,75 @@
             </a>
           </li>
           <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
               <i class="fas fa-users"></i>
               <span>Candidatos</span>
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item {% if origem == 'empresa' %}active{% endif %}">
             <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
               <i class="fas fa-building"></i>
               <span>Empresas</span>
             </a>
           </li>
-          <li class="nav-item active">
+          <li class="nav-item {% if origem != 'empresa' %}active{% endif %}">
             <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
               <i class="fas fa-file-alt"></i>
               <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
             </a>
           </li>
         </ul>
@@ -68,9 +122,15 @@
       </div>
       <div class="topbar-right">
         <div class="quick-actions">
-          <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-2"></i>Voltar
-          </a>
+          {% if origem == 'empresa' and empresa_id %}
+            <a href="{% url 'vagas:empresa_profile' empresa_id %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil da Empresa
+            </a>
+          {% else %}
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar aos Formulários
+            </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -105,6 +165,16 @@
                 {% csrf_token %}
                 
                 <div class="row g-3">
+                  {% if empresa_selecionada %}
+                    <!-- Informação da empresa selecionada -->
+                    <div class="col-12">
+                      <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Empresa selecionada:</strong> {{ empresa_selecionada.nome }} - {{ empresa_selecionada.get_cnpj }}
+                      </div>
+                    </div>
+                  {% endif %}
+
                   <!-- Chave de Acesso Personalizada -->
                   <div class="col-12">
                     <label for="chave_de_acesso" class="form-label">
@@ -124,7 +194,9 @@
                       <i class="fas fa-building me-1"></i>Nome da Empresa (opcional)
                     </label>
                     <input type="text" class="form-control" id="nome_da_empresa" 
-                           name="nome_da_empresa" placeholder="A empresa pode preencher depois">
+                           name="nome_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.nome }}{% endif %}"
+                           placeholder="A empresa pode preencher depois">
                     <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
                   </div>
 
@@ -134,17 +206,57 @@
                       <i class="fas fa-id-card me-1"></i>CNPJ (opcional)
                     </label>
                     <input type="text" class="form-control" id="cnpj_da_empresa" 
-                           name="cnpj_da_empresa" placeholder="00.000.000/0000-00">
+                           name="cnpj_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.cnpj }}{% endif %}"
+                           placeholder="00.000.000/0000-00">
                     <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
                   </div>
 
                   <!-- Email da Empresa (Opcional) -->
-                  <div class="col-12">
+                  <div class="col-md-6">
                     <label for="email_da_empresa" class="form-label">
                       <i class="fas fa-envelope me-1"></i>Email da Empresa (opcional)
                     </label>
                     <input type="email" class="form-control" id="email_da_empresa" 
-                           name="email_da_empresa" placeholder="email@empresa.com">
+                           name="email_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.email }}{% endif %}"
+                           placeholder="email@empresa.com">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- Telefone da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="telefone_da_empresa" class="form-label">
+                      <i class="fas fa-phone me-1"></i>Telefone da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="telefone_da_empresa" 
+                           name="telefone_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.telefone }}{% endif %}"
+                           placeholder="(00) 00000-0000">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- Endereço da Empresa (Opcional) -->
+                  <div class="col-12">
+                    <label for="endereco_da_empresa" class="form-label">
+                      <i class="fas fa-map-marker-alt me-1"></i>Endereço da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="endereco_da_empresa" 
+                           name="endereco_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.endereco }}{% endif %}"
+                           placeholder="Endereço completo da empresa">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- WhatsApp da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="whatsapp_da_empresa" class="form-label">
+                      <i class="fab fa-whatsapp me-1"></i>WhatsApp da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="whatsapp_da_empresa" 
+                           name="whatsapp_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.whatsapp }}{% endif %}"
+                           placeholder="(00) 00000-0000">
                     <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
                   </div>
                 </div>

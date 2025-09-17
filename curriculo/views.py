@@ -16,25 +16,71 @@ def curriculo(request, id):
         
         user = User.objects.get(id=id)
         pessoa = Pessoa.objects.get(user=user)
-    except:
-        pessoa = {
-            'nome': None,
-            'email': None,
-            'telefone': None,
-            'objetivo': None,
-        }
-    educacoes = Educacao.objects.filter(pessoa=pessoa)
-    experiencias = ExperienciaProfissional.objects.filter(pessoa=pessoa)
+        
+        educacoes = Educacao.objects.filter(pessoa=pessoa)
+        experiencias = ExperienciaProfissional.objects.filter(pessoa=pessoa)
 
-    context = {
-        'nome': pessoa.nome if pessoa.nome else 'Cadastre seu nome',
-        'email': pessoa.email if pessoa.email else 'Cadastre seu email',
-        'telefone': pessoa.telefone if pessoa.telefone else 'Cadastre seu telefone',
-        'objetivo': pessoa.objetivo if pessoa.objetivo else 'Cadastre seu objetivo',
-        'educacoes': educacoes,
-        'experiencias': experiencias,
-    }
-    return render(request, 'curriculo/novo_curriculo.html', context)
+        context = {
+            'nome': pessoa.nome if pessoa.nome else 'Cadastre seu nome',
+            'email': pessoa.email if pessoa.email else 'Cadastre seu email',
+            'telefone': pessoa.telefone if pessoa.telefone else 'Cadastre seu telefone',
+            'objetivo': pessoa.objetivo if pessoa.objetivo else 'Cadastre seu objetivo',
+            'educacoes': educacoes,
+            'experiencias': experiencias,
+        }
+        return render(request, 'curriculo/novo_curriculo.html', context)
+    except (User.DoesNotExist, Pessoa.DoesNotExist):
+        messages.error(request, 'Usuário ou pessoa não encontrada.')
+        return render(request, 'curriculo/curriculo_nao_encontrado.html')
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar currículo: {str(e)}')
+        return render(request, 'curriculo/curriculo_nao_encontrado.html')
+
+
+def curriculo_por_cpf(request, cpf):
+    """Visualizar currículo usando CPF"""
+    try:
+        # Limpar CPF (remover pontos e traços)
+        cpf_limpo = ''.join(filter(str.isdigit, cpf))
+        
+        # Buscar pessoa pelo CPF
+        pessoa = Pessoa.objects.get(cpf=cpf_limpo)
+        
+        # Verificar se a pessoa tem dados de currículo suficientes
+        educacoes = Educacao.objects.filter(pessoa=pessoa)
+        experiencias = ExperienciaProfissional.objects.filter(pessoa=pessoa)
+        
+        # Verificar se há informações mínimas para considerar que tem currículo
+        tem_informacoes_basicas = pessoa.nome and pessoa.email
+        tem_educacao_ou_experiencia = educacoes.exists() or experiencias.exists()
+        
+        if not tem_informacoes_basicas and not tem_educacao_ou_experiencia:
+            return render(request, 'curriculo/curriculo_nao_encontrado.html', {
+                'mensagem': 'Este candidato ainda não possui currículo cadastrado.',
+                'pessoa': pessoa
+            })
+
+        context = {
+            'nome': pessoa.nome if pessoa.nome else 'Não informado',
+            'email': pessoa.email if pessoa.email else 'Não informado',
+            'telefone': pessoa.telefone if pessoa.telefone else 'Não informado',
+            'objetivo': pessoa.objetivo if pessoa.objetivo else 'Não informado',
+            'educacoes': educacoes,
+            'experiencias': experiencias,
+            'pessoa': pessoa,
+        }
+        return render(request, 'curriculo/novo_curriculo.html', context)
+        
+    except Pessoa.DoesNotExist:
+        return render(request, 'curriculo/curriculo_nao_encontrado.html', {
+            'mensagem': 'Candidato não encontrado no sistema.',
+            'cpf': cpf
+        })
+    except Exception as e:
+        return render(request, 'curriculo/curriculo_nao_encontrado.html', {
+            'mensagem': f'Erro ao carregar currículo: {str(e)}',
+            'cpf': cpf
+        })
 
 def cadastrar_educacao(request):
     if request.method == 'POST':

@@ -34,12 +34,12 @@
               <span>Dashboard</span>
             </a>
           </li>
-          <!-- <li class="nav-item">
-            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
               <i class="fas fa-briefcase"></i>
               <span>Vagas</span>
             </a>
-          </li> -->
+          </li>
           <li class="nav-item active">
             <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
               <i class="fas fa-users"></i>
@@ -50,6 +50,12 @@
             <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
               <i class="fas fa-building"></i>
               <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
             </a>
           </li>
         </ul>

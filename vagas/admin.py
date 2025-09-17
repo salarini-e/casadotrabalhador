@@ -36,6 +36,8 @@ class VagaEmpregoAdmin(admin.ModelAdmin):
     )
 
     list_editable = ('ativo', 'destaque')
+    
+    readonly_fields = ('dt_inclusao', 'dt_atualizacao')
 
     fieldsets = (
         ('Informações da vaga', {
@@ -67,6 +69,7 @@ class VagaEmpregoAdmin(admin.ModelAdmin):
                 'dt_inclusao',
                 'dt_atualizacao',
                 'dt_desativacao',
+                'requisicao_vaga',
             )
         }),
     )
@@ -77,3 +80,6 @@ admin.site.register(Escolaridade)
 admin.site.register(Cargo)
 admin.site.register(Candidato)
 admin.site.register(Slide)
+admin.site.register(RequisicaoVaga)
+admin.site.register(CandidatoSelecionado)
+admin.site.register(HistoricoRequisicao)

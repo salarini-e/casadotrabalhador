@@ -1,0 +1,80 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Currículo Não Encontrado{% endblock %}
+
+{% block main %}
+<div class="container-fluid bg-light min-vh-100 py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Currículo Não Encontrado
+                    </h5>
+                </div>
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-file-alt fa-5x text-muted"></i>
+                    </div>
+                    
+                    <h4 class="text-dark mb-3">Ops! Currículo não disponível</h4>
+                    
+                    {% if mensagem %}
+                        <p class="text-muted mb-4">{{ mensagem }}</p>
+                    {% else %}
+                        <p class="text-muted mb-4">Este candidato ainda não possui currículo cadastrado no sistema.</p>
+                    {% endif %}
+                    
+                    {% if pessoa %}
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Informações Básicas do Candidato:</h6>
+                            <p class="mb-1"><strong>Nome:</strong> {{ pessoa.nome|default:"Não informado" }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ pessoa.email|default:"Não informado" }}</p>
+                            <p class="mb-0"><strong>Telefone:</strong> {{ pessoa.telefone|default:"Não informado" }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if cpf %}
+                        <div class="alert alert-secondary">
+                            <p class="mb-0"><strong>CPF consultado:</strong> {{ cpf }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <button onclick="window.close()" class="btn btn-secondary me-2">
+                            <i class="fas fa-times me-2"></i>Fechar
+                        </button>
+                        <button onclick="history.back()" class="btn btn-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Voltar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+}
+
+.fa-5x {
+    font-size: 5rem !important;
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+</style>
+{% endblock %}

@@ -9,5 +9,6 @@ urlpatterns = [
     path('curriculo/experiencia', views.cadastrar_experiencia, name='experiencia'),
      path('curriculo/experiencia/<id>/excluir', views.excluir_experiencia, name='excluir_experiencia'),
     path('curriculo/visualizar/<id>/', views.curriculo, name='curriculo'),
+    path('curriculo/cpf/<str:cpf>/', views.curriculo_por_cpf, name='curriculo_por_cpf'),
 
 ]

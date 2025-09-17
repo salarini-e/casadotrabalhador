@@ -33,6 +33,12 @@
             </a>
           </li>
           <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
               <i class="fas fa-users"></i>
               <span>Candidatos</span>
@@ -48,6 +54,54 @@
             <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
               <i class="fas fa-file-alt"></i>
               <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
             </a>
           </li>
         </ul>
@@ -158,6 +212,10 @@
                           <span class="badge bg-success">Aprovada</span>
                         {% elif formulario.status_requisicao == 'RE' %}
                           <span class="badge bg-danger">Rejeitada</span>
+                        {% elif formulario.status_requisicao == 'AE' %}
+                          <span class="badge bg-warning">Aguard. Encerramento</span>
+                        {% elif formulario.status_requisicao == 'EN' %}
+                          <span class="badge bg-secondary">Encerrada</span>
                         {% endif %}
                       </td>
                       <td>

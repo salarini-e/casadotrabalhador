@@ -45,6 +45,7 @@ urlpatterns = [
     path('vagas-com-candidatos/', views.vagascomcandidatos, name='vagas_com_candidatos'),
     path('empresa/info/', views.infoempresa, name='empresa_info'),
     path('empresa/info/<id>/download/', views.infoempresa_download, name='empresa_info_download'),
+    path('empresa/profile/<int:empresa_id>/', views.empresa_profile, name='empresa_profile'),
     path('candidatos-por-funcionario/', views.candidatosporfuncionario, name='candidatosporfuncionario'),
     path('candidatos-por-funcionario/<id>', views.funcionario_encaminhados, name='funcionarios_encaminhados'), 
     path('pesquisar-candidatos/', views.pesquisar_candidatos, name='pesquisar_candidatos'), 
@@ -57,16 +58,19 @@ urlpatterns = [
     path('emails/csv/<month>/<year>', views.download_emails, name='download_emails'),
 
     # URLs para sistema de formulários
+    path('admin/vagas/', views.admin_vagas_list, name='admin_vagas_list'),
     path('admin/formularios/', views.admin_formularios_list, name='admin_formularios_list'),
     path('admin/formularios/criar/', views.admin_formularios_create, name='admin_formularios_create'),
     path('admin/formularios/<int:id>/', views.admin_formularios_detail, name='admin_formularios_detail'),
     path('admin/formularios/<int:id>/status/', views.admin_formularios_update_status, name='admin_formularios_update_status'),
     path('admin/formularios/<int:id>/cadastrar-vaga/', views.cadastrar_vaga_aprovada, name='cadastrar_vaga_aprovada'),
     path('admin/vagas/<int:vaga_id>/candidatos/', views.candidatos_vaga, name='candidatos_vaga'),
+    path('admin/vagas/<int:vaga_id>/editar/', views.editar_vaga, name='editar_vaga'),
     path('formulario/<str:hash_id>/acesso/', views.formulario_autenticacao, name='formulario_autenticacao'),
     path('formulario/<str:hash_id>/', views.formulario_publico, name='formulario_publico'),
     path('formulario/<str:hash_id>/detalhes/', views.formulario_detalhes_externo, name='formulario_detalhes_externo'),
     path('formulario/<str:hash_id>/selecionar-candidato/', views.selecionar_candidato, name='selecionar_candidato'),
     path('formulario/<str:hash_id>/atualizar-status-candidato/', views.atualizar_status_candidato, name='atualizar_status_candidato'),
+    path('formulario/<str:hash_id>/solicitar-encerramento/', views.solicitar_encerramento_vaga, name='solicitar_encerramento_vaga'),
     path('formulario/sucesso/', views.formulario_sucesso, name='formulario_sucesso'),
 ]

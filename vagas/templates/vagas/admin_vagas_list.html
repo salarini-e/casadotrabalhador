@@ -1,0 +1,492 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.sortable i {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.sortable:hover i {
+  opacity: 1;
+}
+
+.sortable.sort-asc i:before {
+  content: "\f0de"; /* fa-sort-up */
+}
+
+.sortable.sort-desc i:before {
+  content: "\f0dd"; /* fa-sort-down */
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  
+
+    <!-- Content -->
+    <div class="dashboard-content mt-4">
+      <div class="container-fluid">
+        
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-left-success">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Vagas Ativas</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_ativas }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-check fa-2x text-success"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-left-secondary">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Vagas arquivadas</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_inativas }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-ban fa-2x text-secondary"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-left-info">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total de Candidatos</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_candidatos }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-users fa-2x text-info"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card h-100 border-left-warning">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total de Posições</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_posicoes }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-briefcase fa-2x text-warning"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vagas Table -->
+        <div class="card">
+          <div class="card-header">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mb-0">
+                  <i class="fas fa-list me-2"></i>{{ page_title }}
+                </h5>
+              </div>
+              <div class="col-auto">
+                <div class="input-group" style="width: 300px;">
+                  <input type="text" class="form-control" id="searchInput" placeholder="Buscar por REF, cargo ou empresa...">
+                  <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if vagas %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="text-center sortable" data-column="id">
+                        REF <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="sortable" data-column="cargo">
+                        Cargo <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="sortable" data-column="empresa">
+                        Empresa <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center sortable" data-column="quantidade">
+                        Quantidade <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center sortable" data-column="candidatos">
+                        Candidatos <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center sortable" data-column="status">
+                        Status <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center sortable" data-column="dt_inclusao">
+                        Criada em <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center sortable" data-column="dt_atualizacao">
+                        Atualizada em <i class="fas fa-sort ms-1"></i>
+                      </th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for vaga in vagas %}
+                    <tr>
+                      <td class="text-center">
+                        <span class="badge bg-light text-dark">#{{ vaga.id }}</span>
+                      </td>
+                      <td>
+                        <div class="fw-bold">{{ vaga.cargo.nome }}</div>
+                        {% if vaga.observacao %}
+                          <small class="text-muted">{{ vaga.observacao|truncatewords:10 }}</small>
+                        {% endif %}
+                      </td>
+                      <td>
+                        <div class="fw-bold">{{ vaga.empresa.nome }}
+                            
+                        </div>
+                        <small class="text-muted">
+                          {{ vaga.empresa.get_cnpj }}
+                          {% if vaga.empresa.telefone %}
+                            - {{ vaga.empresa.telefone }}
+                            <a class="ms-2" href="WEBEXTEL://{{ vaga.empresa.telefone }}">
+                              <i class="fas fa-phone text-primary"></i>
+                            </a>
+                            <a class="ms-2" href="https://wa.me/{{ vaga.empresa.telefone}}" target="_blank">
+                              <i class="fab fa-whatsapp text-success"></i>
+                            </a>
+                          {% endif %}
+                        </small>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-primary">{{ vaga.quantidadeVagas }}</span>
+                      </td>
+                      <td class="text-center">
+                        <span class="badge bg-info">{{ vaga.total_candidatos }}</span>
+                      </td>
+                      <td class="text-center">
+                        {% if vaga.ativo %}
+                          <span class="badge bg-success">Ativa</span>
+                        {% else %}
+                          <span class="badge bg-secondary">Inativa</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-center">
+                        <span class="fw-medium">{{ vaga.dt_inclusao|date:"d/m/Y" }}</span>
+                        <br>
+                        <small class="text-muted">{{ vaga.dt_inclusao|time:"H:i" }}</small>
+                      </td>
+                      <td class="text-center">
+                        {% if vaga.dt_atualizacao %}
+                          <span class="fw-medium">{{ vaga.dt_atualizacao|date:"d/m/Y" }}</span>
+                          <br>
+                          <small class="text-muted">{{ vaga.dt_atualizacao|time:"H:i" }}</small>
+                        {% else %}
+                          <span class="text-muted">-</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-center">
+                        <a href="{% url 'vagas:candidatos_vaga' vaga.pk %}?origem=vagas" 
+                           class="btn btn-sm btn-outline-primary"
+                           title="Ver candidatos">
+                          <i class="fas fa-users"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-5">
+                <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Nenhuma vaga encontrada</h5>
+                <p class="text-muted">
+                  {% if mostrar_inativas %}
+                    Não há vagas inativas no sistema.
+                  {% else %}
+                    Não há vagas ativas no sistema.
+                  {% endif %}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Table sorting functionality
+function sortTable(table, column, direction) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const sortedRows = rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        // Get cell content based on column
+        const aCells = a.querySelectorAll('td');
+        const bCells = b.querySelectorAll('td');
+        
+        // Determine column index based on header
+        const headers = table.querySelectorAll('th');
+        let columnIndex = -1;
+        headers.forEach((header, index) => {
+            if (header.dataset.column === column) {
+                columnIndex = index;
+            }
+        });
+        
+        if (columnIndex === -1) return 0;
+        
+        // Get values for comparison
+        if (column === 'dt_inclusao' || column === 'dt_atualizacao') {
+            // For dates, extract from data attributes or parse displayed text
+            aValue = aCells[columnIndex]?.querySelector('.fw-medium')?.textContent?.trim() || '';
+            bValue = bCells[columnIndex]?.querySelector('.fw-medium')?.textContent?.trim() || '';
+            
+            // Convert DD/MM/YYYY to YYYY-MM-DD for proper comparison
+            if (aValue.includes('/')) {
+                const [day, month, year] = aValue.split('/');
+                aValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            if (bValue.includes('/')) {
+                const [day, month, year] = bValue.split('/');
+                bValue = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+        } else if (column === 'id' || column === 'quantidade' || column === 'candidatos') {
+            // For numbers - extract from badges or direct text
+            const aText = aCells[columnIndex]?.textContent?.trim() || '0';
+            const bText = bCells[columnIndex]?.textContent?.trim() || '0';
+            aValue = parseInt(aText.replace(/[^0-9]/g, ''));
+            bValue = parseInt(bText.replace(/[^0-9]/g, ''));
+        } else {
+            // For text
+            aValue = aCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+            bValue = bCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+        }
+        
+        // Compare values
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return direction === 'asc' ? aValue - bValue : bValue - aValue;
+        } else {
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+            return 0;
+        }
+    });
+    
+    // Clear tbody and append sorted rows
+    tbody.innerHTML = '';
+    sortedRows.forEach(row => tbody.appendChild(row));
+}
+
+// Add click handlers to sortable headers
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.column;
+            const table = this.closest('table');
+            
+            // Reset all other headers
+            sortableHeaders.forEach(h => {
+                if (h !== this) {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                }
+            });
+            
+            // Determine sort direction
+            let direction = 'asc';
+            if (this.classList.contains('sort-asc')) {
+                direction = 'desc';
+                this.classList.remove('sort-asc');
+                this.classList.add('sort-desc');
+            } else {
+                direction = 'asc';
+                this.classList.remove('sort-desc');
+                this.classList.add('sort-asc');
+            }
+            
+            // Sort the table
+            sortTable(table, column, direction);
+        });
+    });
+});
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('table tbody');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let shouldShow = false;
+                
+                if (searchTerm === '') {
+                    shouldShow = true;
+                } else {
+                    // Search in REF, Cargo, and Empresa columns
+                    const ref = cells[0]?.textContent?.toLowerCase() || '';
+                    const cargo = cells[1]?.textContent?.toLowerCase() || '';
+                    const empresa = cells[2]?.textContent?.toLowerCase() || '';
+                    
+                    shouldShow = ref.includes(searchTerm) || 
+                               cargo.includes(searchTerm) || 
+                               empresa.includes(searchTerm);
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

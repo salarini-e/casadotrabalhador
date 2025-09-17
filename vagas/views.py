@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
 # AUTH
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login, logout
 from django.utils.timezone import make_aware
 # MODELS E FORMS
@@ -772,11 +772,64 @@ def candidatosporvaga(request, id, mes, ano):
     return render(request, 'vagas/vagas_com_candidatos listar.html', context)
 
 def infoempresa(request):
-    empresas = Empresa.objects.all()
-    context={
+    from django.db.models import Count, Q
+    
+    # Buscar empresas com contadores de vagas ativas e formulários ativos
+    empresas = Empresa.objects.annotate(
+        vagas_ativas_count=Count(
+            'vaga_emprego', 
+            filter=Q(vaga_emprego__ativo=True),
+            distinct=True
+        ),
+        total_vagas_count=Count('vaga_emprego', distinct=True)
+    ).order_by('nome')
+    
+    # Para cada empresa, calcular formulários manualmente devido ao relacionamento por CNPJ
+    for empresa in empresas:
+        formularios_da_empresa = RequisicaoVaga.objects.filter(cnpj_da_empresa=empresa.cnpj)
+        empresa.formularios_ativos_count = formularios_da_empresa.filter(status_requisicao='PE').count()
+        empresa.total_formularios_count = formularios_da_empresa.count()
+    
+    context = {
         'empresas': empresas
     }
     return render(request, 'vagas/infoempresa.html', context)
+
+@login_required
+def empresa_profile(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    # Buscar todas as vagas da empresa
+    vagas = Vaga_Emprego.objects.filter(empresa=empresa).order_by('-dt_inclusao')
+    
+    # Buscar todos os formulários da empresa pelo CNPJ
+    formularios = RequisicaoVaga.objects.filter(cnpj_da_empresa=empresa.cnpj).order_by('-dt_inclusao')
+    
+    # Calcular estatísticas
+    total_vagas = vagas.count()
+    vagas_ativas = vagas.filter(ativo=True).count()
+    
+    # Candidatos únicos por CPF
+    candidatos_unicos = Candidato.objects.filter(
+        vaga__empresa=empresa
+    ).values('cpf').distinct().count()
+    
+    # Total de candidatos (incluindo duplicatas)
+    total_candidatos = Candidato.objects.filter(vaga__empresa=empresa).count()
+    
+    context = {
+        'empresa': empresa,
+        'vagas': vagas,
+        'formularios': formularios,
+        'total_vagas': total_vagas,
+        'vagas_ativas': vagas_ativas,
+        'candidatos_unicos': candidatos_unicos,
+        'total_candidatos': total_candidatos,
+        'total_formularios': formularios.count(),
+        'formularios_aprovados': formularios.filter(status_requisicao='AP').count(),
+    }
+    
+    return render(request, 'vagas/empresa_profile.html', context)
 
 def infoempresa_download(request, id):
     empresa = get_object_or_404(Empresa, id=id)
@@ -1027,8 +1080,9 @@ def sair(request):
 @login_required
 @staff_required
 def painel_administrativo(request):
-    from django.db.models import Count, Sum
+    from django.db.models import Count, Sum, Avg, Q, F, Case, When, IntegerField
     from datetime import datetime, timedelta
+    from dateutil.relativedelta import relativedelta
     import calendar
     
     # Estatísticas gerais
@@ -1047,6 +1101,116 @@ def painel_administrativo(request):
     
     # Data para últimos 31 dias
     ultimos_31_dias = hoje - timedelta(days=31)
+    
+    # === NOVAS MÉTRICAS AVANÇADAS ===
+    
+    # 1. TEMPO MÉDIO DE APROVAÇÃO DE FORMULÁRIOS
+    formularios_aprovados = RequisicaoVaga.objects.filter(
+        status_requisicao='AP'
+    ).exclude(dt_atualizacao__isnull=True)
+    
+    tempo_medio_aprovacao = 0
+    if formularios_aprovados.exists():
+        total_tempo = sum([
+            (f.dt_atualizacao - f.dt_inclusao).total_seconds() / 3600  # em horas
+            for f in formularios_aprovados 
+            if f.dt_atualizacao and f.dt_inclusao
+        ])
+        tempo_medio_aprovacao = total_tempo / formularios_aprovados.count() if formularios_aprovados.count() > 0 else 0
+    
+    # 2. FUNIL DE CONVERSÃO: Vagas → Candidatos → Contratações
+    total_vagas_criadas = Vaga_Emprego.objects.count()
+    total_candidatos_sistema = Candidato.objects.count()
+    total_contratacoes = Candidato.objects.filter(conseguiu_vaga=True).count()
+    
+    # Taxa de candidatos por vaga
+    taxa_candidatos_por_vaga = total_candidatos_sistema / total_vagas_criadas if total_vagas_criadas > 0 else 0
+    
+    # Taxa de contratação
+    taxa_contratacao = (total_contratacoes / total_candidatos_sistema * 100) if total_candidatos_sistema > 0 else 0
+    
+    # 3. QUALIDADE DOS SERVIÇOS
+    
+    # Taxa de preenchimento de vagas (vagas que têm pelo menos 1 candidato contratado)
+    vagas_com_contratacao = Vaga_Emprego.objects.filter(candidato__conseguiu_vaga=True).distinct().count()
+    taxa_preenchimento_vagas = (vagas_com_contratacao / total_vagas_criadas * 100) if total_vagas_criadas > 0 else 0
+    
+    # Satisfação das empresas (baseado em renovações/novos formulários)
+    empresas_com_multiplos_formularios = RequisicaoVaga.objects.values('cnpj_da_empresa').annotate(
+        total_formularios=Count('id')
+    ).filter(total_formularios__gt=1).count()
+    
+    total_empresas_formularios = RequisicaoVaga.objects.values('cnpj_da_empresa').distinct().count()
+    taxa_renovacao_empresas = (empresas_com_multiplos_formularios / total_empresas_formularios * 100) if total_empresas_formularios > 0 else 0
+    
+    # Percentual de candidatos que conseguiram vaga
+    percentual_candidatos_contratados = taxa_contratacao
+    
+    # 4. ANÁLISES TEMPORAIS
+    
+    # Sazonalidade de vagas por setor (últimos 12 meses)
+    doze_meses_atras = hoje - timedelta(days=365)
+    vagas_por_cargo_mes = []
+    
+    top_cargos = Cargo.objects.annotate(
+        total_vagas=Count('vaga_emprego')
+    ).order_by('-total_vagas')[:5]
+    
+    for cargo in top_cargos:
+        vagas_mes_cargo = []
+        for i in range(12):
+            mes_inicio = hoje.replace(day=1) - relativedelta(months=i)
+            mes_fim = mes_inicio + relativedelta(months=1)
+            total_mes = Vaga_Emprego.objects.filter(
+                cargo=cargo,
+                dt_inclusao__gte=mes_inicio,
+                dt_inclusao__lt=mes_fim
+            ).count()
+            vagas_mes_cargo.append({
+                'mes': mes_inicio.strftime('%m/%Y'),
+                'total': total_mes
+            })
+        vagas_por_cargo_mes.append({
+            'cargo': cargo.nome,
+            'dados': list(reversed(vagas_mes_cargo))
+        })
+    
+    # Picos de demanda por mês (candidatos)
+    picos_demanda_candidatos = []
+    for i in range(12):
+        mes_inicio = hoje.replace(day=1) - relativedelta(months=i)
+        mes_fim = mes_inicio + relativedelta(months=1)
+        total_candidatos_mes = Candidato.objects.filter(
+            dt_inclusao__gte=mes_inicio,
+            dt_inclusao__lt=mes_fim
+        ).count()
+        picos_demanda_candidatos.append({
+            'mes': mes_inicio.strftime('%m/%Y'),
+            'total': total_candidatos_mes
+        })
+    picos_demanda_candidatos.reverse()
+    
+    # Ciclo de vida médio das vagas (tempo entre criação e desativação)
+    vagas_desativadas = Vaga_Emprego.objects.filter(
+        ativo=False,
+        dt_desativacao__isnull=False
+    )
+    
+    ciclo_vida_medio = 0
+    if vagas_desativadas.exists():
+        total_dias = sum([
+            (v.dt_desativacao - v.dt_inclusao).days 
+            for v in vagas_desativadas
+            if v.dt_desativacao and v.dt_inclusao
+        ])
+        ciclo_vida_medio = total_dias / vagas_desativadas.count() if vagas_desativadas.count() > 0 else 0
+    
+    # 5. MAPA DE CALOR GEOGRÁFICO (por bairros)
+    candidatos_por_bairro = Candidato.objects.exclude(
+        Q(bairro__isnull=True) | Q(bairro__exact='')
+    ).values('bairro').annotate(
+        total=Count('id')
+    ).order_by('-total')[:20]  # Top 20 bairros
     
     # Estatísticas dos últimos 31 dias
     vagas_ativas_31_dias = Vaga_Emprego.objects.filter(ativo=True, dt_inclusao__gte=ultimos_31_dias).count()
@@ -1127,6 +1291,8 @@ def painel_administrativo(request):
     
     candidatos_por_mes.reverse()
     
+    
+    
     context = {
         'total_vagas_ativas': total_vagas_ativas,
         'total_posicoes_abertas': total_posicoes_abertas,
@@ -1155,6 +1321,35 @@ def painel_administrativo(request):
         
         'escolaridade_stats': escolaridade_stats,
         'candidatos_por_mes': candidatos_por_mes,
+        
+        # === NOVAS MÉTRICAS AVANÇADAS ===
+        
+        # Métricas de aprovação e funil
+        'tempo_medio_aprovacao': round(tempo_medio_aprovacao, 1),
+        'taxa_candidatos_por_vaga': round(taxa_candidatos_por_vaga, 1),
+        'taxa_contratacao': round(taxa_contratacao, 1),
+        'total_contratacoes': total_contratacoes,
+        
+        # Qualidade dos serviços
+        'taxa_preenchimento_vagas': round(taxa_preenchimento_vagas, 1),
+        'taxa_renovacao_empresas': round(taxa_renovacao_empresas, 1),
+        'percentual_candidatos_contratados': round(percentual_candidatos_contratados, 1),
+        'vagas_com_contratacao': vagas_com_contratacao,
+        'empresas_com_multiplos_formularios': empresas_com_multiplos_formularios,
+        
+        # Análises temporais
+        'vagas_por_cargo_mes': vagas_por_cargo_mes,
+        'picos_demanda_candidatos': picos_demanda_candidatos,
+        'ciclo_vida_medio': round(ciclo_vida_medio, 1),
+        
+        # Mapa de calor geográfico
+        'candidatos_por_bairro': candidatos_por_bairro,
+        
+        # Estatísticas de formulários
+        'total_formularios': RequisicaoVaga.objects.count(),
+        'formularios_aprovados': RequisicaoVaga.objects.filter(status_requisicao='AP').count(),
+        'formularios_pendentes': RequisicaoVaga.objects.filter(status_requisicao__in=['AG', 'PE']).count(),
+        'formularios_rejeitados': RequisicaoVaga.objects.filter(status_requisicao='RE').count(),
     }
     
     return render(request, 'vagas/painel_administrativo.html', context)
@@ -1457,6 +1652,42 @@ def totem_candidatura_sucesso(request, id):
 # ===== VIEWS PARA ADMINISTRAÇÃO DE FORMULÁRIOS =====
 
 @login_required
+def admin_vagas_list(request):
+    """Lista todas as vagas com opção de filtrar ativas/inativas"""
+    
+    # Determinar se deve mostrar ativas ou inativas
+    mostrar_inativas = request.GET.get('inativas', 'false').lower() == 'true'
+    
+    if mostrar_inativas:
+        vagas = Vaga_Emprego.objects.filter(ativo=False).select_related('empresa', 'cargo').order_by('-dt_inclusao')
+        page_title = "Vagas Inativas"
+    else:
+        vagas = Vaga_Emprego.objects.filter(ativo=True).select_related('empresa', 'cargo').order_by('-dt_inclusao')
+        page_title = "Vagas Ativas"
+    
+    # Adicionar contagem de candidatos e calcular totais
+    total_candidatos = 0
+    total_posicoes = 0
+    
+    for vaga in vagas:
+        vaga.total_candidatos = Candidato.objects.filter(vaga=vaga).count()
+        total_candidatos += vaga.total_candidatos
+        total_posicoes += vaga.quantidadeVagas
+    
+    context = {
+        'vagas': vagas,
+        'mostrar_inativas': mostrar_inativas,
+        'page_title': page_title,
+        'total_ativas': Vaga_Emprego.objects.filter(ativo=True).count(),
+        'total_inativas': Vaga_Emprego.objects.filter(ativo=False).count(),
+        'total_candidatos': total_candidatos,
+        'total_posicoes': total_posicoes,
+    }
+    
+    return render(request, 'vagas/admin_vagas_list.html', context)
+
+
+@login_required
 def admin_formularios_list(request):
     """Lista todos os formulários de requisição"""
     formularios = RequisicaoVaga.objects.all().order_by('-dt_inclusao')
@@ -1482,23 +1713,39 @@ def admin_formularios_list(request):
 @login_required 
 def admin_formularios_create(request):
     """Criar novo formulário de requisição"""
+    
+    # Buscar empresa pelo CNPJ se fornecido via GET
+    empresa_selecionada = None
+    cnpj_param = request.GET.get('empresa_cnpj')
+    origem = request.GET.get('origem', '')  # 'empresa' ou vazio
+    empresa_id = request.GET.get('empresa_id', '')
+    
+    if cnpj_param:
+        try:
+            empresa_selecionada = Empresa.objects.get(cnpj=cnpj_param)
+        except Empresa.DoesNotExist:
+            pass
+    
     if request.method == 'POST':
         # Chave de acesso é obrigatória
         chave_acesso = request.POST.get('chave_de_acesso', '').strip()
         
         if not chave_acesso:
             messages.error(request, 'A chave de acesso é obrigatória!')
-            return render(request, 'vagas/admin_formularios_create.html')
-        
-        # Verificar se a chave já existe
-        if RequisicaoVaga.objects.filter(chave_de_acesso=chave_acesso).exists():
-            messages.error(request, 'Esta chave de acesso já está sendo usada. Escolha outra!')
-            return render(request, 'vagas/admin_formularios_create.html')
+            context = {
+                'empresa_selecionada': empresa_selecionada, 
+                'origem': origem, 
+                'empresa_id': empresa_id
+            }
+            return render(request, 'vagas/admin_formularios_create.html', context)
         
         # Dados opcionais da empresa
         nome_empresa = request.POST.get('nome_da_empresa', '').strip()
         cnpj_empresa = request.POST.get('cnpj_da_empresa', '').strip()
         email_empresa = request.POST.get('email_da_empresa', '').strip()
+        endereco_empresa = request.POST.get('endereco_da_empresa', '').strip()
+        telefone_empresa = request.POST.get('telefone_da_empresa', '').strip()
+        whatsapp_empresa = request.POST.get('whatsapp_da_empresa', '').strip()
         
         # Criar nova requisição com dados iniciais
         requisicao = RequisicaoVaga.objects.create(
@@ -1510,6 +1757,9 @@ def admin_formularios_create(request):
             nome_da_empresa=nome_empresa or 'A definir',
             cnpj_da_empresa=cnpj_empresa or '00000000000000',
             email_da_empresa=email_empresa or 'nao-informado@email.com',
+            endereco_da_empresa=endereco_empresa,
+            telefone_da_empresa=telefone_empresa,
+            whatsapp_da_empresa=whatsapp_empresa,
             
             # Dados da vaga (padrões)
             quantidade_de_vagas=1,
@@ -1523,7 +1773,12 @@ def admin_formularios_create(request):
         messages.success(request, f'Formulário criado com sucesso! Chave de acesso: {chave_acesso}')
         return redirect('vagas:admin_formularios_detail', id=requisicao.pk)
     
-    return render(request, 'vagas/admin_formularios_create.html')
+    context = {
+        'empresa_selecionada': empresa_selecionada,
+        'origem': origem,
+        'empresa_id': empresa_id
+    }
+    return render(request, 'vagas/admin_formularios_create.html', context)
 
 
 @login_required
@@ -1914,7 +2169,7 @@ def cadastrar_vaga_aprovada(request, id):
 
 @login_required
 def candidatos_vaga(request, vaga_id):
-    """Listar candidatos de uma vaga específica"""
+    """Detalhes completos da vaga e seus candidatos"""
     try:
         vaga = Vaga_Emprego.objects.get(pk=vaga_id)
     except Vaga_Emprego.DoesNotExist:
@@ -1924,10 +2179,33 @@ def candidatos_vaga(request, vaga_id):
     # Buscar candidatos desta vaga
     candidatos = Candidato.objects.filter(vaga=vaga).order_by('-dt_inclusao')
     
-    # Estatísticas
+    # Estatísticas dos candidatos
     total_candidatos = candidatos.count()
     candidatos_ativos = candidatos.filter(candidato_ativo=True).count()
     candidatos_contratados = candidatos.filter(conseguiu_vaga=True).count()
+    candidatos_online = candidatos.filter(origem_cadastro='online').count()
+    candidatos_balcao = candidatos.filter(origem_cadastro='balcao').count()
+    
+    # Estatísticas da vaga
+    dias_publicada = (timezone.now().date() - vaga.dt_inclusao.date()).days if vaga.dt_inclusao else 0
+    posicoes_preenchidas = candidatos_contratados
+    posicoes_restantes = max(0, vaga.quantidadeVagas - posicoes_preenchidas)
+    
+    # Buscar requisições relacionadas
+    try:
+        requisicoes = RequisicaoVaga.objects.filter(vaga=vaga).order_by('-dt_inclusao')
+        total_requisicoes = requisicoes.count()
+        requisicoes_aprovadas = requisicoes.filter(status='APROVADO').count()
+        requisicoes_pendentes = requisicoes.filter(status='PENDENTE').count()
+    except:
+        requisicoes = []
+        total_requisicoes = 0
+        requisicoes_aprovadas = 0
+        requisicoes_pendentes = 0
+    
+    # Determinar origem da navegação
+    origem = request.GET.get('origem', '')  # 'empresa' ou 'formulario'
+    empresa_id = request.GET.get('empresa_id', '')
     
     context = {
         'vaga': vaga,
@@ -1935,9 +2213,20 @@ def candidatos_vaga(request, vaga_id):
         'total_candidatos': total_candidatos,
         'candidatos_ativos': candidatos_ativos,
         'candidatos_contratados': candidatos_contratados,
+        'candidatos_online': candidatos_online,
+        'candidatos_balcao': candidatos_balcao,
+        'dias_publicada': dias_publicada,
+        'posicoes_preenchidas': posicoes_preenchidas,
+        'posicoes_restantes': posicoes_restantes,
+        'requisicoes': requisicoes,
+        'total_requisicoes': total_requisicoes,
+        'requisicoes_aprovadas': requisicoes_aprovadas,
+        'requisicoes_pendentes': requisicoes_pendentes,
+        'origem': origem,
+        'empresa_id': empresa_id,
     }
     
-    return render(request, 'vagas/candidatos_vaga.html', context)
+    return render(request, 'vagas/detalhes_vaga.html', context)
 
 
 def selecionar_candidato(request, hash_id):
@@ -2032,26 +2321,26 @@ def atualizar_status_candidato(request, hash_id):
         )
         
         # Verificar se a mudança é válida
-        if candidato_selecionado.status == 'CO':
+        if candidato_selecionado.status_selecao == 'CO':
             return JsonResponse({'success': False, 'message': 'Candidato já foi contratado'})
         
         # Atualizar status
-        status_anterior = candidato_selecionado.status
-        candidato_selecionado.status = novo_status
-        candidato_selecionado.dt_atualizacao_status = timezone.now()
+        status_anterior = candidato_selecionado.status_selecao
+        candidato_selecionado.status_selecao = novo_status
+        candidato_selecionado.dt_atualizacao = timezone.now()
         candidato_selecionado.save()
         
         # Se contratado, reduzir vagas disponíveis
         if novo_status == 'CO':
             vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
-            if vaga_vinculada.vagas_disponiveis > 0:
-                vaga_vinculada.vagas_disponiveis -= 1
+            if vaga_vinculada.quantidadeVagas > 0:
+                vaga_vinculada.quantidadeVagas -= 1
                 vaga_vinculada.save()
         
         # Se mudou de contratado para outro status, aumentar vagas disponíveis
         elif status_anterior == 'CO' and novo_status != 'CO':
             vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
-            vaga_vinculada.vagas_disponiveis += 1
+            vaga_vinculada.quantidadeVagas += 1
             vaga_vinculada.save()
         
         return JsonResponse({'success': True, 'message': 'Status atualizado com sucesso'})
@@ -2060,3 +2349,111 @@ def atualizar_status_candidato(request, hash_id):
         return JsonResponse({'success': False, 'message': 'Candidato selecionado não encontrado'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Erro ao atualizar status: {str(e)}'})
+
+
+def solicitar_encerramento_vaga(request, hash_id):
+    """Solicitar encerramento de vaga via interface externa"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método não permitido'})
+    
+    try:
+        # Verificar se a requisição existe
+        requisicao = RequisicaoVaga.objects.get(hash_id=hash_id)
+    except RequisicaoVaga.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Requisição não encontrada'})
+    
+    # Verificar autenticação via cookie
+    auth_cookie = request.COOKIES.get('formulario_auth')
+    if not auth_cookie or auth_cookie != requisicao.auth_hash_temp:
+        return JsonResponse({'success': False, 'message': 'Acesso não autorizado'})
+    
+    # Verificar se existe vaga vinculada
+    try:
+        vaga_vinculada = Vaga_Emprego.objects.get(requisicao_vaga=requisicao)
+    except Vaga_Emprego.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Vaga não encontrada'})
+    
+    import json
+    data = json.loads(request.body)
+    motivo = data.get('motivo', 'Solicitação de encerramento via interface externa')
+    
+    try:
+        # Mudar status para "Aguardando Encerramento"
+        status_anterior = requisicao.status_requisicao
+        requisicao.status_requisicao = 'AE'
+        
+        # Criar entrada no histórico
+        from .models import HistoricoRequisicao
+        HistoricoRequisicao.objects.create(
+            requisicao=requisicao,
+            acao='ST',  # Status
+            status_anterior=status_anterior,
+            status_novo='AE',
+            observacao=f'SOLICITAÇÃO DE ENCERRAMENTO: {motivo}',
+            usuario=None  # Empresa externa
+        )
+        
+        # Adicionar observação interna na requisição
+        observacao_atual = requisicao.observacao_interna or ''
+        nova_observacao = f'{observacao_atual}\n\n[{timezone.now().strftime("%d/%m/%Y %H:%M")}] EMPRESA SOLICITOU ENCERRAMENTO: {motivo}'
+        requisicao.observacao_interna = nova_observacao.strip()
+        requisicao.save()
+        
+        return JsonResponse({'success': True, 'message': 'Solicitação de encerramento registrada com sucesso'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Erro ao registrar solicitação: {str(e)}'})
+
+
+@login_required
+def editar_vaga(request, vaga_id):
+    """Editar uma vaga existente no painel administrativo"""
+    try:
+        vaga = Vaga_Emprego.objects.get(pk=vaga_id)
+    except Vaga_Emprego.DoesNotExist:
+        messages.error(request, 'Vaga não encontrada.')
+        return redirect('vagas:admin_vagas_list')
+    
+    if request.method == 'POST':
+        try:
+            # Atualizar dados da vaga
+            vaga.quantidadeVagas = int(request.POST.get('quantidade_vagas', vaga.quantidadeVagas))
+            vaga.observacao = request.POST.get('observacao', vaga.observacao)
+            vaga.ativo = request.POST.get('ativo') == 'on'
+            
+            # Atualizar cargo se fornecido
+            cargo_id = request.POST.get('cargo_id')
+            if cargo_id:
+                try:
+                    from curriculo.models import Cargo
+                    cargo = Cargo.objects.get(pk=cargo_id)
+                    vaga.cargo = cargo
+                except Cargo.DoesNotExist:
+                    pass
+            
+            vaga.dt_atualizacao = timezone.now()
+            vaga.save()
+            
+            messages.success(request, 'Vaga atualizada com sucesso!')
+            return redirect('vagas:candidatos_vaga', vaga_id=vaga.id)
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar vaga: {str(e)}')
+    
+    # Buscar todos os cargos para o dropdown
+    from curriculo.models import Cargo
+    cargos = Cargo.objects.all().order_by('nome')
+    
+    # Estatísticas da vaga para o contexto
+    candidatos = Candidato.objects.filter(vaga=vaga)
+    total_candidatos = candidatos.count()
+    candidatos_contratados = candidatos.filter(conseguiu_vaga=True).count()
+    
+    context = {
+        'vaga': vaga,
+        'cargos': cargos,
+        'total_candidatos': total_candidatos,
+        'candidatos_contratados': candidatos_contratados,
+    }
+    
+    return render(request, 'vagas/editar_vaga.html', context)

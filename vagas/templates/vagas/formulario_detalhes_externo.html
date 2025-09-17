@@ -17,13 +17,17 @@
                     <p class="text-muted mb-0">Visualize os dados enviados da sua requisição de vaga</p>
                 </div>
                 <div>
-                    <span class="badge bg-{% if requisicao.status_requisicao == 'PE' %}info{% elif requisicao.status_requisicao == 'AP' %}success{% elif requisicao.status_requisicao == 'RE' %}danger{% endif %} fs-6">
+                    <span class="badge bg-{% if requisicao.status_requisicao == 'PE' %}info{% elif requisicao.status_requisicao == 'AP' %}success{% elif requisicao.status_requisicao == 'RE' %}danger{% elif requisicao.status_requisicao == 'AE' %}warning{% elif requisicao.status_requisicao == 'EN' %}secondary{% endif %} fs-6">
                         {% if requisicao.status_requisicao == 'PE' %}
                             Pendente Análise
                         {% elif requisicao.status_requisicao == 'AP' %}
                             Aprovada
                         {% elif requisicao.status_requisicao == 'RE' %}
                             Rejeitada
+                        {% elif requisicao.status_requisicao == 'AE' %}
+                            Aguardando Encerramento
+                        {% elif requisicao.status_requisicao == 'EN' %}
+                            Encerrada
                         {% endif %}
                     </span>
                 </div>
@@ -45,7 +49,7 @@
             {% endif %}
 
             <!-- Menu de Navegação -->
-            <div class="row mb-4">
+            <div class="row mb-4 mt-5">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body py-3">
@@ -54,6 +58,19 @@
                                     <a href="{% url 'vagas:formulario_publico' requisicao.hash_id %}" class="btn btn-outline-primary">
                                         <i class="fas fa-edit me-2"></i>Editar Formulário
                                     </a>
+                                {% endif %}
+                                {% if vaga_vinculada and requisicao.status_requisicao == 'AP' %}
+                                    <button type="button" class="btn btn-warning" onclick="solicitarEncerramentoVaga()">
+                                        <i class="fas fa-stop-circle me-2"></i>Solicitar Encerramento da Vaga
+                                    </button>
+                                {% elif requisicao.status_requisicao == 'AE' %}
+                                    <button type="button" class="btn btn-outline-warning" disabled>
+                                        <i class="fas fa-hourglass-half me-2"></i>Encerramento Solicitado
+                                    </button>
+                                {% elif requisicao.status_requisicao == 'EN' %}
+                                    <button type="button" class="btn btn-outline-secondary" disabled>
+                                        <i class="fas fa-flag-checkered me-2"></i>Vaga Encerrada
+                                    </button>
                                 {% endif %}
                                 <a href="tel:(11)3333-3333" class="btn btn-outline-success">
                                     <i class="fas fa-phone me-2"></i>Entrar em Contato
@@ -67,8 +84,410 @@
                 </div>
             </div>
 
+            
+
+            <!-- Status Especiais: Aguardando Encerramento ou Encerrada -->
+            {% if requisicao.status_requisicao == 'AE' %}
+                <div class="alert alert-warning border-warning mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading mb-2">
+                                <i class="fas fa-clock me-2"></i>Aguardando Encerramento da Vaga
+                            </h5>
+                            <p class="mb-2">Sua solicitação de encerramento da vaga foi registrada e está sendo analisada pela equipe administrativa.</p>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Você receberá uma confirmação quando o processo for concluído.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% elif requisicao.status_requisicao == 'EN' %}
+                <div class="alert alert-secondary border-secondary mb-4">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading mb-2">
+                                <i class="fas fa-flag-checkered me-2"></i>Vaga Encerrada
+                            </h5>
+                            <p class="mb-0">Esta vaga foi oficialmente encerrada. Você pode visualizar abaixo o histórico completo do processo e os candidatos que participaram.</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="row g-4">
-                <!-- Status e Histórico em duas colunas -->
+                {% if requisicao.status_requisicao == 'EN' %}
+                    <!-- Layout para vaga encerrada - Visão completa do processo -->
+                    
+                    <!-- Resumo Final da Vaga -->
+                    <div class="col-lg-8">
+                        <div class="card border-success mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-briefcase me-2"></i>{{ vaga_vinculada.cargo.nome }} - ENCERRADA
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Empresa:</strong> {{ vaga_vinculada.empresa.nome }}</p>
+                                        <p class="mb-1"><strong>Quantidade de Vagas:</strong> {{ vaga_vinculada.quantidadeVagas }}</p>
+                                        <p class="mb-1"><strong>Tipo:</strong> {{ vaga_vinculada.get_tipo_display|default:"Não informado" }}</p>
+                                        <p class="mb-1"><strong>Status:</strong> 
+                                            {% if vaga_vinculada.ativo %}
+                                                <span class="badge bg-success">Ativa</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Encerrada</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Salário:</strong> 
+                                            {% if vaga_vinculada.salario %}
+                                                R$ {{ vaga_vinculada.salario }}
+                                            {% else %}
+                                                A combinar
+                                            {% endif %}
+                                        </p>
+                                        <p class="mb-1"><strong>Escolaridade:</strong> {{ vaga_vinculada.cargo.escolaridade.nome|default:"Não informado" }}</p>
+                                        <p class="mb-1"><strong>Criada em:</strong> {{ vaga_vinculada.dt_inclusao|date:"d/m/Y" }}</p>
+                                        <p class="mb-1"><strong>Total de Candidatos:</strong> 
+                                            {% if candidatos_da_vaga %}{{ candidatos_da_vaga.count }}{% else %}0{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Candidatos da Vaga Encerrada -->
+                        {% if candidatos_da_vaga %}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-users me-2"></i>Candidatos Participantes
+                                        <span class="badge bg-primary ms-2">{{ candidatos_da_vaga.count }}</span>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Candidato</th>
+                                                    <th>Idade</th>
+                                                    <th>Escolaridade</th>
+                                                    <th>Bairro</th>
+                                                    <th>Status Final</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for candidato in candidatos_da_vaga %}
+                                                    {% if candidato.cpf in candidatos_selecionados_cpfs %}
+                                                        <tr class="table-success">
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="avatar-circle me-3">
+                                                                        <i class="fas fa-star text-warning"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>{{ candidato.nome }}</strong>
+                                                                        <br><small class="text-muted">{{ candidato.get_cpf }}</small>
+                                                                        <div class="badge bg-success small">SELECIONADO</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ candidato.idade }} anos</td>
+                                                            <td>{{ candidato.escolaridade.nome }}</td>
+                                                            <td>{{ candidato.bairro|default:"Não informado" }}</td>
+                                                            <td>
+                                                                <span class="badge bg-success">Selecionado</span>
+                                                            </td>
+                                                            <td>
+                                                                <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                                                                   class="btn btn-outline-primary btn-sm" target="_blank">
+                                                                    <i class="fas fa-eye me-1"></i>Currículo
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% else %}
+                                                        <tr>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="avatar-circle me-3">
+                                                                        <i class="fas fa-user"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>{{ candidato.nome }}</strong>
+                                                                        <br><small class="text-muted">{{ candidato.get_cpf }}</small>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ candidato.idade }} anos</td>
+                                                            <td>{{ candidato.escolaridade.nome }}</td>
+                                                            <td>{{ candidato.bairro|default:"Não informado" }}</td>
+                                                            <td>
+                                                                <span class="badge bg-light text-dark">Não Selecionado</span>
+                                                            </td>
+                                                            <td>
+                                                                <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                                                                   class="btn btn-outline-primary btn-sm" target="_blank">
+                                                                    <i class="fas fa-eye me-1"></i>Currículo
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Histórico Completo -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Histórico do Processo
+                                </h5>
+                            </div>
+                            <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                                {% if requisicao.historico.all %}
+                                    <div class="timeline">
+                                        {% for item in requisicao.historico.all %}
+                                            <div class="timeline-item">
+                                                <div class="timeline-marker">
+                                                    {% if item.acao == 'CR' %}
+                                                        <i class="fas fa-plus-circle text-success"></i>
+                                                    {% elif item.acao == 'ST' %}
+                                                        <i class="fas fa-exchange-alt text-primary"></i>
+                                                    {% elif item.acao == 'OB' %}
+                                                        <i class="fas fa-comment text-info"></i>
+                                                    {% elif item.acao == 'ED' %}
+                                                        <i class="fas fa-edit text-warning"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-header">
+                                                        <h6 class="mb-1">{{ item.get_acao_display }}</h6>
+                                                        <small class="text-muted">
+                                                            {{ item.dt_criacao|date:"d/m/Y H:i" }}
+                                                            {% if item.usuario %}
+                                                                por {{ item.usuario.get_full_name|default:item.usuario.username }}
+                                                            {% else %}
+                                                                pela empresa
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                    {% if item.acao == 'ST' %}
+                                                        <div class="timeline-body mt-2">
+                                                            {% if item.status_anterior %}
+                                                                <span class="badge bg-secondary small">{{ item.get_status_anterior_display }}</span>
+                                                            {% endif %}
+                                                            <i class="fas fa-arrow-right mx-1"></i>
+                                                            {% if item.status_novo %}
+                                                                <span class="badge 
+                                                                    {% if item.status_novo == 'PE' %}bg-info
+                                                                    {% elif item.status_novo == 'AP' %}bg-success
+                                                                    {% elif item.status_novo == 'RE' %}bg-danger
+                                                                    {% elif item.status_novo == 'AE' %}bg-warning
+                                                                    {% elif item.status_novo == 'EN' %}bg-secondary
+                                                                    {% endif %} small">
+                                                                    {{ item.get_status_novo_display }}
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if item.observacao %}
+                                                        <div class="timeline-body mt-2">
+                                                            <p class="mb-0 small">{{ item.observacao }}</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted mb-0">Nenhum histórico disponível.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                {% elif vaga_vinculada %}
+                    <!-- Layout otimizado para acompanhamento de candidatos -->
+                    
+                    <!-- Informações da Vaga (sempre visível) -->
+                    <div class="col-12">
+                        <div class="card border-primary">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-briefcase me-2"></i>{{ vaga_vinculada.cargo.nome }}
+                                    <span class="badge bg-light text-primary ms-2">{{ vaga_vinculada.quantidadeVagas }} vaga{{ vaga_vinculada.quantidadeVagas|pluralize }}</span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Empresa:</small>
+                                        <div class="fw-bold">{{ vaga_vinculada.empresa.nome }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Salário:</small>
+                                        <div class="fw-bold">
+                                            {% if vaga_vinculada.salario %}
+                                                R$ {{ vaga_vinculada.salario }}
+                                            {% else %}
+                                                A combinar
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Tipo:</small>
+                                        <div class="fw-bold">{{ vaga_vinculada.get_tipo_display|default:"Não informado" }}</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <small class="text-muted">Escolaridade:</small>
+                                        <div class="fw-bold">{{ vaga_vinculada.cargo.escolaridade.nome|default:"Não informado" }}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botão para expandir/colapsar detalhes -->
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#detalhesVaga">
+                                        <i class="fas fa-eye me-1"></i>Ver Todos os Detalhes da Vaga
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção de Candidatos (foco principal) -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>Candidatos Disponíveis
+                                    <span class="badge bg-primary ms-2">{{ candidatos_da_vaga.count }} candidatos</span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if candidatos_da_vaga %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Sua vaga foi publicada!</strong> Selecione os candidatos de interesse abaixo. 
+                                        Vagas disponíveis: <strong>{{ vaga_vinculada.quantidadeVagas }}</strong>
+                                    </div>
+                                    
+                                    <!-- Lista de Candidatos Otimizada -->
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Candidato</th>
+                                                    <th>Idade/Sexo</th>
+                                                    <th>Escolaridade</th>
+                                                    <th>Localização</th>
+                                                    <th>Status</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for candidato in candidatos_da_vaga %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar-circle me-2">
+                                                                {{ candidato.nome|first|upper }}
+                                                            </div>
+                                                            <div>
+                                                                <strong>{{ candidato.nome }}</strong><br>
+                                                                <small class="text-muted">{{ candidato.get_cpf }}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <strong>{{ candidato.idade }} anos</strong><br>
+                                                        <small class="text-muted">{{ candidato.get_sexo_display }}</small>
+                                                    </td>
+                                                    <td>{{ candidato.escolaridade.nome|default:"Não informado" }}</td>
+                                                    <td>{{ candidato.bairro|default:"Não informado" }}</td>
+                                                    <td>
+                                                        {% if candidato.cpf in candidatos_selecionados_cpfs %}
+                                                            {% for selected in candidatos_selecionados %}
+                                                                {% if selected.cpf == candidato.cpf %}
+                                                                    <span class="badge bg-{% if selected.status_selecao == 'PE' %}warning{% elif selected.status_selecao == 'AP' %}success{% elif selected.status_selecao == 'RE' %}danger{% elif selected.status_selecao == 'CO' %}info{% endif %}">
+                                                                        {% if selected.status_selecao == 'PE' %}Pendente{% elif selected.status_selecao == 'AP' %}Aprovado{% elif selected.status_selecao == 'RE' %}Rejeitado{% elif selected.status_selecao == 'CO' %}Contratado{% endif %}
+                                                                    </span>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="badge bg-light text-dark">Disponível</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            {% if candidato.cpf not in candidatos_selecionados_cpfs %}
+                                                                <button type="button" class="btn btn-success btn-sm" 
+                                                                        onclick="selecionarCandidato('{{ candidato.cpf }}')">
+                                                                    <i class="fas fa-check me-1"></i>Selecionar
+                                                                </button>
+                                                            {% else %}
+                                                                {% for selected in candidatos_selecionados %}
+                                                                    {% if selected.cpf == candidato.cpf %}
+                                                                        {% if selected.status_selecao == 'PE' %}
+                                                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                                                    onclick="aprovarCandidato('{{ selected.id }}')">
+                                                                                <i class="fas fa-check me-1"></i>Aprovar
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                                                    onclick="rejeitarCandidato('{{ selected.id }}')">
+                                                                                <i class="fas fa-times me-1"></i>Rejeitar
+                                                                            </button>
+                                                                        {% elif selected.status_selecao == 'AP' %}
+                                                                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                                                    onclick="contratarCandidato('{{ selected.id }}')">
+                                                                                <i class="fas fa-handshake me-1"></i>Contratar
+                                                                            </button>
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                            <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                                                               class="btn btn-outline-primary btn-sm" target="_blank">
+                                                                <i class="fas fa-eye me-1"></i>Currículo
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Ainda não há candidatos interessados nesta vaga. Os candidatos aparecerão aqui conforme se candidatarem.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalhes Completos (colapsável) -->
+                    <div class="col-12">
+                        <div class="collapse" id="detalhesVaga">
+                {% else %}
+                    <!-- Layout original para formulários sem vaga vinculada -->
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header">
@@ -272,50 +691,112 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label text-muted">Cargo Ofertado:</label>
-                                    <p class="fw-bold">{{ requisicao.cargo_ofertado|default:"Não informado" }}</p>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.cargo.nome|default:"Não informado" }}
+                                        {% else %}
+                                            {{ requisicao.cargo_ofertado|default:"Não informado" }}
+                                        {% endif %}
+                                    </p>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-muted">Quantidade:</label>
-                                    <p class="fw-bold">{{ requisicao.quantidade_de_vagas|default:"1" }} vaga{{ requisicao.quantidade_de_vagas|pluralize }}</p>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.quantidadeVagas|default:"1" }} vaga{{ vaga_vinculada.quantidadeVagas|pluralize }}
+                                        {% else %}
+                                            {{ requisicao.quantidade_de_vagas|default:"1" }} vaga{{ requisicao.quantidade_de_vagas|pluralize }}
+                                        {% endif %}
+                                    </p>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-muted">Tipo de Vaga:</label>
-                                    <p class="fw-bold">{{ requisicao.get_tipo_de_vaga_display|default:"Não informado" }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label text-muted">Regime:</label>
-                                    <p class="fw-bold">{{ requisicao.regime|default:"Não informado" }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label text-muted">Faixa Salarial:</label>
                                     <p class="fw-bold">
-                                        {{ requisicao.get_faixa_salarial_display|default:"Não informado" }}
-                                        {% if requisicao.valor_salario %}
-                                            - R$ {{ requisicao.valor_salario }}
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.get_tipo_display|default:"Não informado" }}
+                                        {% else %}
+                                            {{ requisicao.get_tipo_de_vaga_display|default:"Não informado" }}
                                         {% endif %}
                                     </p>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label text-muted">Carga Horária:</label>
+                                    <label class="form-label text-muted">
+                                        {% if vaga_vinculada %}Empresa:{% else %}Regime:{% endif %}
+                                    </label>
                                     <p class="fw-bold">
-                                        {{ requisicao.get_carga_horaria_display|default:"Não informado" }}
-                                        {% if requisicao.outra_carga_horaria %}
-                                            - {{ requisicao.outra_carga_horaria }}
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.empresa.nome|default:"Não informado" }}
+                                        {% else %}
+                                            {{ requisicao.regime|default:"Não informado" }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">
+                                        {% if vaga_vinculada %}Salário:{% else %}Faixa Salarial:{% endif %}
+                                    </label>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {% if vaga_vinculada.salario %}
+                                                R$ {{ vaga_vinculada.salario }}
+                                            {% else %}
+                                                A combinar
+                                            {% endif %}
+                                        {% else %}
+                                            {{ requisicao.get_faixa_salarial_display|default:"Não informado" }}
+                                            {% if requisicao.valor_salario %}
+                                                - R$ {{ requisicao.valor_salario }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted">
+                                        {% if vaga_vinculada %}Status:{% else %}Carga Horária:{% endif %}
+                                    </label>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {% if vaga_vinculada.ativo %}
+                                                <span class="badge bg-success">Ativa</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inativa</span>
+                                            {% endif %}
+                                        {% else %}
+                                            {{ requisicao.get_carga_horaria_display|default:"Não informado" }}
+                                            {% if requisicao.outra_carga_horaria %}
+                                                - {{ requisicao.outra_carga_horaria }}
+                                            {% endif %}
                                         {% endif %}
                                     </p>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-muted">Escolaridade Mínima:</label>
-                                    <p class="fw-bold">{{ requisicao.escolaridade.nome|default:"Não informado" }}</p>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.cargo.escolaridade.nome|default:"Não informado" }}
+                                        {% else %}
+                                            {{ requisicao.escolaridade.nome|default:"Não informado" }}
+                                        {% endif %}
+                                    </p>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label text-muted">Experiência:</label>
-                                    <p class="fw-bold">{{ requisicao.get_experiencia_display|default:"Não informado" }}</p>
+                                    <label class="form-label text-muted">
+                                        {% if vaga_vinculada %}Descrição:{% else %}Experiência:{% endif %}
+                                    </label>
+                                    <p class="fw-bold">
+                                        {% if vaga_vinculada %}
+                                            {{ vaga_vinculada.descricao|default:"Nenhuma descrição" }}
+                                        {% else %}
+                                            {{ requisicao.get_experiencia_display|default:"Não informado" }}
+                                        {% endif %}
+                                    </p>
                                 </div>
+                                {% if not vaga_vinculada %}
                                 <div class="col-12">
                                     <label class="form-label text-muted">Observações:</label>
                                     <p class="fw-bold">{{ requisicao.observacao|default:"Nenhuma observação" }}</p>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -356,60 +837,7 @@
                         </div>
 
                         <!-- Formas de Contato -->
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="mb-0"><i class="fas fa-address-book me-2"></i>Formas de Contato</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-2">
-                                        <!-- Email -->
-                                        {% if requisicao.enviar_curriculo_para_email %}
-                                            <div class="col-12">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="fas fa-envelope text-primary me-2"></i>
-                                                    <strong class="small">Envio por Email</strong>
-                                                </div>
-                                                <p class="mb-0 small text-muted">{{ requisicao.email_para_envio|default:"Email não informado" }}</p>
-                                            </div>
-                                        {% endif %}
-
-                                        <!-- Presencial -->
-                                        {% if requisicao.levar_curriculo_direto_ao_local %}
-                                            <div class="col-12">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="fas fa-map-marker-alt text-success me-2"></i>
-                                                    <strong class="small">Entrega Presencial</strong>
-                                                </div>
-                                                <p class="mb-0 small text-muted">{{ requisicao.endereco_para_levar_curriculo|default:"Endereço não informado" }}</p>
-                                            </div>
-                                        {% endif %}
-
-                                        <!-- Telefone/WhatsApp -->
-                                        {% if requisicao.via_telefone_ou_whatsapp %}
-                                            <div class="col-12">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="fas fa-phone text-info me-2"></i>
-                                                    <strong class="small">Telefone/WhatsApp</strong>
-                                                </div>
-                                                <p class="mb-0 small text-muted">{{ requisicao.telefone_ou_whatsapp|default:"Telefone não informado" }}</p>
-                                            </div>
-                                        {% endif %}
-
-                                        <!-- Outra forma -->
-                                        {% if requisicao.outra_forma_de_contato %}
-                                            <div class="col-12">
-                                                <div class="d-flex align-items-center mb-1">
-                                                    <i class="fas fa-comment text-warning me-2"></i>
-                                                    <strong class="small">Outra Forma</strong>
-                                                </div>
-                                                <p class="mb-0 small text-muted">{{ requisicao.outra_forma_de_contato_descricao|default:"Não especificado" }}</p>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
                     </div>
                 </div>
 
@@ -501,7 +929,7 @@
                                                             {% endif %}
                                                         {% endfor %}
                                                     {% endif %}
-                                                    <a href="{% url 'curriculo:view_curriculo' candidato.cpf %}" 
+                                                    <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
                                                        class="btn btn-outline-primary btn-sm" target="_blank">
                                                         <i class="fas fa-eye me-1"></i>Ver Currículo
                                                     </a>
@@ -587,6 +1015,9 @@
                         </div>
                     </div>
                 </div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -619,6 +1050,34 @@ function selecionarCandidato(cpf) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao processar solicitação.');
+        });
+    }
+}
+
+function solicitarEncerramentoVaga() {
+    if (confirm('Tem certeza que deseja solicitar o encerramento desta vaga? Esta ação enviará uma notificação para a Casa do Trabalhador.')) {
+        fetch('{% url "vagas:solicitar_encerramento_vaga" requisicao.hash_id %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                'motivo': 'Solicitação de encerramento via interface externa'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Solicitação de encerramento enviada com sucesso! A Casa do Trabalhador entrará em contato.');
                 location.reload();
             } else {
                 alert('Erro: ' + data.message);
@@ -700,7 +1159,7 @@ function getCookie(name) {
 }
 
 .card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important    ;
     border-bottom: 1px solid #dee2e6;
     border-radius: 10px 10px 0 0 !important;
 }
@@ -738,6 +1197,64 @@ function getCookie(name) {
 .candidate-card .btn-sm {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
+}
+
+/* Avatar circle para candidatos */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Melhorias na tabela de candidatos */
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.table th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+}
+
+/* Card da vaga principal */
+.card.border-primary {
+    border-width: 2px !important;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+}
+
+/* .card.border-primary .card-header {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+} */
+
+/* Botão de colapsar/expandir */
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
 .timeline {
@@ -801,6 +1318,97 @@ function getCookie(name) {
     font-size: 0.75em;
 }
 
+/* Avatar circles */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Timeline styles */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-left: 8px;
+}
+
+.timeline-header h6 {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.timeline-body {
+    padding-top: 8px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Table highlighting for selected candidates */
+.table-success {
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+.table-success:hover {
+    background-color: rgba(40, 167, 69, 0.2) !important;
+}
+
+/* Alert improvements */
+.alert .fa-2x {
+    font-size: 2rem !important;
+}
+
+/* Badge improvements */
+.badge.small {
+    font-size: 0.7em;
+}
+
 @media (max-width: 768px) {
     .container-fluid {
         padding: 1rem !important;
@@ -820,6 +1428,17 @@ function getCookie(name) {
         height: 20px;
         font-size: 10px;
     }
+    
+    .timeline-content {
+        margin-left: 4px;
+    }
+    
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+}
     
     .timeline-content {
         margin-left: 4px;

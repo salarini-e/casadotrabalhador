@@ -36,12 +36,12 @@
               <span>Dashboard</span>
             </a>
           </li>
-          <!-- <li class="nav-item">
-            <a href="{% url 'vagas:vagas' %}" class="nav-link">
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
               <i class="fas fa-briefcase"></i>
               <span>Vagas</span>
             </a>
-          </li> -->
+          </li>
           <li class="nav-item">
             <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
               <i class="fas fa-users"></i>
@@ -52,6 +52,12 @@
             <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
               <i class="fas fa-building"></i>
               <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
             </a>
           </li>
         </ul>
@@ -126,7 +132,7 @@
       <div class="topbar-left">
         <h1 class="page-title">
           <i class="fas fa-building me-2"></i>
-          Informações da Empresa (Adicionar mais colunas informativas)
+          Informações da Empresa
         </h1>
         <p class="page-subtitle">Pesquisar informações de empresas cadastradas</p>
       </div>
@@ -156,7 +162,7 @@
         <div class="modern-card">
             <div class="card-header p-4 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
-                    <i class="fas fa-building me-2"></i>Empresas
+                    <i class="fas fa-building me-2"></i>Empresas <span class="text-gray">({{empresas.count}})</span>
                 </h5>
                 <div class="table-actions">
                     <a target="_blank" href="{% url 'vagas:cadastrar_empresa' %}" style="color: #2c3e50;" class="me-2">
@@ -170,16 +176,28 @@
                     <table class="table table-hover modern-table mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th style="width: 80px; text-align: center;">
-                                    <i class="fas fa-hashtag me-1"></i>ID
+                                <th style="width: 60px; text-align: center;" class="sortable" data-column="id">
+                                    <i class="fas fa-hashtag me-1"></i>ID <i class="fas fa-sort ms-1"></i>
                                 </th>
-                                <th style="width: 180px;">
-                                    <i class="fas fa-id-card me-1"></i>CNPJ
+                                <th style="width: 150px;" class="sortable" data-column="cnpj">
+                                    <i class="fas fa-id-card me-1"></i>CNPJ <i class="fas fa-sort ms-1"></i>
                                 </th>
-                                <th style="min-width: 250px;">
-                                    <i class="fas fa-building me-1"></i>Nome da Empresa
+                                <th style="min-width: 150px;" class="sortable" data-column="nome">
+                                    <i class="fas fa-building me-1"></i>Nome da Empresa <i class="fas fa-sort ms-1"></i>
                                 </th>
-                                <th style="width: 120px;" class="text-center">
+                                <th style="min-width: 50px;" data-column="telefone">
+                                  Telefone
+                                </th>
+                                <th style="width: 100px;" class="text-center sortable" data-column="vagas">
+                                    <i class="fas fa-briefcase me-1"></i>Vagas Ativas <i class="fas fa-sort ms-1"></i>
+                                </th>
+                                <th style="width: 110px;" class="text-center sortable" data-column="candidatos">
+                                    <i class="fas fa-users me-1"></i>Candidatos <i class="fas fa-sort ms-1"></i>
+                                </th>
+                                <th style="width: 110px;" class="text-center sortable" data-column="formularios">
+                                    <i class="fas fa-file-alt me-1"></i>Form. Pendentes <i class="fas fa-sort ms-1"></i>
+                                </th>
+                                <th style="width: 140px;" class="text-center">
                                     <i class="fas fa-cog me-1"></i>Ações
                                 </th>
                             </tr>
@@ -195,24 +213,68 @@
                                 </td>
                                 <td>
                                     <div class="company-info">
-                                        <div class="company-name">{{empresa.nome}}</div>
+                                        <div class="company-name">
+                                            <a href="{% url 'vagas:empresa_profile' empresa.id %}" class="text-decoration-none">
+                                                {{empresa.nome}}
+                                            </a>
+                                        </div>
                                         {% if empresa.endereco %}
                                         <small class="text-muted">{{empresa.endereco}}</small>
                                         {% endif %}
                                     </div>
                                 </td>
+                                <td>
+                                  {{empresa.telefone|default:"Não informado"}}
+                                </td>
                                 <td class="text-center">
-                                    <a href="{% url 'vagas:empresa_info_download' empresa.id %}" 
-                                       class="btn btn-sm btn-outline-success rounded-pill"
-                                       title="Baixar relatório da empresa"
-                                       target="_blank">
-                                        <i class="fas fa-file-excel me-1"></i>Excel
-                                    </a>
+                                    {% if empresa.vagas_ativas_count > 0 %}
+                                        <span class="badge bg-success fs-6 position-relative">
+                                            {{ empresa.vagas_ativas_count }}
+                                            <i class="fas fa-circle text-success position-absolute top-0 start-100 translate-middle" style="font-size: 0.5rem;"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">0</span>
+                                    {% endif %}
+                                    {% if empresa.total_vagas_count > empresa.vagas_ativas_count %}
+                                        <small class="text-muted d-block">({{ empresa.total_vagas_count }} total)</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info fs-6">{{ empresa.get_total_candidatos_count|default:0 }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if empresa.formularios_ativos_count > 0 %}
+                                        <span class="badge bg-warning fs-6 position-relative">
+                                            {{ empresa.formularios_ativos_count }}
+                                            <i class="fas fa-exclamation-circle text-warning position-absolute top-0 start-100 translate-middle" style="font-size: 0.5rem;"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary fs-6">0</span>
+                                    {% endif %}
+                                    {% if empresa.total_formularios_count > empresa.formularios_ativos_count %}
+                                        <small class="text-muted d-block">({{ empresa.total_formularios_count }} total)</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group d-flex flex-column" role="group">
+                                        <a href="{% url 'vagas:empresa_profile' empresa.id %}" 
+                                           class="btn btn-sm btn-outline-primary rounded-pill me-1 py-0"
+                                           title="Ver perfil da empresa">
+                                            <i class="fas fa-eye me-1"></i>Perfil
+                                        </a>
+                                        
+                                        <a href="{% url 'vagas:empresa_info_download' empresa.id %}" 
+                                           class="btn btn-sm btn-outline-success rounded-pill py-0"
+                                           title="Baixar relatório da empresa"
+                                           target="_blank">
+                                            <i class="fas fa-file-excel me-1"></i>Excel
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <div class="empty-state">
                                         <i class="fas fa-building fa-3x text-muted mb-3"></i>
                                         <h5 class="text-muted">Nenhuma empresa encontrada</h5>
@@ -283,6 +345,30 @@
     border-bottom: 2px solid #dee2e6;
     padding: 1rem 0.75rem;
     background-color: #f8f9fa !important;
+  }
+
+  .modern-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+  }
+
+  .modern-table th.sortable:hover {
+    background-color: #e9ecef !important;
+    color: #0056b3;
+  }
+
+  .modern-table th.sortable i.fa-sort,
+  .modern-table th.sortable i.fa-sort-up,
+  .modern-table th.sortable i.fa-sort-down {
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  .modern-table th.sortable:hover i.fa-sort,
+  .modern-table th.sortable:hover i.fa-sort-up,
+  .modern-table th.sortable:hover i.fa-sort-down {
+    opacity: 1;
   }
 
   .modern-table td {
@@ -403,11 +489,6 @@ $(document).ready(function() {
         $(".no-results-message").remove();
     });
 
-    // Export function
-    window.exportAllCompanies = function() {
-        window.open('/empresas/export/all', '_blank');
-    };
-
     // Sidebar toggle functionality
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.dashboard-sidebar');
@@ -417,6 +498,69 @@ $(document).ready(function() {
             sidebar.classList.toggle('collapsed');
         });
     }
+
+    // Table sorting functionality
+    let sortDirection = {};
+    
+    $('.sortable').click(function() {
+        const column = $(this).data('column');
+        const table = $(this).closest('table');
+        const rows = table.find('tbody tr:not(.no-results-message)').toArray();
+        
+        // Initialize direction for this column if not exists
+        if (!sortDirection[column]) {
+            sortDirection[column] = 'asc';
+        } else {
+            sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
+        }
+        
+        // Update sort icons
+        $('.sortable i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+        const icon = $(this).find('i.fas').last();
+        icon.removeClass('fa-sort').addClass(sortDirection[column] === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+        
+        rows.sort(function(a, b) {
+            let aVal, bVal;
+            
+            switch(column) {
+                case 'id':
+                    aVal = parseInt($(a).find('td:eq(0)').text().trim());
+                    bVal = parseInt($(b).find('td:eq(0)').text().trim());
+                    break;
+                case 'cnpj':
+                    aVal = $(a).find('td:eq(1) .cnpj-code').text().trim();
+                    bVal = $(b).find('td:eq(1) .cnpj-code').text().trim();
+                    break;
+                case 'nome':
+                    aVal = $(a).find('td:eq(2) .company-name').text().trim().toLowerCase();
+                    bVal = $(b).find('td:eq(2) .company-name').text().trim().toLowerCase();
+                    break;
+                case 'vagas':
+                    aVal = parseInt($(a).find('td:eq(3)').text().trim()) || 0;
+                    bVal = parseInt($(b).find('td:eq(3)').text().trim()) || 0;
+                    break;
+                case 'candidatos':
+                    aVal = parseInt($(a).find('td:eq(4)').text().trim()) || 0;
+                    bVal = parseInt($(b).find('td:eq(4)').text().trim()) || 0;
+                    break;
+                case 'formularios':
+                    aVal = parseInt($(a).find('td:eq(5)').text().trim()) || 0;
+                    bVal = parseInt($(b).find('td:eq(5)').text().trim()) || 0;
+                    break;
+                default:
+                    aVal = $(a).find('td:eq(' + $(this).index() + ')').text().trim().toLowerCase();
+                    bVal = $(b).find('td:eq(' + $(this).index() + ')').text().trim().toLowerCase();
+            }
+            
+            if (sortDirection[column] === 'asc') {
+                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+            } else {
+                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+            }
+        });
+        
+        table.find('tbody').append(rows);
+    });
 });
 </script>
 
