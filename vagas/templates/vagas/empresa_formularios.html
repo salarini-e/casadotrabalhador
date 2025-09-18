@@ -1,0 +1,274 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Formulários - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar Menu -->
+    <div class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <i class="fas fa-building"></i>
+                <span>Painel Empresarial</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h6 class="nav-section-title">Principal</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Vagas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Formulários</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h6 class="nav-section-title">Empresa</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            <span>Perfil da Empresa</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Formulários</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1 class="mb-2">
+                <i class="fas fa-file-alt me-2"></i>Formulários de Solicitação
+            </h1>
+            <p class="mb-0 opacity-75">{{ empresa.nome_fantasia }} - Acompanhe suas solicitações de vagas</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-card">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="status" class="form-label fw-bold">
+                        <i class="fas fa-filter me-1"></i>Filtrar por Status
+                    </label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos os status</option>
+                        <option value="PE" {% if status_filter == 'PE' %}selected{% endif %}>Pendente</option>
+                        <option value="AP" {% if status_filter == 'AP' %}selected{% endif %}>Aprovado</option>
+                        <option value="RE" {% if status_filter == 'RE' %}selected{% endif %}>Rejeitado</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-end">
+                        <span class="badge bg-primary fs-6 p-2">
+                            <i class="fas fa-file-alt me-1"></i>
+                            {{ formularios|length }} formulário{{ formularios|length|pluralize }}
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Estatísticas de Formulários -->
+        {% if formularios %}
+        <div class="stats-summary">
+            <h6 class="mb-3">
+                <i class="fas fa-chart-bar me-2"></i>Status dos Formulários
+            </h6>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios|length }}</div>
+                    <div class="stat-label">Total de Formulários</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_pendentes }}</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_aprovados }}</div>
+                    <div class="stat-label">Aprovados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_rejeitados }}</div>
+                    <div class="stat-label">Rejeitados</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ação Rápida para Novo Formulário -->
+        {% if not formularios %}
+        <div class="quick-action-card">
+            <div class="action-icon">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h4 class="mb-3">Solicite sua primeira vaga</h4>
+            <p class="text-muted mb-4">
+                Para publicar vagas em nossa plataforma, você precisa enviar um formulário de solicitação que será analisado por nossa equipe.
+            </p>
+            <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-file-plus me-2"></i>Criar Formulário
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Formulários -->
+        {% if formularios %}
+        <div class="formularios-grid">
+            {% for formulario in formularios %}
+            <div class="formulario-card {% if formulario.status_requisicao == 'PE' %}pendente{% elif formulario.status_requisicao == 'AP' %}aprovado{% elif formulario.status_requisicao == 'RE' %}rejeitado{% endif %}">
+                <div class="formulario-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="formulario-title">{{ formulario.cargo.nome }}</h6>
+                        <span class="status-badge {% if formulario.status_requisicao == 'PE' %}status-pendente{% elif formulario.status_requisicao == 'AP' %}status-aprovado{% elif formulario.status_requisicao == 'RE' %}status-rejeitado{% endif %}">
+                            {% if formulario.status_requisicao == 'PE' %}
+                                <i class="fas fa-clock me-1"></i>Pendente
+                            {% elif formulario.status_requisicao == 'AP' %}
+                                <i class="fas fa-check-circle me-1"></i>Aprovado
+                            {% elif formulario.status_requisicao == 'RE' %}
+                                <i class="fas fa-times-circle me-1"></i>Rejeitado
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="formulario-body">
+                    <!-- Estatísticas do Formulário -->
+                    <div class="formulario-stats">
+                        <div class="formulario-stat">
+                            <div class="stat-number">{{ formulario.quantidade_vagas }}</div>
+                            <div class="stat-text">Vaga{{ formulario.quantidade_vagas|pluralize }}</div>
+                        </div>
+                        <div class="formulario-stat">
+                            <div class="stat-number">R$ {{ formulario.salario|floatformat:2 }}</div>
+                            <div class="stat-text">Salário</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalhes do Formulário -->
+                    <div class="formulario-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Criado em {{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% if formulario.escolaridade_minima %}
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>{{ formulario.escolaridade_minima.escolaridade }}</span>
+                        </div>
+                        {% endif %}
+                        {% if formulario.turno %}
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ formulario.get_turno_display }}</span>
+                        </div>
+                        {% endif %}
+                        {% if formulario.status_requisicao == 'AP' and formulario.vaga_criada %}
+                        <div class="detail-item">
+                            <i class="fas fa-link"></i>
+                            <span>Vaga criada com sucesso</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Descrição do Formulário -->
+                    {% if formulario.descricao_cargo %}
+                    <div class="formulario-description">
+                        {{ formulario.descricao_cargo|truncatechars:120 }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Ação -->
+                    <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="btn btn-primary formulario-action">
+                        <i class="fas fa-eye me-1"></i>Ver Detalhes
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Ação para Novo Formulário -->
+        <div class="text-center mt-4">
+            <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-file-plus me-2"></i>Solicitar Nova Vaga
+            </a>
+        </div>
+        
+        {% else %}
+        <!-- Estado Vazio com Filtros -->
+        {% if status_filter %}
+        <div class="empty-state">
+            <i class="fas fa-search"></i>
+            <h5>Nenhum formulário encontrado</h5>
+            <p>Não há formulários com o status selecionado.</p>
+            <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
+                <i class="fas fa-eye me-1"></i>Ver todos os formulários
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit do formulário de filtro quando mudar o select
+    $('#status').on('change', function() {
+        $(this).closest('form').submit();
+    });
+    
+    // Tooltip para informações adicionais
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

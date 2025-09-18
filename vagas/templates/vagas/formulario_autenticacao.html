@@ -6,17 +6,16 @@
 {% block main %}
 <div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center">
     <div class="row justify-content-center w-100">
-        <div class="col-lg-5 col-md-7">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-primary text-white text-center py-4">
+        <div class="col-lg-5 pt-5 mt-4 col-md-7">
+            <div class="top-5 card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-4">
                     <h3 class="mb-0">
                         <i class="fas fa-key me-2"></i>
                         Acesso ao Formulário
-                    </h3>
-                    <p class="mb-0 mt-2 opacity-75">Casa do Trabalhador - Requisição de Vaga</p>
+                    </h3>                    
                 </div>
                 
-                <div class="card-body p-5">
+                <div class="card-body p-5 pt-3">
                     <!-- Mensagens de feedback -->
                     {% if messages %}
                         {% for message in messages %}
@@ -33,29 +32,25 @@
                     {% endif %}
 
                     <!-- Informações do Formulário -->
-                    <div class="alert alert-info mb-4">
-                        <h6 class="alert-heading">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Acesso ao Formulário
-                        </h6>
+                    <div class="alert mb-4">                        
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <p class="mb-2"><strong>ID do Formulário:</strong></p>
                                 <code class="text-primary">{{ hash_id }}</code>
                             </div>
-                            <div class="col-md-6">
+                            <!-- <div class="col-md-6">
                                 {% if requisicao.nome_da_empresa and requisicao.nome_da_empresa != 'A definir' %}
                                     <p class="mb-2"><strong>Empresa:</strong></p>
                                     <span class="text-success">{{ requisicao.nome_da_empresa }}</span>
                                 {% endif %}
-                            </div>
+                            </div> -->
                         </div>
                         <hr class="my-2">
                         <p class="mb-0 small">Para acessar este formulário, digite a <strong>chave de acesso</strong> fornecida pela Casa do Trabalhador.</p>
                     </div>
 
                     <!-- Instruções -->
-                    <div class="alert alert-warning mb-4">
+                    <div class="alert mb-4">
                         <h6 class="alert-heading">
                             <i class="fas fa-key me-2"></i>
                             Como funciona?
@@ -100,25 +95,7 @@
                                 Acessar Formulário
                             </button>
                         </div>
-                    </form>
-
-                    <!-- Informações de Segurança -->
-                    <div class="mt-4 pt-4 border-top">
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <i class="fas fa-shield-alt text-success fa-2x mb-2"></i>
-                                <p class="small mb-0"><strong>Seguro</strong><br>Acesso protegido</p>
-                            </div>
-                            <div class="col-4">
-                                <i class="fas fa-clock text-info fa-2x mb-2"></i>
-                                <p class="small mb-0"><strong>Rápido</strong><br>Preenchimento simples</p>
-                            </div>
-                            <div class="col-4">
-                                <i class="fas fa-check-circle text-primary fa-2x mb-2"></i>
-                                <p class="small mb-0"><strong>Confiável</strong><br>Dados protegidos</p>
-                            </div>
-                        </div>
-                    </div>
+                    </form>                    
                 </div>
                 
                 <div class="card-footer text-center bg-light">

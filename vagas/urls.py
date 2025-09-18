@@ -46,6 +46,9 @@ urlpatterns = [
     path('empresa/info/', views.infoempresa, name='empresa_info'),
     path('empresa/info/<id>/download/', views.infoempresa_download, name='empresa_info_download'),
     path('empresa/profile/<int:empresa_id>/', views.empresa_profile, name='empresa_profile'),
+    path('empresa/<int:empresa_id>/responsaveis/', views.gerenciar_responsaveis_empresa, name='gerenciar_responsaveis_empresa'),
+    path('responsavel/<int:responsavel_id>/remover/', views.remover_responsavel_empresa, name='remover_responsavel_empresa'),
+    path('responsavel/<int:responsavel_id>/toggle/', views.toggle_responsavel_ativo, name='toggle_responsavel_ativo'),
     path('candidatos-por-funcionario/', views.candidatosporfuncionario, name='candidatosporfuncionario'),
     path('candidatos-por-funcionario/<id>', views.funcionario_encaminhados, name='funcionarios_encaminhados'), 
     path('pesquisar-candidatos/', views.pesquisar_candidatos, name='pesquisar_candidatos'), 
@@ -73,4 +76,16 @@ urlpatterns = [
     path('formulario/<str:hash_id>/atualizar-status-candidato/', views.atualizar_status_candidato, name='atualizar_status_candidato'),
     path('formulario/<str:hash_id>/solicitar-encerramento/', views.solicitar_encerramento_vaga, name='solicitar_encerramento_vaga'),
     path('formulario/sucesso/', views.formulario_sucesso, name='formulario_sucesso'),
+    
+    # URLs do Painel Empresarial
+    path('painel-empresarial/', views.dashboard_empresa, name='dashboard_empresa'),
+    path('painel-empresarial/trocar-empresa/', views.trocar_empresa, name='trocar_empresa'),
+    path('painel-empresarial/formularios/', views.empresa_formularios, name='empresa_formularios'),
+    path('painel-empresarial/formulario/<int:formulario_id>/', views.empresa_formulario_detalhes, name='empresa_formulario_detalhes'),
+    path('painel-empresarial/vagas/', views.empresa_vagas, name='empresa_vagas'),
+    path('painel-empresarial/vaga/<int:vaga_id>/', views.empresa_vaga_detalhes, name='empresa_vaga_detalhes'),
+    path('painel-empresarial/vaga/<int:vaga_id>/candidato/<int:candidato_id>/selecionar/', views.empresa_selecionar_candidato, name='empresa_selecionar_candidato'),
+    path('painel-empresarial/vaga/<int:vaga_id>/encerrar/', views.empresa_encerrar_vaga, name='empresa_encerrar_vaga'),
+    path('painel-empresarial/candidato/<int:candidato_id>/', views.empresa_candidato_perfil, name='empresa_candidato_perfil'),
+    path('painel-empresarial/perfil/', views.empresa_perfil, name='empresa_perfil'),
 ]

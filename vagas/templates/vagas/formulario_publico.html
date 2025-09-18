@@ -15,8 +15,7 @@
 .form-header {
     text-align: center;
     margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 3px solid #007bff;
+    padding-bottom: 1rem;    
 }
 
 .form-section {
@@ -50,6 +49,43 @@
 .btn-submit {
     background: linear-gradient(135deg, #007bff, #0056b3);
     border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.btn-submit:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.form-check-custom {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-check-custom:hover {
+    background: #e9ecef;
+    border-color: #007bff;
+}
+
+.form-check-custom .form-check-input:checked ~ .form-check-label {
+    color: #007bff;
+    font-weight: 600;
+}
+
+.modal-dialog-scrollable {
+    max-height: 90vh;
+}
     padding: 1rem 2rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -371,9 +407,43 @@
                 </div>
             </div>
 
+            <!-- Concordância com Termos de Uso e LGPD -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-shield-alt me-2"></i>Termos de Uso e Proteção de Dados
+                </div>
+                
+                <div class="form-check form-check-custom mb-3">
+                    <input class="form-check-input" type="checkbox" id="concordo_termos" name="concordo_termos" required>
+                    <label class="form-check-label" for="concordo_termos">
+                        <strong>Li e concordo com os </strong>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#termosModal" class="text-primary fw-bold">
+                            Termos de Uso e Política de Privacidade
+                        </a>
+                        <span class="text-danger">*</span>
+                    </label>
+                </div>
+                
+                <div class="form-check form-check-custom mb-3">
+                    <input class="form-check-input" type="checkbox" id="concordo_lgpd" name="concordo_lgpd" required>
+                    <label class="form-check-label" for="concordo_lgpd">
+                        <strong>Autorizo o tratamento dos meus dados pessoais</strong> conforme a Lei Geral de Proteção de Dados (LGPD)
+                        <span class="text-danger">*</span>
+                    </label>
+                </div>
+                
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>
+                        Seus dados serão utilizados exclusivamente para fins de intermediação de emprego e 
+                        não serão compartilhados com terceiros sem seu consentimento.
+                    </small>
+                </div>
+            </div>
+
             <!-- Botão de Envio -->
             <div class="text-center">
-                <button type="submit" class="btn btn-primary btn-lg btn-submit">
+                <button type="submit" class="btn btn-primary btn-lg btn-submit" id="btnSubmit" disabled>
                     <i class="fas fa-paper-plane me-2"></i>Enviar Solicitação
                 </button>
                 <div class="form-text mt-2">
@@ -384,7 +454,197 @@
     </div>
 </div>
 
+<!-- Modal dos Termos de Uso e LGPD -->
+<div class="modal fade" id="termosModal" tabindex="-1" aria-labelledby="termosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="termosModalLabel">
+                    <i class="fas fa-shield-alt me-2"></i>Termos de Uso e Política de Privacidade
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- Termos de Uso -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-file-contract me-2"></i>1. Termos de Uso
+                    </h6>
+                    <p class="mb-3">
+                        Ao utilizar o sistema de solicitação de vagas da Casa do Trabalhador, você concorda com os seguintes termos:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>As informações fornecidas são verdadeiras e precisas;</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>O sistema será utilizado apenas para fins legítimos de intermediação de emprego;</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Você se compromete a manter suas informações atualizadas;</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>O uso inadequado do sistema poderá resultar em bloqueio de acesso.</li>
+                    </ul>
+                </section>
+
+                <!-- Coleta e Uso de Dados -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-database me-2"></i>2. Coleta e Uso de Dados Pessoais
+                    </h6>
+                    <p class="mb-3">
+                        <strong>Dados coletados:</strong> Nome, CNPJ, telefone, email, endereço, descrição da vaga e informações de contato.
+                    </p>
+                    <p class="mb-3">
+                        <strong>Finalidade:</strong> Os dados são utilizados exclusivamente para:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Intermediação entre empresas e candidatos;</li>
+                        <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Análise e aprovação de solicitações de vagas;</li>
+                        <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Comunicação sobre o andamento das solicitações;</li>
+                        <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>Estatísticas internas para melhoria dos serviços.</li>
+                    </ul>
+                </section>
+
+                <!-- Base Legal LGPD -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-balance-scale me-2"></i>3. Base Legal (LGPD)
+                    </h6>
+                    <p class="mb-3">
+                        O tratamento dos seus dados pessoais está fundamentado no <strong>Art. 7º, inciso III da LGPD</strong> 
+                        (consentimento) e <strong>inciso V</strong> (execução de contrato ou procedimentos preliminares).
+                    </p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Consentimento:</strong> Você pode revogar seu consentimento a qualquer momento, 
+                        entrando em contato conosco através dos canais disponibilizados.
+                    </div>
+                </section>
+
+                <!-- Compartilhamento de Dados -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-share-alt me-2"></i>4. Compartilhamento de Dados
+                    </h6>
+                    <p class="mb-3">
+                        Seus dados <strong>NÃO</strong> serão vendidos, alugados ou compartilhados com terceiros, exceto:
+                    </p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-shield-alt text-warning me-2"></i>Quando necessário para cumprimento de obrigação legal;</li>
+                        <li class="mb-2"><i class="fas fa-shield-alt text-warning me-2"></i>Para proteção da vida ou integridade física;</li>
+                        <li class="mb-2"><i class="fas fa-shield-alt text-warning me-2"></i>Por ordem judicial.</li>
+                    </ul>
+                </section>
+
+                <!-- Direitos do Titular -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-user-shield me-2"></i>5. Seus Direitos
+                    </h6>
+                    <p class="mb-3">Conforme a LGPD, você tem direito a:</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-eye text-info me-2"></i>Confirmação da existência de tratamento;</li>
+                                <li class="mb-2"><i class="fas fa-search text-info me-2"></i>Acesso aos dados;</li>
+                                <li class="mb-2"><i class="fas fa-edit text-info me-2"></i>Correção de dados incompletos;</li>
+                                <li class="mb-2"><i class="fas fa-ban text-info me-2"></i>Oposição ao tratamento;</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-trash text-info me-2"></i>Eliminação dos dados;</li>
+                                <li class="mb-2"><i class="fas fa-download text-info me-2"></i>Portabilidade dos dados;</li>
+                                <li class="mb-2"><i class="fas fa-times-circle text-info me-2"></i>Revogação do consentimento;</li>
+                                <li class="mb-2"><i class="fas fa-question-circle text-info me-2"></i>Informações sobre compartilhamento.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Segurança -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-lock me-2"></i>6. Segurança
+                    </h6>
+                    <p class="mb-3">
+                        Adotamos medidas técnicas e organizacionais para proteger seus dados contra acessos não autorizados, 
+                        alterações, divulgação ou destruição não autorizada.
+                    </p>
+                </section>
+
+                <!-- Contato -->
+                <section class="mb-4">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-envelope me-2"></i>7. Contato - Encarregado de Dados
+                    </h6>
+                    <p class="mb-3">
+                        Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados:
+                    </p>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <p class="mb-2"><strong><i class="fas fa-user me-2"></i>Encarregado:</strong> Casa do Trabalhador</p>
+                            <p class="mb-2"><strong><i class="fas fa-envelope me-2"></i>E-mail:</strong> lgpd@casadotrabalhador.gov.br</p>
+                            <p class="mb-0"><strong><i class="fas fa-phone me-2"></i>Telefone:</strong> (XX) XXXX-XXXX</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Alterações -->
+                <section class="mb-0">
+                    <h6 class="text-primary fw-bold mb-3">
+                        <i class="fas fa-sync-alt me-2"></i>8. Alterações
+                    </h6>
+                    <p class="mb-0">
+                        Esta política pode ser atualizada periodicamente. Recomendamos que consulte regularmente esta página 
+                        para se manter informado sobre como protegemos seus dados.
+                    </p>
+                    <p class="text-muted mt-2 mb-0">
+                        <small><strong>Última atualização:</strong> {{ "now"|date:"d/m/Y" }}</small>
+                    </p>
+                </section>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Fechar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnAceitarTermos">
+                    <i class="fas fa-check me-2"></i>Li e Aceito os Termos
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// Controle do botão de envio baseado na concordância com termos
+document.addEventListener('DOMContentLoaded', function() {
+    const termosCheckbox = document.getElementById('concordo_termos');
+    const lgpdCheckbox = document.getElementById('concordo_lgpd');
+    const submitButton = document.getElementById('btnSubmit');
+    const btnAceitarTermos = document.getElementById('btnAceitarTermos');
+    
+    function checkAgreements() {
+        const termosChecked = termosCheckbox.checked;
+        const lgpdChecked = lgpdCheckbox.checked;
+        submitButton.disabled = !(termosChecked && lgpdChecked);
+    }
+    
+    // Verificar estado inicial
+    checkAgreements();
+    
+    // Adicionar listeners para os checkboxes
+    termosCheckbox.addEventListener('change', checkAgreements);
+    lgpdCheckbox.addEventListener('change', checkAgreements);
+    
+    // Botão aceitar termos no modal
+    btnAceitarTermos.addEventListener('click', function() {
+        termosCheckbox.checked = true;
+        checkAgreements();
+        
+        // Fechar modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('termosModal'));
+        modal.hide();
+    });
+});
+
 // Máscaras para os campos
 document.getElementById('cpf_responsavel').addEventListener('input', function(e) {
     let value = e.target.value.replace(/\D/g, '');
@@ -451,9 +711,18 @@ document.querySelector('form').addEventListener('submit', function(e) {
         isValid = false;
     }
     
+    // Verificar concordância com termos
+    const termosChecked = document.getElementById('concordo_termos').checked;
+    const lgpdChecked = document.getElementById('concordo_lgpd').checked;
+    
+    if (!termosChecked || !lgpdChecked) {
+        alert('É obrigatório concordar com os Termos de Uso e autorizar o tratamento de dados pessoais.');
+        isValid = false;
+    }
+    
     if (!isValid) {
         e.preventDefault();
-        alert('Por favor, preencha todos os campos obrigatórios.');
+        alert('Por favor, preencha todos os campos obrigatórios e aceite os termos.');
     }
 });
 </script>

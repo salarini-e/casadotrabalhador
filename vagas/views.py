@@ -29,7 +29,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from urllib.parse import quote
 
-from .models import Slide, Vaga_Emprego, CandidatoSelecionado
+from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa
 from django.http import HttpResponseForbidden, HttpResponse
 
 from autenticacao.models import Pessoa
@@ -817,6 +817,10 @@ def empresa_profile(request, empresa_id):
     # Total de candidatos (incluindo duplicatas)
     total_candidatos = Candidato.objects.filter(vaga__empresa=empresa).count()
     
+    # Buscar responsáveis da empresa
+    responsaveis = ResponsavelEmpresa.objects.filter(empresa=empresa).order_by('nome')
+    responsaveis_ativos = responsaveis.filter(ativo=True).count()
+    
     context = {
         'empresa': empresa,
         'vagas': vagas,
@@ -827,6 +831,8 @@ def empresa_profile(request, empresa_id):
         'total_candidatos': total_candidatos,
         'total_formularios': formularios.count(),
         'formularios_aprovados': formularios.filter(status_requisicao='AP').count(),
+        'responsaveis': responsaveis,
+        'responsaveis_ativos': responsaveis_ativos,
     }
     
     return render(request, 'vagas/empresa_profile.html', context)
@@ -2183,8 +2189,8 @@ def candidatos_vaga(request, vaga_id):
     total_candidatos = candidatos.count()
     candidatos_ativos = candidatos.filter(candidato_ativo=True).count()
     candidatos_contratados = candidatos.filter(conseguiu_vaga=True).count()
-    candidatos_online = candidatos.filter(origem_cadastro='online').count()
-    candidatos_balcao = candidatos.filter(origem_cadastro='balcao').count()
+    candidatos_online = candidatos.filter(candidato_online=True).count()
+    candidatos_balcao = candidatos.filter(candidato_online=False).count()
     
     # Estatísticas da vaga
     dias_publicada = (timezone.now().date() - vaga.dt_inclusao.date()).days if vaga.dt_inclusao else 0
@@ -2457,3 +2463,627 @@ def editar_vaga(request, vaga_id):
     }
     
     return render(request, 'vagas/editar_vaga.html', context)
+
+
+# ============================================================================
+# VIEWS PARA GERENCIAMENTO DE RESPONSÁVEIS DAS EMPRESAS
+# ============================================================================
+
+@staff_required
+def gerenciar_responsaveis_empresa(request, empresa_id):
+    """View para gerenciar responsáveis de uma empresa específica"""
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    if request.method == 'POST':
+        try:
+            nome = request.POST.get('nome', '').strip()
+            cpf = request.POST.get('cpf', '').strip()
+            email = request.POST.get('email', '').strip()
+            cargo = request.POST.get('cargo', '').strip()
+            telefone = request.POST.get('telefone', '').strip()
+            
+            if not nome or not cpf or not email:
+                messages.error(request, 'Nome, CPF e email são obrigatórios.')
+                return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+            
+            # Limpar CPF (remover pontos e traços)
+            cpf_numeros = ''.join(filter(str.isdigit, cpf))
+            
+            if len(cpf_numeros) != 11:
+                messages.error(request, 'CPF deve ter 11 dígitos.')
+                return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+            
+            # Verificar se CPF já é responsável desta mesma empresa
+            if ResponsavelEmpresa.objects.filter(cpf=cpf_numeros, empresa=empresa).exists():
+                messages.error(request, f'O CPF {cpf} já é responsável desta empresa.')
+                return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+            
+            # Informativo se CPF já é responsável de outra empresa
+            if ResponsavelEmpresa.objects.filter(cpf=cpf_numeros).exists():
+                outras_empresas = ResponsavelEmpresa.objects.filter(cpf=cpf_numeros)
+                empresas_nomes = ", ".join([resp.empresa.nome for resp in outras_empresas])
+                messages.warning(request, f'O CPF {cpf} já é responsável da(s) empresa(s): {empresas_nomes}, mas será adicionado também a esta empresa.')
+            
+            # Criar ResponsavelEmpresa
+            responsavel = ResponsavelEmpresa.objects.create(
+                empresa=empresa,
+                nome=nome,
+                cpf=cpf_numeros,
+                email=email,
+                cargo=cargo,
+                telefone=telefone,
+                criado_por=request.user
+            )
+            
+            # Tentar vincular a usuário existente
+            if responsavel.vincular_usuario_existente():
+                # Se conseguiu vincular, adicionar ao grupo empresa_user
+                from django.contrib.auth.models import Group
+                grupo_empresa, created = Group.objects.get_or_create(name='empresa_user')
+                responsavel.user.groups.add(grupo_empresa)
+                responsavel.save()
+                
+                messages.success(request, f'Responsável {nome} adicionado e vinculado ao usuário existente!')
+            else:
+                # Se não existe usuário, criar um novo
+                from autenticacao.models import Pessoa
+                from django.contrib.auth.models import Group
+                
+                # Verificar se já existe usuário com esse email
+                if User.objects.filter(email=email).exists():
+                    user = User.objects.get(email=email)
+                else:
+                    # Criar novo usuário
+                    username = email
+                    contador = 1
+                    while User.objects.filter(username=username).exists():
+                        username = f"{email}_{contador}"
+                        contador += 1
+                    
+                    user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        first_name=nome,
+                        is_active=True
+                    )
+                    
+                    # Gerar senha temporária
+                    import random
+                    import string
+                    senha_temp = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+                    user.set_password(senha_temp)
+                    user.save()
+                    
+                    messages.info(request, f'Usuário criado com senha temporária: {senha_temp}')
+                
+                # Vincular usuário ao responsável
+                responsavel.user = user
+                responsavel.save()
+                
+                # Adicionar ao grupo empresa_user
+                grupo_empresa, created = Group.objects.get_or_create(name='empresa_user')
+                user.groups.add(grupo_empresa)
+                
+                messages.success(request, f'Responsável {nome} adicionado com sucesso!')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao adicionar responsável: {str(e)}')
+    
+    # Buscar responsáveis existentes
+    responsaveis = ResponsavelEmpresa.objects.filter(empresa=empresa).order_by('nome')
+    
+    context = {
+        'empresa': empresa,
+        'responsaveis': responsaveis,
+    }
+    
+    return render(request, 'vagas/gerenciar_responsaveis.html', context)
+
+
+@staff_required
+def remover_responsavel_empresa(request, responsavel_id):
+    """Remove um responsável da empresa"""
+    responsavel = get_object_or_404(ResponsavelEmpresa, id=responsavel_id)
+    empresa_id = responsavel.empresa.id
+    
+    if request.method == 'POST':
+        try:
+            # Remover do grupo empresa_user se não for responsável de outras empresas
+            user = responsavel.user
+            responsavel.delete()
+            
+            # Verificar se ainda é responsável de outras empresas
+            if not ResponsavelEmpresa.objects.filter(user=user).exists():
+                from django.contrib.auth.models import Group
+                try:
+                    grupo_empresa = Group.objects.get(name='empresa_user')
+                    user.groups.remove(grupo_empresa)
+                except Group.DoesNotExist:
+                    pass
+            
+            messages.success(request, 'Responsável removido com sucesso!')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao remover responsável: {str(e)}')
+    
+    return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+
+
+@staff_required
+def toggle_responsavel_ativo(request, responsavel_id):
+    """Ativa/Desativa um responsável da empresa"""
+    responsavel = get_object_or_404(ResponsavelEmpresa, id=responsavel_id)
+    empresa_id = responsavel.empresa.id
+    
+    if request.method == 'POST':
+        try:
+            responsavel.ativo = not responsavel.ativo
+            responsavel.save()
+            
+            status = 'ativado' if responsavel.ativo else 'desativado'
+            messages.success(request, f'Responsável {status} com sucesso!')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao alterar status: {str(e)}')
+    
+    return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+
+
+# ============================================================================
+# PAINEL EMPRESARIAL - VIEWS PARA RESPONSÁVEIS DAS EMPRESAS
+# ============================================================================
+
+from balcao_de_emprego.decorators import empresa_user_required
+
+def get_empresa_selecionada(request):
+    """Função auxiliar para obter a empresa selecionada pelo responsável"""
+    # Buscar todas as empresas do responsável
+    responsaveis = ResponsavelEmpresa.objects.filter(user=request.user, ativo=True)
+    
+    if not responsaveis.exists():
+        return None, None, None
+    
+    # Verificar se há empresa selecionada via POST ou session
+    empresa_id = request.POST.get('empresa_id') or request.session.get('empresa_selecionada')
+    
+    # Se há empresa específica selecionada
+    if empresa_id:
+        try:
+            responsavel = responsaveis.get(empresa_id=empresa_id)
+            # Salvar na session
+            request.session['empresa_selecionada'] = empresa_id
+        except ResponsavelEmpresa.DoesNotExist:
+            # Se a empresa não existe para este responsável, usar a primeira
+            responsavel = responsaveis.first()
+            request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+    else:
+        # Se não há empresa selecionada, usar a primeira
+        responsavel = responsaveis.first()
+        request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+    
+    return responsavel, responsavel.empresa, responsaveis
+
+@empresa_user_required
+def dashboard_empresa(request):
+    """Dashboard principal para responsáveis das empresas"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Estatísticas da empresa
+        total_vagas = Vaga_Emprego.objects.filter(empresa=empresa).count()
+        vagas_ativas = Vaga_Emprego.objects.filter(empresa=empresa, ativo=True).count()
+        
+        # Candidatos da empresa
+        candidatos_total = Candidato.objects.filter(vaga__empresa=empresa).count()
+        candidatos_unicos = Candidato.objects.filter(vaga__empresa=empresa).values('cpf').distinct().count()
+        candidatos_contratados = Candidato.objects.filter(vaga__empresa=empresa, conseguiu_vaga=True).count()
+        
+        # Formulários da empresa (por CNPJ)
+        formularios = RequisicaoVaga.objects.filter(cnpj_da_empresa=empresa.cnpj).order_by('-dt_inclusao')
+        formularios_pendentes = formularios.filter(status_requisicao='PE').count()
+        formularios_aprovados = formularios.filter(status_requisicao='AP').count()
+        formularios_rejeitados = formularios.filter(status_requisicao='RE').count()
+        
+        # Últimas atividades
+        ultimos_formularios = formularios[:5]
+        ultimas_vagas = Vaga_Emprego.objects.filter(empresa=empresa).order_by('-dt_inclusao')[:5]
+        
+        # Candidatos recentes
+        candidatos_recentes = Candidato.objects.filter(
+            vaga__empresa=empresa
+        ).order_by('-dt_inclusao')[:10]
+        
+        # Taxa de conversão
+        taxa_conversao = 0
+        if candidatos_total > 0:
+            taxa_conversao = round((candidatos_contratados / candidatos_total) * 100, 1)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'total_vagas': total_vagas,
+            'vagas_ativas': vagas_ativas,
+            'candidatos_total': candidatos_total,
+            'candidatos_unicos': candidatos_unicos,
+            'candidatos_contratados': candidatos_contratados,
+            'taxa_conversao': taxa_conversao,
+            'formularios': formularios,
+            'formularios_pendentes': formularios_pendentes,
+            'formularios_aprovados': formularios_aprovados,
+            'formularios_rejeitados': formularios_rejeitados,
+            'ultimos_formularios': ultimos_formularios,
+            'ultimas_vagas': ultimas_vagas,
+            'candidatos_recentes': candidatos_recentes,
+        }
+        
+        return render(request, 'vagas/dashboard_empresa.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar dashboard: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_formularios(request):
+    """Lista todos os formulários da empresa do responsável"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        formularios = RequisicaoVaga.objects.filter(
+            cnpj_da_empresa=empresa.cnpj
+        ).order_by('-dt_inclusao')
+        
+        # Filtros
+        status_filter = request.GET.get('status', '')
+        if status_filter:
+            formularios = formularios.filter(status_requisicao=status_filter)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'formularios': formularios,
+            'status_filter': status_filter,
+        }
+        
+        return render(request, 'vagas/empresa_formularios.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar formulários: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_formulario_detalhes(request, formulario_id):
+    """Detalhes de um formulário específico da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        formulario = get_object_or_404(
+            RequisicaoVaga, 
+            id=formulario_id,
+            cnpj_da_empresa=empresa.cnpj
+        )
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'formulario': formulario,
+        }
+        
+        return render(request, 'vagas/empresa_formulario_detalhes.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar detalhes do formulário: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_vagas(request):
+    """Lista todas as vagas da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        vagas = Vaga_Emprego.objects.filter(empresa=empresa).order_by('-dt_inclusao')
+        
+        # Filtros
+        status_filter = request.GET.get('status', '')
+        if status_filter == 'ativas':
+            vagas = vagas.filter(ativo=True)
+        elif status_filter == 'inativas':
+            vagas = vagas.filter(ativo=False)
+        
+        # Adicionar estatísticas de candidatos para cada vaga (após filtros)
+        for vaga in vagas:
+            vaga.total_candidatos = vaga.candidato_set.count()
+            vaga.candidatos_contratados = vaga.candidato_set.filter(conseguiu_vaga=True).count()
+            vaga.candidatos_online = vaga.candidato_set.filter(candidato_online=True).count()
+            vaga.candidatos_balcao = vaga.candidato_set.filter(candidato_online=False).count()
+        
+        # Calcular estatísticas gerais (sobre todas as vagas da empresa, não filtradas)
+        total_vagas = Vaga_Emprego.objects.filter(empresa=empresa).count()
+        vagas_ativas = Vaga_Emprego.objects.filter(empresa=empresa, ativo=True).count()
+        vagas_inativas = Vaga_Emprego.objects.filter(empresa=empresa, ativo=False).count()
+        total_candidatos_empresa = Candidato.objects.filter(vaga__empresa=empresa).count()
+        total_contratados_empresa = Candidato.objects.filter(vaga__empresa=empresa, conseguiu_vaga=True).count()
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vagas': vagas,
+            'status_filter': status_filter,
+            'total_vagas': total_vagas,
+            'vagas_ativas': vagas_ativas,
+            'vagas_inativas': vagas_inativas,
+            'total_candidatos_empresa': total_candidatos_empresa,
+            'total_contratados_empresa': total_contratados_empresa,
+        }
+        
+        return render(request, 'vagas/empresa_vagas.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar vagas: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_perfil(request):
+    """Perfil e dados da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Todos os responsáveis da empresa
+        responsaveis = ResponsavelEmpresa.objects.filter(empresa=empresa, ativo=True)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'responsaveis': responsaveis,
+        }
+        
+        return render(request, 'vagas/empresa_perfil.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar perfil: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_vaga_detalhes(request, vaga_id):
+    """Detalhes de uma vaga específica com gestão de candidatos"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        vaga = get_object_or_404(Vaga_Emprego, id=vaga_id, empresa=empresa)
+        
+        # Candidatos da vaga - filtrar por status da vaga
+        if vaga.ativo:
+            # Vaga ativa: mostrar todos os candidatos
+            candidatos = Candidato.objects.filter(vaga=vaga).order_by('-dt_inclusao')
+        else:
+            # Vaga encerrada: mostrar apenas candidatos selecionados
+            candidatos = Candidato.objects.filter(vaga=vaga, conseguiu_vaga=True).order_by('-dt_inclusao')
+        
+        # Estatísticas da vaga
+        total_candidatos = Candidato.objects.filter(vaga=vaga).count()
+        candidatos_contratados = Candidato.objects.filter(vaga=vaga, conseguiu_vaga=True).count()
+        candidatos_online = Candidato.objects.filter(vaga=vaga, candidato_online=True).count()
+        candidatos_balcao = Candidato.objects.filter(vaga=vaga, candidato_online=False).count()
+        
+        # Buscar formulário relacionado (se houver)
+        formulario = None
+        try:
+            formulario = RequisicaoVaga.objects.filter(
+                cnpj_da_empresa=empresa.cnpj,
+                cargo=vaga.cargo,
+                status_requisicao='AP'
+            ).first()
+        except:
+            pass
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vaga': vaga,
+            'candidatos': candidatos,
+            'total_candidatos': total_candidatos,
+            'candidatos_contratados': candidatos_contratados,
+            'candidatos_online': candidatos_online,
+            'candidatos_balcao': candidatos_balcao,
+            'formulario': formulario,
+        }
+        
+        return render(request, 'vagas/empresa_vaga_detalhes.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar detalhes da vaga: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_selecionar_candidato(request, vaga_id, candidato_id):
+    """Selecionar candidato para uma vaga"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        vaga = get_object_or_404(Vaga_Emprego, id=vaga_id, empresa=empresa)
+        candidato = get_object_or_404(Candidato, id=candidato_id, vaga=vaga)
+        
+        if request.method == 'POST':
+            # Marcar candidato como contratado
+            candidato.conseguiu_vaga = True
+            candidato.save()
+            
+            # Atualizar vaga como inativa se necessário
+            candidatos_contratados = Candidato.objects.filter(vaga=vaga, conseguiu_vaga=True).count()
+            vagas_restantes = vaga.quantidadeVagas - candidatos_contratados
+            if vagas_restantes <= 0:
+                vaga.ativo = False
+                vaga.dt_desativacao = timezone.now()
+                vaga.save()
+            
+            messages.success(request, f'Candidato {candidato.nome} selecionado com sucesso!')
+            return redirect('vagas:empresa_vaga_detalhes', vaga_id=vaga.id)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vaga': vaga,
+            'candidato': candidato,
+        }
+        
+        return render(request, 'vagas/empresa_selecionar_candidato.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao selecionar candidato: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_encerrar_vaga(request, vaga_id):
+    """Solicitar encerramento de vaga"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        vaga = get_object_or_404(Vaga_Emprego, id=vaga_id, empresa=empresa)
+        
+        # Buscar formulário relacionado (se houver)
+        formulario = None
+        try:
+            formulario = RequisicaoVaga.objects.filter(
+                cnpj_da_empresa=empresa.cnpj,
+                cargo=vaga.cargo,
+                status_requisicao='AP'
+            ).first()
+        except:
+            pass
+        
+        if request.method == 'POST':
+            observacao = request.POST.get('observacao', '')
+            
+            # Se há formulário, criar solicitação de encerramento
+            if formulario:
+                # Adicionar observação ao formulário
+                data_atual = timezone.now().strftime('%d/%m/%Y %H:%M')
+                observacao_completa = f"Solicitação de encerramento em {data_atual} por {responsavel.user.get_full_name() or responsavel.user.username}:\n{observacao}"
+                
+                if formulario.observacoes_aprovacao:
+                    formulario.observacoes_aprovacao += f"\n\n{observacao_completa}"
+                else:
+                    formulario.observacoes_aprovacao = observacao_completa
+                formulario.save()
+                
+                messages.success(request, 'Solicitação de encerramento enviada com sucesso!')
+            else:
+                # Para vagas sem formulário, apenas inativar
+                vaga.ativo = False
+                vaga.observacao = f"{vaga.observacao}\n\nEncerrada em {timezone.now().strftime('%d/%m/%Y %H:%M')}: {observacao}".strip()
+                vaga.dt_desativacao = timezone.now()
+                vaga.save()
+                
+                messages.success(request, 'Vaga encerrada com sucesso!')
+            
+            return redirect('vagas:empresa_vagas')
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vaga': vaga,
+            'formulario': formulario,
+        }
+        
+        return render(request, 'vagas/empresa_encerrar_vaga.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao encerrar vaga: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def trocar_empresa(request):
+    """View para trocar empresa ativa (via AJAX ou redirecionamento)"""
+    if request.method == 'POST':
+        empresa_id = request.POST.get('empresa_id')
+        
+        if empresa_id:
+            # Verificar se o usuário tem permissão para essa empresa
+            try:
+                ResponsavelEmpresa.objects.get(
+                    user=request.user, 
+                    empresa_id=empresa_id, 
+                    ativo=True
+                )
+                # Salvar na session
+                request.session['empresa_selecionada'] = empresa_id
+                messages.success(request, 'Empresa alterada com sucesso!')
+            except ResponsavelEmpresa.DoesNotExist:
+                messages.error(request, 'Você não tem permissão para acessar esta empresa.')
+    
+    # Redirecionar para o dashboard
+    return redirect('vagas:dashboard_empresa')
+
+
+@empresa_user_required
+def empresa_candidato_perfil(request, candidato_id):
+    """Visualizar perfil de candidato específico para empresas"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Verificar se o candidato pertence a uma vaga da empresa
+        candidato = get_object_or_404(Candidato, id=candidato_id, vaga__empresa=empresa)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'candidato': candidato,
+        }
+        
+        return render(request, 'vagas/empresa_candidato_perfil.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar perfil do candidato: {str(e)}')
+        return redirect('vagas:dashboard_empresa')

@@ -1,0 +1,323 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Painel Empresarial - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-stat {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .card-stat:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-stat-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .card-stat-warning {
+        background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+    }
+    
+    .card-stat-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card-stat-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .recent-activity {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .activity-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .nav-empresa {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .nav-empresa .nav-link {
+        color: white;
+        font-weight: 500;
+        border-radius: 8px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-empresa .nav-link:hover, 
+    .nav-empresa .nav-link.active {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    .empresa-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .empresa-logo {
+        width: 80px;
+        height: 80px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-right: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+
+<div class="container-fluid">
+    {% include 'vagas/includes/seletor_empresa.html' %}
+    
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1 text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Painel Empresarial
+                    </h1>
+                    <p class="text-muted mb-0">{{ empresa.nome_fantasia }} - {{ empresa.cnpj }}</p>
+                </div>
+                <div class="text-end">
+                    <p class="text-muted mb-0">Responsável: {{ responsavel.user.get_full_name|default:responsavel.user.username }}</p>
+                    <small class="text-muted">Último acesso: {% now "d/m/Y H:i" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação do Painel -->
+    <ul class="nav nav-pills nav-empresa p-3 mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" href="{% url 'vagas:dashboard_empresa' %}">
+                <i class="fas fa-chart-line me-2"></i>Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'vagas:empresa_formularios' %}">
+                <i class="fas fa-file-alt me-2"></i>Formulários
+                {% if formularios_pendentes > 0 %}
+                    <span class="badge bg-warning text-dark ms-1">{{ formularios_pendentes }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'vagas:empresa_vagas' %}">
+                <i class="fas fa-briefcase me-2"></i>Vagas
+            </a>
+        </li>
+    </ul>
+
+    <!-- Estatísticas Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card card-stat card-stat-info">
+                <div class="card-body text-center">
+                    <h2 class="stat-value">{{ total_vagas }}</h2>
+                    <p class="stat-label">Total de Vagas</p>
+                    <small>{{ vagas_ativas }} ativas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-stat card-stat-success">
+                <div class="card-body text-center">
+                    <h2 class="stat-value">{{ candidatos_total }}</h2>
+                    <p class="stat-label">Total de Candidatos</p>
+                    <small>{{ candidatos_unicos }} únicos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-stat card-stat-warning">
+                <div class="card-body text-center">
+                    <h2 class="stat-value">{{ candidatos_contratados }}</h2>
+                    <p class="stat-label">Contratações</p>
+                    <small>{{ taxa_conversao }}% de taxa</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-stat card-stat-danger">
+                <div class="card-body text-center">
+                    <h2 class="stat-value">{{ formularios.count }}</h2>
+                    <p class="stat-label">Formulários</p>
+                    <small>{{ formularios_pendentes }} pendentes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status dos Formulários -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Status dos Formulários
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="p-3">
+                                <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                                <h4 class="text-warning">{{ formularios_pendentes }}</h4>
+                                <p class="text-muted">Pendentes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="p-3">
+                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                <h4 class="text-success">{{ formularios_aprovados }}</h4>
+                                <p class="text-muted">Aprovados</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="p-3">
+                                <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                                <h4 class="text-danger">{{ formularios_rejeitados }}</h4>
+                                <p class="text-muted">Rejeitados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Atividades -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Últimos Formulários
+                    </h5>
+                </div>
+                <div class="card-body recent-activity">
+                    {% for formulario in ultimos_formularios %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ formulario.cargo.nome }}</h6>
+                                <small class="text-muted">{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <div>
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    <span class="badge bg-warning">Pendente</span>
+                                {% elif formulario.status_requisicao == 'AP' %}
+                                    <span class="badge bg-success">Aprovado</span>
+                                {% elif formulario.status_requisicao == 'RE' %}
+                                    <span class="badge bg-danger">Rejeitado</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-0 text-muted small">{{ formulario.quantidade_vagas }} vaga{{ formulario.quantidade_vagas|pluralize }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">Nenhum formulário encontrado</p>
+                    {% endfor %}
+                    
+                    {% if ultimos_formularios %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary btn-sm">
+                            Ver todos os formulários
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>Candidatos Recentes
+                    </h5>
+                </div>
+                <div class="card-body recent-activity">
+                    {% for candidato in candidatos_recentes %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ candidato.nome }}</h6>
+                                <small class="text-muted">{{ candidato.vaga.cargo.nome }} - {{ candidato.dt_inclusao|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <div>
+                                {% if candidato.conseguiu_vaga %}
+                                    <span class="badge bg-success">Contratado</span>
+                                {% elif candidato.candidato_online %}
+                                    <span class="badge bg-info">Online</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Balcão</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">Nenhum candidato encontrado</p>
+                    {% endfor %}
+                    
+                    {% if candidatos_recentes %}
+                    <div class="text-center mt-3">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Atualizar dados a cada 5 minutos
+    setInterval(function() {
+        location.reload();
+    }, 300000); // 5 minutos
+});
+</script>
+{% endblock %}

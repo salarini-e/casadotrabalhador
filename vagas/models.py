@@ -443,3 +443,65 @@ class CandidatoSelecionado(models.Model):
     
     def get_cpf_formatado(self):
         return f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"
+
+
+class ResponsavelEmpresa(models.Model):
+    """Modelo para gerenciar usuários responsáveis pelas empresas"""
+    
+    class Meta:
+        verbose_name = "Responsável da Empresa"
+        verbose_name_plural = "Responsáveis das Empresas"
+        ordering = ['nome']
+        # Uma pessoa pode ser responsável por várias empresas
+    
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='responsaveis', verbose_name='Empresa')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Usuário', null=True, blank=True)
+    nome = models.CharField(max_length=100, verbose_name='Nome completo', null=True, blank=True)
+    cpf = models.CharField(max_length=14, verbose_name='CPF', null=True, blank=True)
+    email = models.EmailField(verbose_name='Email', null=True, blank=True)
+    cargo = models.CharField(max_length=100, verbose_name='Cargo na empresa', blank=True)
+    telefone = models.CharField(max_length=15, verbose_name='Telefone', blank=True)
+    ativo = models.BooleanField(default=True, verbose_name='Ativo')
+    dt_criacao = models.DateTimeField(auto_now_add=True, verbose_name='Data de criação')
+    criado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='responsaveis_criados', 
+                                 verbose_name='Criado por')
+    observacoes = models.TextField(blank=True, verbose_name='Observações internas')
+    
+    def __str__(self):
+        return f"{self.nome} ({self.get_cpf_formatado()}) - {self.empresa.nome}"
+    
+    def get_cpf_formatado(self):
+        """Retorna CPF formatado"""
+        if len(self.cpf) == 11:
+            return f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"
+        return self.cpf
+    
+    def get_cpf_numeros(self):
+        """Retorna apenas os números do CPF"""
+        return ''.join(filter(str.isdigit, self.cpf))
+    
+    def pode_acessar_empresa(self, empresa_id):
+        """Verifica se o responsável pode acessar os dados da empresa"""
+        return self.ativo and self.empresa.id == empresa_id
+    
+    def vincular_usuario_existente(self):
+        """Tenta vincular a um usuário existente com base no CPF ou email"""
+        from autenticacao.models import Pessoa
+        
+        # Primeiro tenta encontrar por CPF na tabela Pessoa
+        try:
+            pessoa = Pessoa.objects.get(cpf=self.get_cpf_numeros())
+            self.user = pessoa.user
+            return True
+        except Pessoa.DoesNotExist:
+            pass
+        
+        # Se não encontrou por CPF, tenta por email
+        try:
+            user = User.objects.get(email=self.email)
+            self.user = user
+            return True
+        except User.DoesNotExist:
+            pass
+            
+        return False

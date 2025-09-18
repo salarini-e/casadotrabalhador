@@ -602,6 +602,8 @@
     gtag('js', new Date());
     gtag('config', 'G-6PFZS9T0XW');
   </script>
+  {% block extra_css %}
+  {% endblock %}
 </head>
 
 <body>
@@ -782,7 +784,7 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <div class="container-fluid px-0">
+    <div class="container-fluid px-0" style="padding-top: 150px;">
       {% block main %}{% endblock %}
     </div>
   </main>

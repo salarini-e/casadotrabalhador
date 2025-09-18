@@ -1,0 +1,373 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Formulário #{{ formulario.id }} - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .formulario-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .status-pendente {
+        background: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffeaa7;
+    }
+    
+    .status-aprovado {
+        background: #d1edff;
+        color: #0c5460;
+        border: 2px solid #b8daff;
+    }
+    
+    .status-rejeitado {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+    
+    .info-card {
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .info-card .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 15px 15px 0 0 !important;
+        font-weight: 600;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+        flex: 0 0 40%;
+    }
+    
+    .detail-value {
+        flex: 1;
+        text-align: right;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline:before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: -22px;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        background: #007bff;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 2px #dee2e6;
+    }
+    
+    .text-highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    {% include 'vagas/includes/seletor_empresa.html' %}
+    
+    <!-- Header do Formulário -->
+    <div class="formulario-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    <h1 class="mb-0 me-3">Formulário #{{ formulario.id }}</h1>
+                    {% if formulario.status_requisicao == 'PE' %}
+                        <span class="status-badge status-pendente">
+                            <i class="fas fa-clock me-2"></i>Pendente
+                        </span>
+                    {% elif formulario.status_requisicao == 'AP' %}
+                        <span class="status-badge status-aprovado">
+                            <i class="fas fa-check-circle me-2"></i>Aprovado
+                        </span>
+                    {% elif formulario.status_requisicao == 'RE' %}
+                        <span class="status-badge status-rejeitado">
+                            <i class="fas fa-times-circle me-2"></i>Rejeitado
+                        </span>
+                    {% endif %}
+                </div>
+                <h3 class="mb-1">{{ formulario.cargo.nome }}</h3>
+                <p class="mb-0 opacity-75">
+                    <i class="fas fa-calendar me-2"></i>Criado em {{ formulario.dt_inclusao|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações Principais -->
+        <div class="col-md-8">
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Informações da Vaga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Cargo:</span>
+                        <span class="detail-value text-highlight">{{ formulario.cargo.nome }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Quantidade de Vagas:</span>
+                        <span class="detail-value">
+                            <span class="badge bg-primary fs-6">{{ formulario.quantidade_vagas }}</span>
+                        </span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Salário:</span>
+                        <span class="detail-value">
+                            <strong class="text-success">R$ {{ formulario.salario|floatformat:2 }}</strong>
+                        </span>
+                    </div>
+                    
+                    {% if formulario.escolaridade_minima %}
+                    <div class="detail-item">
+                        <span class="detail-label">Escolaridade Mínima:</span>
+                        <span class="detail-value">{{ formulario.escolaridade_minima.escolaridade }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.turno %}
+                    <div class="detail-item">
+                        <span class="detail-label">Turno:</span>
+                        <span class="detail-value">{{ formulario.get_turno_display }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.tipo_contrato %}
+                    <div class="detail-item">
+                        <span class="detail-label">Tipo de Contrato:</span>
+                        <span class="detail-value">{{ formulario.get_tipo_contrato_display }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.experiencia_minima %}
+                    <div class="detail-item">
+                        <span class="detail-label">Experiência Mínima:</span>
+                        <span class="detail-value">{{ formulario.experiencia_minima }} anos</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.idade_minima or formulario.idade_maxima %}
+                    <div class="detail-item">
+                        <span class="detail-label">Faixa Etária:</span>
+                        <span class="detail-value">
+                            {% if formulario.idade_minima %}{{ formulario.idade_minima }}{% endif %}
+                            {% if formulario.idade_minima and formulario.idade_maxima %} a {% endif %}
+                            {% if formulario.idade_maxima %}{{ formulario.idade_maxima }}{% endif %} anos
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if formulario.descricao_cargo %}
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-text me-2"></i>Descrição do Cargo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ formulario.descricao_cargo|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if formulario.requisitos %}
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check me-2"></i>Requisitos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ formulario.requisitos|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if formulario.beneficios %}
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-gift me-2"></i>Benefícios
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ formulario.beneficios|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Informações Secundárias -->
+        <div class="col-md-4">
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building me-2"></i>Informações da Empresa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Empresa:</span>
+                        <span class="detail-value">{{ empresa.nome_fantasia }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">CNPJ:</span>
+                        <span class="detail-value">{{ formulario.cnpj_da_empresa }}</span>
+                    </div>
+                    
+                    {% if formulario.contato_nome %}
+                    <div class="detail-item">
+                        <span class="detail-label">Contato:</span>
+                        <span class="detail-value">{{ formulario.contato_nome }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.contato_telefone %}
+                    <div class="detail-item">
+                        <span class="detail-label">Telefone:</span>
+                        <span class="detail-value">{{ formulario.contato_telefone }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if formulario.contato_email %}
+                    <div class="detail-item">
+                        <span class="detail-label">E-mail:</span>
+                        <span class="detail-value">{{ formulario.contato_email }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Histórico
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Formulário Criado</strong>
+                                <small class="text-muted">{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <p class="text-muted small mb-0">Solicitação de vaga enviada</p>
+                        </div>
+                        
+                        {% if formulario.dt_aprovacao %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="text-success">Aprovado</strong>
+                                <small class="text-muted">{{ formulario.dt_aprovacao|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            {% if formulario.observacoes_aprovacao %}
+                            <p class="text-muted small mb-0">{{ formulario.observacoes_aprovacao }}</p>
+                            {% endif %}
+                        </div>
+                        {% elif formulario.dt_rejeicao %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="text-danger">Rejeitado</strong>
+                                <small class="text-muted">{{ formulario.dt_rejeicao|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            {% if formulario.motivo_rejeicao %}
+                            <p class="text-muted small mb-0">{{ formulario.motivo_rejeicao }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if formulario.status_requisicao == 'AP' %}
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-external-link-alt me-2"></i>Ações
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        Este formulário foi aprovado e já deve ter vaga(s) ativa(s) no sistema.
+                    </p>
+                    <a href="{% url 'vagas:empresa_vagas' %}?cargo={{ formulario.cargo.nome }}" 
+                       class="btn btn-primary btn-sm w-100 mb-2">
+                        <i class="fas fa-briefcase me-2"></i>Ver Vagas do Cargo
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

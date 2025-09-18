@@ -1,0 +1,297 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Vagas - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_enhanced.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar Menu -->
+    <div class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <i class="fas fa-building"></i>
+                <span>Painel Empresarial</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h6 class="nav-section-title">Principal</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Vagas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Formulários</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h6 class="nav-section-title">Empresa</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            <span>Perfil da Empresa</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Vagas</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-briefcase me-2"></i>Gerenciar Vagas
+            </h1>
+            <p>{{ empresa.nome_fantasia }} - Visualize e gerencie todas as vagas</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-card">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="status" class="form-label fw-bold">
+                        <i class="fas fa-filter me-1"></i>Filtrar por Status
+                    </label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todas as vagas</option>
+                        <option value="ativas" {% if status_filter == 'ativas' %}selected{% endif %}>Apenas ativas</option>
+                        <option value="inativas" {% if status_filter == 'inativas' %}selected{% endif %}>Apenas inativas</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-end">
+                        <span class="badge bg-primary fs-6 p-2">
+                            <i class="fas fa-briefcase me-1"></i>
+                            {{ vagas|length }} vaga{{ vagas|length|pluralize }}
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Estatísticas Resumidas -->
+        {% if vagas %}
+        <div class="stats-summary">
+            <h6 class="mb-3">
+                <i class="fas fa-chart-bar me-2"></i>Resumo Geral
+            </h6>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_vagas }}</div>
+                    <div class="stat-label">Total de Vagas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ vagas_ativas }}</div>
+                    <div class="stat-label">Vagas Ativas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_candidatos_empresa }}</div>
+                    <div class="stat-label">Total de Candidatos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_contratados_empresa }}</div>
+                    <div class="stat-label">Contratações</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Vagas -->
+        {% if vagas %}
+        <div class="vagas-grid">
+            {% for vaga in vagas %}
+            <div class="vaga-card {% if vaga.ativo %}ativa{% else %}inativa{% endif %}">
+                <div class="vaga-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h6 class="vaga-title">{{ vaga.cargo.nome }}</h6>
+                        <span class="vaga-status {% if vaga.ativo %}status-ativa{% else %}status-inativa{% endif %}">
+                            {% if vaga.ativo %}
+                                <i class="fas fa-check-circle me-1"></i>Ativa
+                            {% else %}
+                                <i class="fas fa-times-circle me-1"></i>Inativa
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="vaga-body">
+                    <!-- Estatísticas da Vaga -->
+                    <div class="vaga-stats">
+                        <div class="vaga-stat">
+                            <div class="stat-number">{{ vaga.quantidadeVagas }}</div>
+                            <div class="stat-text">Vaga{{ vaga.quantidadeVagas|pluralize }}</div>
+                        </div>
+                        <div class="vaga-stat">
+                            <div class="stat-number">R$ {{ vaga.salario|floatformat:2 }}</div>
+                            <div class="stat-text">Salário</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalhes da Vaga -->
+                    <div class="vaga-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Criada em {{ vaga.dt_inclusao|date:"d/m/Y" }}</span>
+                        </div>
+                        {% if vaga.escolaridade %}
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>{{ vaga.escolaridade.escolaridade }}</span>
+                        </div>
+                        {% endif %}
+                        {% if vaga.turno %}
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>{{ vaga.get_turno_display }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Descrição da Vaga -->
+                    {% if vaga.descricao_cargo %}
+                    <div class="vaga-description">
+                        {{ vaga.descricao_cargo|truncatechars:120 }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Informações sobre Candidatos -->
+                    <div class="candidatos-info">
+                        <div class="candidatos-count">
+                            <i class="fas fa-users me-1"></i>
+                            {{ vaga.total_candidatos }} candidato{{ vaga.total_candidatos|pluralize }}
+                        </div>
+                        <div class="candidatos-label">
+                            {% if vaga.candidatos_contratados > 0 %}
+                                {{ vaga.candidatos_contratados }} contratado{{ vaga.candidatos_contratados|pluralize }}
+                            {% else %}
+                                Nenhuma contratação realizada
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Ações -->
+                    <div class="vaga-actions">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="btn btn-primary">
+                            <i class="fas fa-cog me-1"></i>Gerenciar
+                        </a>
+                        {% if vaga.total_candidatos > 0 %}
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}#candidatos" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-1"></i>Candidatos
+                        </a>
+                        {% else %}
+                        <button class="btn btn-outline-secondary" disabled>
+                            <i class="fas fa-users me-1"></i>Sem Candidatos
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Estado Vazio -->
+        <div class="empty-state">
+            <i class="fas fa-briefcase"></i>
+            <h5>Nenhuma vaga encontrada</h5>
+            <p>
+                {% if status_filter %}
+                    Não há vagas com o status selecionado.
+                {% else %}
+                    Sua empresa ainda não possui vagas cadastradas.
+                {% endif %}
+            </p>
+            {% if status_filter %}
+            <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
+                <i class="fas fa-eye me-1"></i>Ver todas as vagas
+            </a>
+            {% else %}
+            <div class="mt-3">
+                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-primary">
+                    <i class="fas fa-file-alt me-2"></i>Solicitar Nova Vaga
+                </a>
+                <p class="text-muted mt-2 mb-0">
+                    Para criar novas vagas, é necessário enviar um formulário de solicitação
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit do formulário de filtro quando mudar o select
+    document.getElementById('status').addEventListener('change', function() {
+        this.closest('form').submit();
+    });
+    
+    // Animação das vagas
+    const vagas = document.querySelectorAll('.vaga-card');
+    vagas.forEach((vaga, index) => {
+        setTimeout(() => {
+            vaga.style.opacity = '1';
+            vaga.style.transform = 'translateY(0)';
+        }, 100 * index);
+    });
+    
+    // Tooltip para informações adicionais
+    if (typeof bootstrap !== 'undefined') {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+    }
+});
+</script>
+{% endblock %}

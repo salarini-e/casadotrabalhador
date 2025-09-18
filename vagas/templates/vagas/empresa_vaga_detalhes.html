@@ -1,0 +1,362 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Vaga: {{ vaga.cargo.nome }} - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar Menu -->
+    <div class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <i class="fas fa-building"></i>
+                <span>Painel Empresarial</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h6 class="nav-section-title">Principal</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Vagas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Formulários</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h6 class="nav-section-title">Empresa</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            <span>Perfil da Empresa</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}">Vagas</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ vaga.cargo.nome }}</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1 class="mb-2">
+                <i class="fas fa-briefcase me-2"></i>{{ vaga.cargo.nome }}
+            </h1>
+            <p class="mb-0 opacity-75">Gerencie candidatos e detalhes da vaga</p>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="action-buttons">
+            <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar para Vagas
+            </a>
+            {% if vaga.ativo %}
+            <button class="btn btn-warning" onclick="toggleVagaStatus({{ vaga.id }}, false)">
+                <i class="fas fa-pause me-1"></i>Desativar Vaga
+            </button>
+            {% else %}
+            <button class="btn btn-success" onclick="toggleVagaStatus({{ vaga.id }}, true)">
+                <i class="fas fa-play me-1"></i>Ativar Vaga
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Informações da Vaga -->
+        <div class="vaga-info-card">
+            <h3 class="vaga-title">{{ vaga.cargo.nome }}</h3>
+            
+            <!-- Estatísticas da Vaga -->
+            <div class="vaga-stats">
+                <div class="stat-box">
+                    <div class="stat-value">{{ vaga.quantidadeVagas }}</div>
+                    <div class="stat-label">Vaga{{ vaga.quantidadeVagas|pluralize }} Disponívei{{ vaga.quantidadeVagas|pluralize }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">R$ {{ vaga.salario|floatformat:2 }}</div>
+                    <div class="stat-label">Salário</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ candidatos.count }}</div>
+                    <div class="stat-label">Total de Candidatos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ candidatos_contratados }}</div>
+                    <div class="stat-label">Candidatos Contratados</div>
+                </div>
+            </div>
+            
+            <!-- Detalhes da Vaga -->
+            <div class="vaga-details">
+                <div>
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar"></i>Data de Criação
+                        </div>
+                        <div class="detail-value">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    
+                    {% if vaga.escolaridade %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-graduation-cap"></i>Escolaridade
+                        </div>
+                        <div class="detail-value">{{ vaga.escolaridade.escolaridade }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.turno %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-clock"></i>Turno
+                        </div>
+                        <div class="detail-value">{{ vaga.get_turno_display }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.regiao %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-map-marker-alt"></i>Região
+                        </div>
+                        <div class="detail-value">{{ vaga.regiao.regiao }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-toggle-{% if vaga.ativo %}on text-success{% else %}off text-danger{% endif %}"></i>Status
+                        </div>
+                        <div class="detail-value">
+                            {% if vaga.ativo %}
+                                <span class="text-success fw-bold">Ativa</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">Inativa</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if vaga.empresa_responsavel %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-user-tie"></i>Responsável
+                        </div>
+                        <div class="detail-value">{{ vaga.empresa_responsavel.nome }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.dt_prazo %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-hourglass-end"></i>Prazo
+                        </div>
+                        <div class="detail-value">{{ vaga.dt_prazo|date:"d/m/Y" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if vaga.descricao_cargo %}
+            <div class="detail-group">
+                <div class="detail-label">
+                    <i class="fas fa-align-left"></i>Descrição da Vaga
+                </div>
+                <div class="detail-value">{{ vaga.descricao_cargo|linebreaks }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Seção de Candidatos -->
+        <div class="candidatos-section" id="candidatos">
+            <div class="section-header">
+                <h5 class="section-title">
+                    <i class="fas fa-users"></i>Candidatos ({{ candidatos.count }})
+                </h5>
+            </div>
+            
+            {% if candidatos %}
+            <div class="candidatos-grid">
+                {% for candidato in candidatos %}
+                <div class="candidato-card {% if candidato.contratado %}contratado{% else %}pendente{% endif %}">
+                    <div class="candidato-header">
+                        <div>
+                            <div class="candidato-nome">{{ candidato.nome }}</div>
+                            <div class="candidato-email">{{ candidato.email }}</div>
+                        </div>
+                        <span class="status-badge {% if candidato.contratado %}status-contratado{% else %}status-pendente{% endif %}">
+                            {% if candidato.contratado %}
+                                <i class="fas fa-check-circle me-1"></i>Contratado
+                            {% else %}
+                                <i class="fas fa-clock me-1"></i>Pendente
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="candidato-info">
+                        {% if candidato.telefone %}
+                        <div class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ candidato.telefone }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if candidato.dt_nascimento %}
+                        <div class="info-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <span>{{ candidato.dt_nascimento|date:"d/m/Y" }} ({{ candidato.idade }} anos)</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="info-item">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>Candidatou-se em {{ candidato.dt_inclusao|date:"d/m/Y" }}</span>
+                        </div>
+                        
+                        {% if candidato.contratado and candidato.dt_contratacao %}
+                        <div class="info-item">
+                            <i class="fas fa-handshake"></i>
+                            <span>Contratado em {{ candidato.dt_contratacao|date:"d/m/Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="candidato-actions">
+                        <a href="{% url 'vagas:empresa_candidato_perfil' candidato.id %}" class="btn btn-primary">
+                            <i class="fas fa-user me-1"></i>Ver Perfil
+                        </a>
+                        {% if not candidato.contratado %}
+                        <button class="btn btn-success" onclick="contratarCandidato({{ candidato.id }})">
+                            <i class="fas fa-handshake me-1"></i>Contratar
+                        </button>
+                        {% else %}
+                        <button class="btn btn-outline-primary" disabled>
+                            <i class="fas fa-check me-1"></i>Contratado
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h5>Nenhum candidato ainda</h5>
+                <p>Esta vaga ainda não recebeu candidaturas.</p>
+                {% if not vaga.ativo %}
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    A vaga está inativa. Ative-a para receber candidatos.
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function contratarCandidato(candidatoId) {
+    if (confirm('Tem certeza que deseja contratar este candidato?')) {
+        fetch(`/vagas/empresa/candidato/${candidatoId}/contratar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao contratar candidato: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao contratar candidato');
+        });
+    }
+}
+
+function toggleVagaStatus(vagaId, ativar) {
+    const action = ativar ? 'ativar' : 'desativar';
+    if (confirm(`Tem certeza que deseja ${action} esta vaga?`)) {
+        fetch(`/vagas/empresa/vaga/${vagaId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ativo: ativar })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao alterar status da vaga: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao alterar status da vaga');
+        });
+    }
+}
+
+// Scroll suave para seção de candidatos
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#candidatos') {
+        document.getElementById('candidatos').scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    }
+});
+</script>
+{% endblock %}

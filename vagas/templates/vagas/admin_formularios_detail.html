@@ -359,8 +359,7 @@
                   <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Mudanças</h5>
                   </div>
-                  <div class="card-body text-center text-muted">
-                    <i class="fas fa-history fa-3x mb-3 text-light"></i>
+                  <div class="card-body text-center text-muted">                    
                     <p class="mb-0">Nenhum histórico disponível ainda.</p>
                   </div>
                 </div>
@@ -389,6 +388,17 @@
                       <p class="mb-1"><strong>Responsável:</strong> {{ formulario.nome_do_responsavel_pela_divulgacao_da_vaga|default:"Não informado" }}</p>
                     </div>
                   </div>
+                  {% if formulario.status_requisicao == 'AP' and not vaga_vinculada %}
+                  <div class="row">
+                    <div class="col py-4">
+                      
+                        <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="w-100 btn btn-success">
+                          Cadastrar Vaga no Sistema
+                        </a>
+                      
+                    </div>
+                  </div>
+                  {% endif %}
                 </div>
               </div>
 
@@ -414,7 +424,7 @@
                         </div>
                       </div>
                     </div>
-                    <div class="mt-3">
+                    <!-- <div class="mt-3">
                       <div class="btn-group w-100" role="group">
                         <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-success">
                           <i class="fas fa-users me-1"></i>Ver Candidatos
@@ -423,7 +433,7 @@
                           <i class="fas fa-eye me-1"></i>Ver Vaga
                         </a>
                       </div>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               {% endif %}
@@ -501,7 +511,7 @@
                         </div>
                       {% endif %}
                       
-                      <div class="col-12 mt-3">
+                      <!-- <div class="col-12 mt-3">
                         <div class="d-grid gap-2 d-md-flex">
                           {% if vaga_vinculada.empresa.email %}
                             <a href="mailto:{{ vaga_vinculada.empresa.email }}" class="btn btn-outline-primary btn-sm">
@@ -517,7 +527,7 @@
                             <i class="fas fa-users me-1"></i>Ver Candidatos ({{ candidatos_da_vaga.count|default:0 }})
                           </a>
                         </div>
-                      </div>
+                      </div> -->
                     </div>
                   </div>
                 </div>
@@ -606,7 +616,7 @@
                     <label class="form-check-label">Enviar por Email</label>
                   </div>
                   {% if formulario.email_para_envio %}
-                    <small class="text-muted d-block mt-1">Email: {{ formulario.email_para_envio }}</small>
+                    <small class=" d-block mt-1">Email: {{ formulario.email_para_envio }}</small>
                   {% endif %}
                 </div>
                 <div class="col-12">
@@ -615,7 +625,7 @@
                     <label class="form-check-label">Levar Diretamente</label>
                   </div>
                   {% if formulario.endereco_para_levar_curriculo %}
-                    <small class="text-muted d-block mt-1">Endereço: {{ formulario.endereco_para_levar_curriculo }}</small>
+                    <small class=" d-block mt-1">Endereço: {{ formulario.endereco_para_levar_curriculo }}</small>
                   {% endif %}
                 </div>
                 <div class="col-12">
@@ -624,7 +634,7 @@
                     <label class="form-check-label">Via Telefone/WhatsApp</label>
                   </div>
                   {% if formulario.telefone_ou_whatsapp %}
-                    <small class="text-muted d-block mt-1">Telefone: {{ formulario.telefone_ou_whatsapp }}</small>
+                    <small class=" d-block mt-1">Telefone: {{ formulario.telefone_ou_whatsapp }}</small>
                   {% endif %}
                 </div>
                 <div class="col-12">
@@ -633,7 +643,7 @@
                     <label class="form-check-label">Outra Forma</label>
                   </div>
                   {% if formulario.outra_forma_de_contato_descricao %}
-                    <small class="text-muted d-block mt-1">Descrição: {{ formulario.outra_forma_de_contato_descricao }}</small>
+                    <small class=" d-block mt-1">Descrição: {{ formulario.outra_forma_de_contato_descricao }}</small>
                   {% endif %}
                 </div>
               </div>
@@ -715,16 +725,13 @@
                   {% endif %}
                   
                   <div class="col-12 mt-4">
-                    <div class="d-grid gap-2 d-md-flex">
-                      <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-success">
-                        <i class="fas fa-users me-1"></i>Ver Candidatos ({{ candidatos_da_vaga.count|default:0 }})
-                      </a>
-                      <a href="#" class="btn btn-outline-success">
+                    <div class="d-grid gap-2 d-md-flex">                      
+                      <a href="{% url 'vagas:visualizar_vaga' vaga_vinculada.pk %}" target="_blank" class="btn btn-outline-success">
                         <i class="fas fa-eye me-1"></i>Ver Detalhes da Vaga
                       </a>
                     </div>
                   </div>
-                </div>
+                </div>  
               </div>
             </div>
           {% else %}
@@ -748,9 +755,9 @@
                       <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
                     </a>
                   {% else %}
-                    <div class="alert alert-info mb-0">
+                    <div class="alert mb-0">
                       <i class="fas fa-info-circle me-2"></i>
-                      <strong>Status atual:</strong> {{ formulario.get_status_requisicao_display }}
+                      <strong>Status atual:</strong> <span class="alert alert-info py-1">{{ formulario.get_status_requisicao_display }}</span> 
                       <br><small>Aprove o formulário primeiro para poder cadastrar a vaga.</small>
                     </div>
                   {% endif %}
@@ -763,96 +770,7 @@
     </div>
 
     <!-- Dados da Vaga -->
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Dados da Vaga</h5>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Cargo:</label>
-                <p class="mb-0">{{ formulario.cargo_ofertado|default:"Não informado" }}</p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Quantidade de Vagas:</label>
-                <p class="mb-0">{{ formulario.quantidade_de_vagas }}</p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Tipo de Vaga:</label>
-                <p class="mb-0">{{ formulario.get_tipo_de_vaga_display }}</p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Regime:</label>
-                <p class="mb-0">{{ formulario.regime|default:"Não informado" }}</p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Faixa Salarial:</label>
-                <p class="mb-0">
-                  {{ formulario.get_faixa_salarial_display }}
-                  {% if formulario.valor_salario %}
-                    - R$ {{ formulario.valor_salario }}
-                  {% endif %}
-                </p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Carga Horária:</label>
-                <p class="mb-0">
-                  {{ formulario.get_carga_horaria_display }}
-                  {% if formulario.outra_carga_horaria %}
-                    - {{ formulario.outra_carga_horaria }}
-                  {% endif %}
-                </p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Escolaridade:</label>
-                <p class="mb-0">{{ formulario.escolaridade.nome|default:"Não informado" }}</p>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Experiência:</label>
-                <p class="mb-0">{{ formulario.get_experiencia_display|default:"Não informado" }}</p>
-              </div>
-              {% if formulario.observacao %}
-                <div class="col-12">
-                  <label class="form-label fw-bold">Observações:</label>
-                  <p class="mb-0">{{ formulario.observacao }}</p>
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Benefícios -->
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-gift me-2"></i>Benefícios</h5>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" {% if formulario.vale_transporte %}checked{% endif %} disabled>
-                  <label class="form-check-label">Vale Transporte</label>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" {% if formulario.vale_alimentacao %}checked{% endif %} disabled>
-                  <label class="form-check-label">Vale Alimentação</label>
-                </div>
-              </div>
-              {% if formulario.outros_beneficios %}
-                <div class="col-12">
-                  <label class="form-label fw-bold">Outros Benefícios:</label>
-                  <p class="mb-0">{{ formulario.outros_beneficios }}</p>
-                </div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    
     <!-- Candidates Tab -->
     <div class="tab-pane fade" id="candidates" role="tabpanel">
       {% if vaga_vinculada and candidatos_da_vaga %}
@@ -927,7 +845,7 @@
           </div>
         </div>
       {% else %}
-        <div class="alert alert-warning">
+        <div class="alert border-warning text-center alert-warning" style="border: 1px solid #ffc107;">
           <h6 class="alert-heading">
             <i class="fas fa-exclamation-triangle me-2"></i>Nenhuma vaga vinculada
           </h6>
@@ -937,7 +855,9 @@
               <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
             </a>
           {% else %}
-            <p class="mb-0">Aprove o formulário primeiro para poder cadastrar a vaga.</p>
+            <p class="mb-0">
+              <i>Aprove o formulário primeiro para poder cadastrar a vaga.</i>
+            </p>
           {% endif %}
         </div>
       {% endif %}
@@ -948,15 +868,47 @@
       <div class="row">
         <div class="col-lg-6">
           <!-- Status e Controles de Estado -->
-          <div class="card mb-4">
+           <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Técnicas</h5>
+            </div>
+            <div class="card-body">
+              <table class="table table-sm">
+                <tr>
+                  <td><strong>ID:</strong></td>
+                  <td>{{ formulario.pk }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Criado em:</strong></td>
+                  <td>{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Hash ID:</strong></td>
+                  <td><code>{{ formulario.hash_id }}</code></td>
+                </tr>
+                
+                <tr>
+                  <td><strong>Chave de Acesso:</strong></td>
+                  <td><code>{{ formulario.chave_de_acesso }}</code></td>
+                </tr>
+                {% if vaga_vinculada %}
+                <tr>
+                  <td><strong>Vaga Vinculada:</strong></td>
+                  <td>#{{ vaga_vinculada.pk }}</td>
+                </tr>
+                {% endif %}
+              </table>
+            </div>
+          </div>
+          <div class="card mt-4 mb-4">
             <div class="card-header">
               <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Controle de Status</h5>
             </div>
             <div class="card-body">
               <!-- Status Atual -->
-              <div class="mb-3">
+              <div class="mb-0 d-flex">
                 <label class="form-label">Status Atual:</label>
-                <div>
+                <div class="ms-2">
                   {% if formulario.status_requisicao == 'AG' %}
                     <span class="badge bg-warning fs-6">Aguardando Preenchimento</span>
                   {% elif formulario.status_requisicao == 'PE' %}
@@ -972,7 +924,12 @@
                   {% endif %}
                 </div>
               </div>
-
+              {% if vaga_vinculada %}
+                <div class="alert mt-3 p-0">
+                  <i class="fas fa-info-circle me-2 text-success"></i>
+                  Esta requisição está vinculada à vaga REF <strong>#{{ vaga_vinculada.pk }}</strong>  no sistema.
+                </div>
+              {% endif %}
               <!-- Atualizar Status -->
               {% if formulario.status_requisicao == 'PE' or formulario.status_requisicao == 'AE' %}
                 <form method="POST" action="{% url 'vagas:admin_formularios_update_status' formulario.pk %}">
@@ -1082,14 +1039,14 @@
                       Copiar Link de Visualização
                     {% endif %}
                   </button>
-                  <button type="button" class="btn btn-outline-secondary" onclick="copyBothToClipboard()">
+                  <button type="button" class="btn btn-secondary" style="background-color: #6c757d !important; border-color: #6c757d !important; color: #fff !important;  " onclick="copyBothToClipboard()">
                     <i class="fas fa-clipboard me-2"></i>Copiar Link + Chave
                   </button>
                 </div>
 
                 <!-- Instruções -->
                 {% if formulario.status_requisicao == 'AG' %}
-                  <div class="alert alert-info mt-3 mb-0">
+                  <div class="alert mt-3 mb-0">
                     <h6 class="alert-heading">
                       <i class="fas fa-lightbulb me-2"></i>Como enviar para a empresa:
                     </h6>
@@ -1101,15 +1058,15 @@
                     </ol>
                   </div>
                 {% elif formulario.status_requisicao == 'AP' %}
-                  <div class="alert alert-success mt-3 mb-0">
+                  <div class="alert mt-3 mb-0">
                     <h6 class="alert-heading">
                       <i class="fas fa-eye me-2"></i>Acesso para visualização:
                     </h6>
                     <ol class="mb-2">
-                      <li>Copie o <strong>link de acesso</strong> acima</li>
-                      <li>Copie a <strong>chave de acesso</strong>: <code>{{ formulario.chave_de_acesso }}</code></li>
-                      <li>Envie para a empresa visualizar os dados e candidatos</li>
-                      <li>A empresa poderá <strong>visualizar candidatos</strong> e fazer seleções</li>
+                      <li>Copie o <strong>link de acesso</strong> acima.</li>
+                      <li>Copie a <strong>chave de acesso</strong>.</li>
+                      <li>Envie para a empresa visualizar os dados e candidatos, após a criação da vaga.</li>
+                      <li>A empresa poderá <strong>visualizar candidatos</strong> e fazer seleções.</li>
                     </ol>
                   </div>
                 {% endif %}
@@ -1118,37 +1075,7 @@
           {% endif %}
 
           <!-- Informações Técnicas -->
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Técnicas</h5>
-            </div>
-            <div class="card-body">
-              <table class="table table-sm">
-                <tr>
-                  <td><strong>ID:</strong></td>
-                  <td>{{ formulario.pk }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Hash ID:</strong></td>
-                  <td><code>{{ formulario.hash_id|truncatechars:20 }}...</code></td>
-                </tr>
-                <tr>
-                  <td><strong>Criado em:</strong></td>
-                  <td>{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Chave de Acesso:</strong></td>
-                  <td><code>{{ formulario.chave_de_acesso|truncatechars:20 }}...</code></td>
-                </tr>
-                {% if vaga_vinculada %}
-                <tr>
-                  <td><strong>Vaga Vinculada:</strong></td>
-                  <td>#{{ vaga_vinculada.pk }}</td>
-                </tr>
-                {% endif %}
-              </table>
-            </div>
-          </div>
+            
         </div>
       </div>
     </div>
@@ -1513,6 +1440,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .btn-group .btn:hover {
     z-index: 2;
+}
+
+.form-check-input:disabled ~ .form-check-label, .form-check-input[disabled] ~ .form-check-label {
+  opacity: 1;
+}
+.form-check-input:disabled {  
+  opacity: 1;
 }
 </style>
 
