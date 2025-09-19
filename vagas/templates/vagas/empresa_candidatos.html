@@ -5,42 +5,23 @@
 {% block title %}Candidatos - {{ empresa.nome_fantasia }}{% endblock %}
 
 {% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
-    .nav-empresa {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-    
-    .nav-empresa .nav-link {
-        color: white;
-        font-weight: 500;
-        border-radius: 8px;
-        margin: 0 5px;
-        transition: all 0.3s ease;
-    }
-    
-    .nav-empresa .nav-link:hover {
-        background: rgba(255,255,255,0.2);
-        color: white;
-    }
-    
-    .nav-empresa .nav-link.active {
-        background: rgba(255,255,255,0.3);
-        color: white;
-    }
-    
     .candidato-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
         border: none;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         border-radius: 15px;
         overflow: hidden;
+        opacity: 0;
+        transform: translateY(20px);
     }
     
-    .candidato-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    .candidato-card.show {
+        opacity: 1;
+        transform: translateY(0);
     }
     
     .candidato-contratado {
@@ -48,7 +29,7 @@
     }
     
     .candidato-online {
-        border-left: 5px solid #007bff;
+        border-left: 5px solid #104a74;
     }
     
     .candidato-balcao {
@@ -80,25 +61,10 @@
         border: 1px solid #d6d8db;
     }
     
-    .filter-section {
-        background: #f8f9fa;
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 30px;
-    }
-    
-    .vaga-highlight {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: bold;
-    }
-    
     .candidato-avatar {
         width: 50px;
         height: 50px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -108,153 +74,160 @@
         font-size: 1.2rem;
     }
     
-    .stats-overview {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 30px;
+    .stats-summary {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        text-align: center;
     }
     
     .stat-item {
-        text-align: center;
-        padding: 10px;
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f9fa;
     }
     
-    .stat-number {
-        font-size: 2rem;
-        font-weight: bold;
-        display: block;
+    .stat-item .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #104a74;
+        margin-bottom: 0.25rem;
     }
     
-    .stat-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
+    .stat-item .stat-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .vaga-highlight {
+        color: #104a74;
+        font-weight: 600;
+    }
+    
+    .candidatos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
     }
 </style>
 {% endblock %}
 
 {% block main %}
-<div class="container-fluid">
-    {% include 'vagas/includes/seletor_empresa.html' %}
-    
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0">Candidatos</h1>
-            <p class="text-muted">{{ empresa.nome_fantasia }}</p>
-        </div>
-        <div>
-            <a href="{% url 'vagas:dashboard_empresa' %}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
-            </a>
-        </div>
-    </div>
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' %}
 
-    <!-- Navegação do Painel -->
-    <ul class="nav nav-pills nav-empresa p-3 mb-4">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:dashboard_empresa' %}">
-                <i class="fas fa-chart-line me-2"></i>Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:empresa_formularios' %}">
-                <i class="fas fa-file-alt me-2"></i>Formulários
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:empresa_vagas' %}">
-                <i class="fas fa-briefcase me-2"></i>Vagas
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link active" href="{% url 'vagas:empresa_candidatos' %}">
-                <i class="fas fa-users me-2"></i>Candidatos
-            </a>
-        </li>
-    </ul>
-
-    <!-- Estatísticas Resumidas -->
-    <div class="stats-overview">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="stat-item">
-                    <span class="stat-number">{{ candidatos.count }}</span>
-                    <span class="stat-label">Total de Candidatos</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-item">
-                    <span class="stat-number">{{ candidatos_contratados }}</span>
-                    <span class="stat-label">Contratados</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-item">
-                    <span class="stat-number">{{ candidatos_online }}</span>
-                    <span class="stat-label">Candidaturas Online</span>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-item">
-                    <span class="stat-number">{{ candidatos_balcao }}</span>
-                    <span class="stat-label">Encaminhamentos</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="filter-section">
-        <div class="alert alert-info mb-3">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Nota:</strong> Para vagas encerradas, são exibidos apenas os candidatos selecionados. 
-            Para vagas ativas, todos os candidatos são mostrados.
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Candidatos</li>
+                </ol>
+            </nav>
         </div>
         
-        <form method="GET" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label for="vaga" class="form-label fw-bold">Vaga</label>
-                <select name="vaga" id="vaga" class="form-select">
-                    <option value="">Todas as vagas</option>
-                    {% for vaga_opt in vagas_empresa %}
-                    <option value="{{ vaga_opt.id }}" {% if vaga_filter == vaga_opt.id|stringformat:"s" %}selected{% endif %}>
-                        {{ vaga_opt.cargo.nome }} ({{ vaga_opt.candidato_set.count }} candidatos)
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="status" class="form-label fw-bold">Status</label>
-                <select name="status" id="status" class="form-select">
-                    <option value="">Todos os status</option>
-                    <option value="contratados" {% if status_filter == 'contratados' %}selected{% endif %}>Contratados</option>
-                    <option value="online" {% if status_filter == 'online' %}selected{% endif %}>Candidatura Online</option>
-                    <option value="balcao" {% if status_filter == 'balcao' %}selected{% endif %}>Encaminhamento</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary me-2">
-                    <i class="fas fa-filter me-2"></i>Filtrar
-                </button>
-                <a href="{% url 'vagas:empresa_candidatos' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times me-2"></i>Limpar
-                </a>
-            </div>
-            <div class="col-md-3 text-end">
-                <span class="badge bg-primary fs-6 p-2">
-                    {{ candidatos.count }} candidato{{ candidatos.count|pluralize }}
-                </span>
-            </div>
-        </form>
-    </div>
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-users me-2"></i>Gerenciar Candidatos
+            </h1>
+            <p>{{ empresa.nome_fantasia }} - Visualize e gerencie todos os candidatos</p>
+        </div>
 
-    <!-- Lista de Candidatos -->
-    <div class="row">
-        {% for candidato in candidatos %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card candidato-card h-100 
+        <!-- Estatísticas Resumidas -->
+        <div class="stats-summary">
+            <h6 class="mb-3">
+                <i class="fas fa-chart-bar me-2"></i>Resumo Geral
+            </h6>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_candidatos }}</div>
+                    <div class="stat-label">Total de Candidatos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ candidatos_contratados }}</div>
+                    <div class="stat-label">Contratados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ candidatos_pendentes }}</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_vagas }}</div>
+                    <div class="stat-label">Vagas Ativas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-card">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="vaga" class="form-label fw-bold">
+                        <i class="fas fa-briefcase me-1"></i>Filtrar por Vaga
+                    </label>
+                    <select name="vaga" id="vaga" class="form-select">
+                        <option value="">Todas as vagas</option>
+                        {% for vaga_opt in vagas %}
+                        <option value="{{ vaga_opt.id }}" {% if vaga_filter == vaga_opt.id|stringformat:"s" %}selected{% endif %}>
+                            {{ vaga_opt.cargo.nome }} ({{ vaga_opt.candidato_set.count }} candidatos)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label fw-bold">
+                        <i class="fas fa-filter me-1"></i>Status
+                    </label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos os status</option>
+                        <option value="contratados" {% if status_filter == 'contratados' %}selected{% endif %}>Contratados</option>
+                        <option value="pendentes" {% if status_filter == 'pendentes' %}selected{% endif %}>Pendentes</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search" class="form-label fw-bold">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </label>
+                    <input type="text" name="search" id="search" class="form-control" 
+                           placeholder="Nome, CPF ou Email" value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    {% if vaga_filter or status_filter or search_query %}
+                    <div class="text-center mt-2">
+                        <a href="{% url 'vagas:empresa_candidatos' %}" class="btn btn-link btn-sm">
+                            <i class="fas fa-times me-1"></i>Limpar Filtros
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Candidatos -->
+        <div class="candidatos-grid">
+            {% for candidato in candidatos %}
+            <div class="candidato-card h-100 
                 {% if candidato.conseguiu_vaga %}candidato-contratado
                 {% elif candidato.candidato_online %}candidato-online
                 {% else %}candidato-balcao{% endif %}">
@@ -344,81 +317,74 @@
                     </div>
                 </div>
             </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Nenhum candidato encontrado</h5>
-                    <p class="text-muted">
-                        {% if vaga_filter or status_filter %}
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h5>Nenhum candidato encontrado</h5>
+                    <p>
+                        {% if vaga_filter or status_filter or search_query %}
                             Não há candidatos com os filtros selecionados.
                         {% else %}
                             Suas vagas ainda não receberam candidaturas.
                         {% endif %}
                     </p>
-                    {% if vaga_filter or status_filter %}
+                    {% if vaga_filter or status_filter or search_query %}
                     <a href="{% url 'vagas:empresa_candidatos' %}" class="btn btn-outline-primary">
-                        Ver todos os candidatos
+                        <i class="fas fa-eye me-2"></i>Ver todos os candidatos
                     </a>
                     {% else %}
                     <div class="mt-3">
-                        <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-primary me-2">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-primary">
                             <i class="fas fa-briefcase me-2"></i>Ver Vagas Ativas
                         </a>
-                        <small class="text-muted d-block mt-2">
-                            Verifique se suas vagas estão ativas e visíveis para candidatos
-                        </small>
+                        <p class="text-muted mt-2 mb-0">
+                            Para receber candidatos, suas vagas precisam estar ativas e visíveis.
+                        </p>
                     </div>
                     {% endif %}
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-    
-    <!-- Resumo por Vaga -->
-    {% if candidatos and not vaga_filter %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Candidatos por Vaga
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for vaga in vagas_empresa %}
-                        {% if vaga.candidato_set.count > 0 %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card border-0 bg-light">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title">{{ vaga.cargo.nome }}</h6>
-                                    <h4 class="text-primary mb-1">{{ vaga.candidato_set.count }}</h4>
-                                    <small class="text-muted">candidato{{ vaga.candidato_set.count|pluralize }}</small>
-                                    <div class="mt-2">
-                                        <a href="{% url 'vagas:empresa_candidatos' %}?vaga={{ vaga.id }}" 
-                                           class="btn btn-outline-primary btn-sm">
-                                            Ver Candidatos
-                                        </a>
-                                    </div>
-                                </div>
+        
+        <!-- Resumo por Vaga -->
+        {% if candidatos and not vaga_filter %}
+        <div class="content-card mt-4">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-bar me-2"></i>Distribuição de Candidatos por Vaga
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for vaga in vagas %}
+                    {% if vaga.candidato_set.count > 0 %}
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card">
+                            <div class="text-center">
+                                <h6 class="vaga-highlight mb-2">{{ vaga.cargo.nome }}</h6>
+                                <h3 class="mb-1 stat-value">{{ vaga.candidato_set.count }}</h3>
+                                <p class="text-muted mb-3">candidato{{ vaga.candidato_set.count|pluralize }}</p>
+                                <a href="{% url 'vagas:empresa_candidatos' %}?vaga={{ vaga.id }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-users me-2"></i>Ver Candidatos
+                                </a>
                             </div>
                         </div>
-                        {% endif %}
-                        {% endfor %}
                     </div>
+                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
-    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
 <script>
 $(document).ready(function() {
     // Auto-submit do formulário de filtro quando mudar os selects
@@ -426,8 +392,48 @@ $(document).ready(function() {
         $(this).closest('form').submit();
     });
     
+    // Animação das cards de candidatos
+    const candidatoCards = document.querySelectorAll('.candidato-card');
+    candidatoCards.forEach((card, index) => {
+        setTimeout(() => {
+            $(card).addClass('show');
+        }, 100 * index);
+    });
+    
     // Tooltip para informações adicionais
     $('[data-bs-toggle="tooltip"]').tooltip();
+    
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    const content = document.querySelector('.dashboard-content');
+    
+    if (sidebarToggle) {
+        $(sidebarToggle).on('click', function() {
+            $(sidebar).toggleClass('collapsed');
+            
+            if ($(sidebar).hasClass('collapsed')) {
+                $(content).css('margin-left', '80px');
+            } else {
+                $(content).css('margin-left', '280px');
+            }
+        });
+    }
+    
+    // Check screen width and collapse sidebar on small screens
+    const checkWidth = () => {
+        if (window.innerWidth <= 768) {
+            $(sidebar).addClass('collapsed');
+            $(content).css('margin-left', '80px');
+        } else {
+            $(sidebar).removeClass('collapsed');
+            $(content).css('margin-left', '280px');
+        }
+    };
+    
+    // Initial check and on window resize
+    checkWidth();
+    $(window).on('resize', checkWidth);
 });
 </script>
 {% endblock %}

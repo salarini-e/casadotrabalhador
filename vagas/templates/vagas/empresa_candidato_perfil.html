@@ -10,53 +10,7 @@
 
 {% block main %}
 <div class="dashboard-wrapper">
-    <!-- Sidebar Menu -->
-    <div class="dashboard-sidebar">
-        <div class="sidebar-header">
-            <div class="brand-logo">
-                <i class="fas fa-building"></i>
-                <span>Painel Empresarial</span>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <h6 class="nav-section-title">Principal</h6>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
-                            <i class="fas fa-chart-pie"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Vagas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Formulários</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="nav-section">
-                <h6 class="nav-section-title">Empresa</h6>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
-                            <i class="fas fa-building"></i>
-                            <span>Perfil da Empresa</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </div>
+    {% include 'vagas/includes/sidebar_empresa.html' with active_page='candidatos' %}
 
     <!-- Main Content -->
     <div class="dashboard-content">

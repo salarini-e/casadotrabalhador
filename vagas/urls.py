@@ -83,6 +83,7 @@ urlpatterns = [
     path('painel-empresarial/formularios/', views.empresa_formularios, name='empresa_formularios'),
     path('painel-empresarial/formulario/<int:formulario_id>/', views.empresa_formulario_detalhes, name='empresa_formulario_detalhes'),
     path('painel-empresarial/vagas/', views.empresa_vagas, name='empresa_vagas'),
+    path('painel-empresarial/candidatos/', views.empresa_candidatos, name='empresa_candidatos'),
     path('painel-empresarial/vaga/<int:vaga_id>/', views.empresa_vaga_detalhes, name='empresa_vaga_detalhes'),
     path('painel-empresarial/vaga/<int:vaga_id>/candidato/<int:candidato_id>/selecionar/', views.empresa_selecionar_candidato, name='empresa_selecionar_candidato'),
     path('painel-empresarial/vaga/<int:vaga_id>/encerrar/', views.empresa_encerrar_vaga, name='empresa_encerrar_vaga'),

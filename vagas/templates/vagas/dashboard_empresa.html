@@ -4,59 +4,13 @@
 {% block title %}Dashboard Empresarial - {{ empresa.nome_fantasia }}{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'vagas/css/painel_empresarial_fixed.css' %}" rel="stylesheet">
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block main %}
 <div class="dashboard-wrapper">
-    <!-- Sidebar Menu -->
-    <div class="dashboard-sidebar">
-        <div class="sidebar-header">
-            <div class="brand-logo">
-                <i class="fas fa-building"></i>
-                <span>Painel Empresarial</span>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <div class="nav-section">
-                <h6 class="nav-section-title">Principal</h6>
-                <ul class="nav-menu">
-                    <li class="nav-item active">
-                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
-                            <i class="fas fa-chart-pie"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Vagas</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Formulários</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="nav-section">
-                <h6 class="nav-section-title">Empresa</h6>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
-                            <i class="fas fa-building"></i>
-                            <span>Perfil da Empresa</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </div>
+    {% include 'vagas/includes/sidebar_empresa.html' %}
 
     <!-- Main Content -->
     <div class="dashboard-content">
@@ -71,59 +25,7 @@
         </div>
 
         <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <div>
-                        <div class="stat-value">{{ total_vagas }}</div>
-                        <div class="stat-label">Total de Vagas</div>
-                    </div>
-                </div>
-                <div class="stat-detail">{{ vagas_ativas }} ativas no momento</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div>
-                        <div class="stat-value">{{ candidatos_total }}</div>
-                        <div class="stat-label">Total de Candidatos</div>
-                    </div>
-                </div>
-                <div class="stat-detail">{{ candidatos_unicos }} candidatos únicos</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div>
-                        <div class="stat-value">{{ candidatos_contratados }}</div>
-                        <div class="stat-label">Contratações</div>
-                    </div>
-                </div>
-                <div class="stat-detail">{{ taxa_conversao }}% de taxa de conversão</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-header">
-                    <div class="stat-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div>
-                        <div class="stat-value">{{ formularios.count }}</div>
-                        <div class="stat-label">Formulários</div>
-                    </div>
-                </div>
-                <div class="stat-detail">{{ formularios_pendentes }} aguardando aprovação</div>
-            </div>
-        </div>
+        
 
         <!-- Content Grid -->
         <div class="content-grid">

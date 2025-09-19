@@ -14,116 +14,7 @@
 
 <!-- Professional Dashboard Layout -->
 <div class="dashboard-wrapper">
-  <!-- Sidebar Menu -->
-  <div class="dashboard-sidebar">
-    <div class="sidebar-header">
-      <div class="brand-logo">
-        <i class="fas fa-tachometer-alt"></i>
-        <span>Admin Panel</span>
-      </div>
-      <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-bars"></i>
-      </button>
-    </div>
-    
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <h6 class="nav-section-title">Principal</h6>
-        <ul class="nav-menu">
-          <li class="nav-item active">
-            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
-              <i class="fas fa-home"></i>
-              <span>Dashboard</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
-              <i class="fas fa-briefcase"></i>
-              <span>Vagas</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
-              <i class="fas fa-users"></i>
-              <span>Candidatos</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
-              <i class="fas fa-building"></i>
-              <span>Empresas</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
-              <i class="fas fa-file-alt"></i>
-              <span>Formulários</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Relatórios</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
-              <i class="fas fa-chart-line"></i>
-              <span>Indicadores</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
-              <i class="fas fa-list-alt"></i>
-              <span>Vagas com Candidatos</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
-              <i class="fas fa-user-tie"></i>
-              <span>Por Funcionário</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:emails' %}" class="nav-link">
-              <i class="fas fa-envelope"></i>
-              <span>E-mails</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      
-      <div class="nav-section">
-        <h6 class="nav-section-title">Sistema</h6>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
-              <i class="fas fa-database"></i>
-              <span>Backup</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
-              <i class="fas fa-trash"></i>
-              <span>Excluir CPF</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-    
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar">
-          <i class="fas fa-user"></i>
-        </div>
-        <div class="user-details">
-          <span class="user-name">{{ user.first_name|default:user.username }}</span>
-          <span class="user-role">Administrador</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  {% include 'vagas/includes/sidebar_admin.html' %}
 
   <!-- Main Dashboard Content -->
   <div class="dashboard-content">
@@ -641,6 +532,20 @@
 
 .dashboard-badge-info {
   background: linear-gradient(135deg, #17a2b8, #138496) !important;
+}
+
+.chart-container-fluid {
+  position: relative;
+  height: 80vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .chart-container-fluid {
+    height: 50vh;
+  }
 }
 
 .dashboard-badge-warning {
@@ -1745,14 +1650,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ========== FIM NOVOS GRÁFICOS ==========
-
-    // Sidebar toggle functionality
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.dashboard-sidebar');
-    
-    sidebarToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-    });
 
     // Auto-refresh functionality
     const refreshBtn = document.querySelector('.btn-action[title="Atualizar dados"]');

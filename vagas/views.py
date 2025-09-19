@@ -2848,6 +2848,73 @@ def empresa_vagas(request):
 @empresa_user_required
 def empresa_perfil(request):
     """Perfil e dados da empresa"""
+
+
+@empresa_user_required
+def empresa_candidatos(request):
+    """Lista de candidatos da empresa (todas as vagas)"""
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+
+        # Obter todas as vagas da empresa para o filtro
+        vagas = Vaga_Emprego.objects.filter(empresa=empresa).order_by('cargo__nome')
+
+        # Obter todos os candidatos das vagas da empresa
+        candidatos = Candidato.objects.filter(vaga__empresa=empresa).order_by('-dt_inclusao')
+
+        # Aplicar filtros
+        vaga_filter = request.GET.get('vaga', '')
+        status_filter = request.GET.get('status', '')
+        search_query = request.GET.get('search', '')
+
+        if vaga_filter:
+            candidatos = candidatos.filter(vaga_id=vaga_filter)
+
+        if status_filter == 'contratados':
+            candidatos = candidatos.filter(conseguiu_vaga=True)
+        elif status_filter == 'pendentes':
+            candidatos = candidatos.filter(conseguiu_vaga=False)
+
+        if search_query:
+            candidatos = candidatos.filter(
+                Q(nome__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(cpf__icontains=search_query)
+            )
+
+        # Estatísticas
+        total_candidatos = Candidato.objects.filter(vaga__empresa=empresa).count()
+        candidatos_contratados = Candidato.objects.filter(vaga__empresa=empresa, conseguiu_vaga=True).count()
+        candidatos_pendentes = total_candidatos - candidatos_contratados
+        total_vagas = Vaga_Emprego.objects.filter(empresa=empresa, ativo=True).count()
+        candidatos_online = Candidato.objects.filter(vaga__empresa=empresa, candidato_online=True).count()
+        candidatos_balcao = total_candidatos - candidatos_online
+
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vagas': vagas,
+            'candidatos': candidatos,
+            'vaga_filter': vaga_filter,
+            'status_filter': status_filter,
+            'search_query': search_query,
+            'total_candidatos': total_candidatos,
+            'candidatos_contratados': candidatos_contratados,
+            'candidatos_pendentes': candidatos_pendentes,
+            'total_vagas': total_vagas,
+            'candidatos_online': candidatos_online,
+            'candidatos_balcao': candidatos_balcao,
+        }
+        return render(request, 'vagas/empresa_candidatos.html', context)
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar candidatos: {str(e)}')
+        return redirect('vagas:home')
     try:
         responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
         
