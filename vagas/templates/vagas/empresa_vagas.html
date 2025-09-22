@@ -92,7 +92,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ total_contratados_empresa }}</div>
-                    <div class="stat-label">Contratações</div>
+                    <div class="stat-label">Contratações<br>Sinalizadas</div>
                 </div>
             </div>
         </div>
@@ -128,7 +128,7 @@
                             <div class="stat-text">Vaga{{ vaga.quantidadeVagas|pluralize }}</div>
                         </div>
                         <div class="vaga-stat">
-                            <div class="stat-number">R$ {{ vaga.salario|floatformat:2 }}</div>
+                            <div class="stat-number">{{ vaga.salario }}</div>
                             <div class="stat-text">Salário</div>
                         </div>
                     </div>
@@ -142,7 +142,7 @@
                         {% if vaga.escolaridade %}
                         <div class="detail-item">
                             <i class="fas fa-graduation-cap"></i>
-                            <span>{{ vaga.escolaridade.escolaridade }}</span>
+                            <span>{{ vaga.escolaridade }}</span>
                         </div>
                         {% endif %}
                         {% if vaga.turno %}
@@ -181,7 +181,7 @@
                             <i class="fas fa-cog me-1"></i>Gerenciar
                         </a> -->
                         {% if vaga.total_candidatos > 0 %}
-                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}#candidatos" class="btn btn-outline-primary w-100">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="btn btn-outline-primary w-100">
                             <i class="fas fa-users me-1"></i>Candidatos
                         </a>
                         {% else %}

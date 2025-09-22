@@ -1,4 +1,4 @@
-{% extends 'template_new.html' %}
+{% extends 'template_empresa.html' %}
 {% load static %}
 {% load widget_tweaks %}
 
@@ -6,431 +6,267 @@
 
 {% block extra_css %}
 <link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
-<style>
-    .empresa-logo {
-        width: 120px;
-        height: 120px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        margin-right: 30px;
-        position: relative;
-        z-index: 2;
-    }
-    
-    .info-card {
-        border: none;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border-radius: 20px;
-        margin-bottom: 25px;
-        overflow: hidden;
-        transition: transform 0.3s ease;
-    }
-    
-    .info-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .info-card .card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-bottom: 2px solid #dee2e6;
-        font-weight: 600;
-        padding: 20px;
-    }
-    
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 0;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-label {
-        font-weight: 600;
-        color: #6c757d;
-        flex: 0 0 40%;
-        display: flex;
-        align-items: center;
-    }
-    
-    .detail-label i {
-        margin-right: 8px;
-        color: #104a74;
-    }
-    
-    .detail-value {
-        flex: 1;
-        text-align: right;
-        font-weight: 500;
-    }
-    
-    .responsavel-card {
-        border: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border-radius: 15px;
-        transition: transform 0.2s ease;
-        margin-bottom: 20px;
-    }
-    
-    .responsavel-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .responsavel-avatar {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 1.5rem;
-        margin-right: 20px;
-    }
-    
-    .stats-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 20px;
-        padding: 30px;
-        margin-bottom: 30px;
-    }
-    
-    .stat-item {
-        text-align: center;
-        padding: 20px;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-        transition: transform 0.2s ease;
-    }
-    
-    .stat-item:hover {
-        transform: translateY(-3px);
-    }
-    
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        display: block;
-        margin-bottom: 10px;
-    }
-    
-    .stat-label {
-        color: #6c757d;
-        font-weight: 500;
-    }
-    
-    .status-badge {
-        padding: 0.375rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-    
-    .status-ativo {
-        background: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-</style>
+<link href="{% static 'vagas/css/empresa_perfil.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 {% endblock %}
 
-{% block main %}
-<div class="container-fluid">
-    {% include 'vagas/includes/seletor_empresa.html' %}
+{% block content %}
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' %}
     
-    <!-- Header da Empresa -->
-    <div class="empresa-header">
-        <div class="row align-items-center">
-            <div class="col-auto">
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Perfil da Empresa</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-building me-2"></i>Perfil da Empresa
+            </h1>
+            <p>Informações e dados de {{ empresa.nome_fantasia }}</p>
+        </div>
+
+        <!-- Profile Header Card -->
+        <div class="profile-header card info-card">
+            <div class="card-body d-flex align-items-center">
                 <div class="empresa-logo">
                     <i class="fas fa-building"></i>
                 </div>
-            </div>
-            <div class="col">
-                <h1 class="mb-2">{{ empresa.nome_fantasia }}</h1>
-                <h4 class="mb-3 opacity-75">{{ empresa.razao_social }}</h4>
-                <p class="mb-0 fs-5">
-                    <i class="fas fa-id-card me-2"></i>CNPJ: {{ empresa.cnpj }}
-                </p>
-            </div>
-            <div class="col-auto">
-                <a href="{% url 'vagas:dashboard_empresa' %}" class="btn btn-light btn-lg">
-                    <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
-                </a>
+                <div>
+                    <h2 class="mb-1">{{ empresa.nome_fantasia }}</h2>
+                    <p class="mb-1 text-muted">{{ empresa.razao_social }}</p>
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-id-card me-1"></i>CNPJ: {{ empresa.cnpj }}
+                        {% if empresa.ativo %}
+                        <span class="status-badge status-ativo ms-2">
+                            <i class="fas fa-check me-1"></i>Ativa
+                        </span>
+                        {% else %}
+                        <span class="badge bg-danger ms-2">
+                            <i class="fas fa-times me-1"></i>Inativa
+                        </span>
+                        {% endif %}
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Navegação do Painel -->
-    <ul class="nav nav-pills nav-empresa p-3 mb-4">
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:dashboard_empresa' %}">
-                <i class="fas fa-chart-line me-2"></i>Dashboard
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:empresa_formularios' %}">
-                <i class="fas fa-file-alt me-2"></i>Formulários
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'vagas:empresa_vagas' %}">
-                <i class="fas fa-briefcase me-2"></i>Vagas
-            </a>
-        </li>
-    </ul>
-
-    <div class="row">
-        <!-- Informações da Empresa -->
-        <div class="col-md-8">
-            <div class="card info-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-building me-2"></i>Informações da Empresa
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-store"></i>Nome Fantasia:
-                        </span>
-                        <span class="detail-value">{{ empresa.nome_fantasia }}</span>
+        <div class="row">
+            <!-- Informações da Empresa -->
+            <div class="col-lg-8">
+                <div class="card info-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building me-2"></i>Informações da Empresa
+                        </h5>
                     </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-file-contract"></i>Razão Social:
-                        </span>
-                        <span class="detail-value">{{ empresa.razao_social }}</span>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-id-card"></i>CNPJ:
-                        </span>
-                        <span class="detail-value">{{ empresa.cnpj }}</span>
-                    </div>
-                    
-                    {% if empresa.telefone %}
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-phone"></i>Telefone:
-                        </span>
-                        <span class="detail-value">{{ empresa.telefone }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if empresa.email %}
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-envelope"></i>E-mail:
-                        </span>
-                        <span class="detail-value">{{ empresa.email }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if empresa.endereco %}
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-map-marker-alt"></i>Endereço:
-                        </span>
-                        <span class="detail-value">{{ empresa.endereco }}</span>
-                    </div>
-                    {% endif %}
-                    
-                    {% if empresa.site %}
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-globe"></i>Website:
-                        </span>
-                        <span class="detail-value">
-                            <a href="{{ empresa.site }}" target="_blank" class="text-decoration-none">
-                                {{ empresa.site }}
-                            </a>
-                        </span>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-calendar-plus"></i>Cadastro:
-                        </span>
-                        <span class="detail-value">{{ empresa.dt_inclusao|date:"d/m/Y H:i" }}</span>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">
-                            <i class="fas fa-check-circle"></i>Status:
-                        </span>
-                        <span class="detail-value">
-                            {% if empresa.ativo %}
-                                <span class="status-badge status-ativo">
-                                    <i class="fas fa-check me-1"></i>Ativa
-                                </span>
-                            {% else %}
-                                <span class="badge bg-danger">
-                                    <i class="fas fa-times me-1"></i>Inativa
-                                </span>
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
-            
-            {% if empresa.descricao %}
-            <div class="card info-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Descrição da Empresa
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0">{{ empresa.descricao|linebreaks }}</p>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- Estatísticas e Responsáveis -->
-        <div class="col-md-4">
-            <!-- Estatísticas Rápidas -->
-            <div class="stats-section">
-                <h5 class="mb-4 text-center">
-                    <i class="fas fa-chart-pie me-2"></i>Estatísticas
-                </h5>
-                
-                <div class="stat-item">
-                    <span class="stat-number">{{ empresa.vaga_emprego_set.count }}</span>
-                    <span class="stat-label">Total de Vagas</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">{{ vagas_ativas }}</span>
-                    <span class="stat-label">Vagas Ativas</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">{{ candidatos_unicos }}</span>
-                    <span class="stat-label">Total de Candidatos</span>
-                </div>
-                
-                <div class="stat-item">
-                    <span class="stat-number">{{ responsaveis.count }}</span>
-                    <span class="stat-label">Responsáveis</span>
-                </div>
-            </div>
-            
-            <!-- Responsáveis -->
-            <div class="card info-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-users-cog me-2"></i>Responsáveis pela Empresa
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for resp in responsaveis %}
-                    <div class="card responsavel-card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center">
-                                <div class="responsavel-avatar">
-                                    {{ resp.user.first_name|first|default:resp.user.username|first|upper }}
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">
-                                        {{ resp.user.get_full_name|default:resp.user.username }}
-                                    </h6>
-                                    <p class="text-muted small mb-1">
-                                        <i class="fas fa-envelope me-1"></i>{{ resp.user.email }}
-                                    </p>
-                                    <p class="text-muted small mb-0">
-                                        <i class="fas fa-id-card me-1"></i>CPF: {{ resp.get_cpf_formatado }}
-                                    </p>
-                                </div>
-                                <div class="text-end">
-                                    {% if resp.ativo %}
-                                        <span class="status-badge status-ativo">
-                                            <i class="fas fa-check me-1"></i>Ativo
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-times me-1"></i>Inativo
-                                        </span>
-                                    {% endif %}
-                                    <div class="mt-2">
-                                        <small class="text-muted">
-                                            Desde {{ resp.dt_inclusao|date:"d/m/Y" }}
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="card-body">
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-store"></i>Nome Fantasia:
+                            </span>
+                            <span class="detail-value">{{ empresa.nome_fantasia }}</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-file-contract"></i>Razão Social:
+                            </span>
+                            <span class="detail-value">{{ empresa.razao_social }}</span>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-id-card"></i>CNPJ:
+                            </span>
+                            <span class="detail-value">{{ empresa.cnpj }}</span>
+                        </div>
+                        
+                        {% if empresa.telefone %}
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-phone"></i>Telefone:
+                            </span>
+                            <span class="detail-value">{{ empresa.telefone }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if empresa.email %}
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-envelope"></i>E-mail:
+                            </span>
+                            <span class="detail-value">{{ empresa.email }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if empresa.endereco %}
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-map-marker-alt"></i>Endereço:
+                            </span>
+                            <span class="detail-value">{{ empresa.endereco }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if empresa.site %}
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-globe"></i>Website:
+                            </span>
+                            <span class="detail-value">
+                                <a href="{{ empresa.site }}" target="_blank" class="text-decoration-none">
+                                    {{ empresa.site }}
+                                </a>
+                            </span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-calendar-plus"></i>Cadastro:
+                            </span>
+                            <span class="detail-value">{{ empresa.dt_inclusao|date:"d/m/Y H:i" }}</span>
                         </div>
                     </div>
-                    {% empty %}
-                    <div class="text-center py-3">
-                        <i class="fas fa-users fa-2x text-muted mb-2"></i>
-                        <p class="text-muted">Nenhum responsável encontrado</p>
+                </div>
+                
+                {% if empresa.descricao %}
+                <div class="card info-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Descrição da Empresa
+                        </h5>
                     </div>
-                    {% endfor %}
+                    <div class="card-body">
+                        <p class="mb-0">{{ empresa.descricao|linebreaks }}</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Ações Disponíveis -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card info-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tools me-2"></i>Ações Disponíveis
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="d-grid">
-                                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-primary">
-                                    <i class="fas fa-file-alt me-2"></i>Gerenciar Formulários
+                {% endif %}
+                
+                <!-- Ações Disponíveis -->
+                <div class="card info-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools me-2"></i>Ações Disponíveis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary w-100">
+                                    <i class="fas fa-plus-circle me-2"></i>Nova Requisição
                                 </a>
                             </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="d-grid">
-                                <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-success">
+                            <div class="col-md-4">
+                                <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-success w-100">
                                     <i class="fas fa-briefcase me-2"></i>Ver Vagas
                                 </a>
                             </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="d-grid">
-                                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-info">
+                            <div class="col-md-4">
+                                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-info text-white w-100">
                                     <i class="fas fa-file-alt me-2"></i>Ver Formulários
                                 </a>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="d-grid">
-                                <a href="{% url 'vagas:dashboard_empresa' %}" class="btn btn-outline-primary">
-                                    <i class="fas fa-chart-line me-2"></i>Dashboard
-                                </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Estatísticas e Responsáveis -->
+            <div class="col-lg-4">
+                <!-- Estatísticas Rápidas -->
+                <div class="stats-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>Estatísticas
+                    </h5>
+                    
+                    <div class="stat-item">
+                        <span class="stat-number">{{ empresa.vaga_emprego_set.count }}</span>
+                        <span class="stat-label">Total de Vagas</span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-number">{{ vagas_ativas }}</span>
+                        <span class="stat-label">Vagas Ativas</span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-number">{{ candidatos_unicos }}</span>
+                        <span class="stat-label">Total de Candidatos</span>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <span class="stat-number">{{ responsaveis.count }}</span>
+                        <span class="stat-label">Responsáveis</span>
+                    </div>
+                </div>
+                
+                <!-- Responsáveis -->
+                <div class="card info-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users-cog me-2"></i>Responsáveis pela Empresa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for resp in responsaveis %}
+                        <div class="card responsavel-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="responsavel-avatar">
+                                        {{ resp.user.first_name|first|default:resp.user.username|first|upper }}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            {{ resp.user.get_full_name|default:resp.user.username }}
+                                        </h6>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fas fa-envelope me-1"></i>{{ resp.user.email }}
+                                        </p>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-id-card me-1"></i>CPF: {{ resp.get_cpf_formatado }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if resp.ativo %}
+                                            <span class="status-badge status-ativo">
+                                                <i class="fas fa-check me-1"></i>Ativo
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Inativo
+                                            </span>
+                                        {% endif %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                Desde {{ resp.dt_inclusao|date:"d/m/Y" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        {% empty %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">Nenhum responsável encontrado</p>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -441,16 +277,34 @@
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Adicionar interatividade aos cards
-    $('.responsavel-card, .stat-item').hover(
-        function() {
-            $(this).addClass('shadow-lg');
-        },
-        function() {
-            $(this).removeClass('shadow-lg');
-        }
-    );
+    const cards = document.querySelectorAll('.info-card, .responsavel-card, .stat-item');
+    
+    // Animar cards ao carregar a página
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+    
+    // Hover effect
+    document.querySelectorAll('.responsavel-card, .stat-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.classList.add('shadow-lg');
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.classList.remove('shadow-lg');
+        });
+    });
 });
 </script>
 {% endblock %}

@@ -1,46 +1,50 @@
-{% extends 'template_new.html' %}
+{% extends 'template_empresa.html' %}
 {% load static %}
 {% load widget_tweaks %}
 
 {% block title %}Selecionar Candidato - {{ empresa.nome_fantasia }}{% endblock %}
 
 {% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
     .confirmation-header {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        background: linear-gradient(135deg, #104a74 0%, #1a6ba6 100%);
         color: white;
-        padding: 30px;
-        border-radius: 15px;
+        padding: 2rem;
+        border-radius: 12px;
         margin-bottom: 30px;
     }
     
     .candidato-card {
         border: none;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border-radius: 20px;
-        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
         overflow: hidden;
     }
     
     .candidato-avatar {
-        width: 100px;
-        height: 100px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #104a74 0%, #1a6ba6 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: bold;
-        font-size: 2.5rem;
-        margin-right: 30px;
+        font-size: 2rem;
+        margin-right: 1.5rem;
+        flex-shrink: 0;
     }
     
     .info-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px 0;
+        padding: 1rem 0;
         border-bottom: 1px solid #f0f0f0;
     }
     
@@ -50,7 +54,7 @@
     
     .info-label {
         font-weight: 600;
-        color: #6c757d;
+        color: #495057;
         flex: 0 0 30%;
     }
     
@@ -63,182 +67,212 @@
     .warning-box {
         background: #fff3cd;
         border: 1px solid #ffeaa7;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 30px;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
     }
     
     .success-icon {
-        font-size: 4rem;
-        color: #28a745;
-        margin-bottom: 20px;
+        font-size: 3rem;
+        color: white;
+        margin-bottom: 1rem;
     }
     
     .action-buttons {
         display: flex;
-        gap: 15px;
+        gap: 1rem;
         justify-content: center;
-        margin-top: 30px;
+        margin-top: 1.5rem;
     }
     
     .btn-large {
-        padding: 15px 30px;
-        font-size: 1.1rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
         font-weight: 600;
-        border-radius: 10px;
-        min-width: 150px;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        background-color: #f9fafc;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card-header h5 i {
+        margin-right: 0.5rem;
+        color: #104a74;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .links-uteis {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-outline-primary {
+        border-color: #104a74;
+        color: #104a74;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #104a74;
+        color: white;
+    }
+    
+    .btn-outline-info {
+        border-color: #0dcaf0;
+        color: #0dcaf0;
+    }
+    
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        color: white;
     }
 </style>
 {% endblock %}
 
 {% block main %}
-<div class="container-fluid">
-    {% include 'vagas/includes/seletor_empresa.html' %}
-    
-    <!-- Header de Confirmação -->
-    <div class="confirmation-header text-center">
-        <div class="success-icon">
-            <i class="fas fa-user-check"></i>
-        </div>
-        <h1 class="mb-2">Selecionar Candidato</h1>
-        <p class="mb-0 fs-5">Confirme a seleção do candidato para a vaga</p>
-    </div>
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' with active_page='candidatos' %}
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <!-- Informações da Vaga -->
-            <div class="card candidato-card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-briefcase me-2"></i>Informações da Vaga
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="info-item">
-                        <span class="info-label">Cargo:</span>
-                        <span class="info-value text-primary fw-bold">{{ vaga.cargo.nome }}</span>
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}">Vagas</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">{{ vaga.cargo.nome }}</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Selecionar Candidato</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-user-check me-2"></i>Selecionar Candidato
+            </h1>
+            <p>Confirme a seleção do candidato para a vaga</p>
+        </div>
+
+       
+
+        <div class="row justify-content-center mt-3">
+            <div class="col-md-12 row">
+                <!-- Informações da Vaga -->
+                <div class="card candidato-card col-md-5 me-1 ms-auto">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>Informações da Vaga
+                        </h5>
                     </div>
-                    
-                    <div class="info-item">
-                        <span class="info-label">Empresa:</span>
-                        <span class="info-value">{{ empresa.nome_fantasia }}</span>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="info-label">Salário:</span>
-                        <span class="info-value text-success fw-bold">R$ {{ vaga.salario|floatformat:2 }}</span>
-                    </div>
-                    
-                    <div class="info-item">
-                        <span class="info-label">Vagas Disponíveis:</span>
-                        <span class="info-value">{{ vaga.quantidadeVagas }}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Informações do Candidato -->
-            <div class="card candidato-card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>Candidato Selecionado
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="candidato-avatar">
-                            {{ candidato.nome|first|upper }}
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Cargo:</span>
+                            <span class="info-value text-primary fw-bold">{{ vaga.cargo.nome }}</span>
                         </div>
-                        <div>
-                            <h3 class="mb-1">{{ candidato.nome }}</h3>
-                            <p class="text-muted mb-1">
-                                <i class="fas fa-id-card me-1"></i>CPF: {{ candidato.cpf }}
-                            </p>
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-calendar me-1"></i>
-                                Candidatura em {{ candidato.dt_inclusao|date:"d/m/Y H:i" }}
-                            </p>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Empresa:</span>
+                            <span class="info-value">{{ empresa.nome_fantasia }}</span>
                         </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            {% if candidato.telefone %}
-                            <div class="info-item">
-                                <span class="info-label">Telefone:</span>
-                                <span class="info-value">{{ candidato.telefone }}</span>
-                            </div>
-                            {% endif %}
-                            
-                            {% if candidato.email %}
-                            <div class="info-item">
-                                <span class="info-label">E-mail:</span>
-                                <span class="info-value">{{ candidato.email }}</span>
-                            </div>
-                            {% endif %}
+                        
+                        <div class="info-item">
+                            <span class="info-label">Salário:</span>
+                            <span class="info-value text-success fw-bold">R$ {{ vaga.salario|floatformat:2 }}</span>
                         </div>
-                        <div class="col-md-6">
-                            <div class="info-item">
-                                <span class="info-label">Tipo:</span>
-                                <span class="info-value">
-                                    {% if candidato.candidato_online %}
-                                        <span class="badge bg-info">Candidatura Online</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Encaminhamento</span>
-                                    {% endif %}
-                                </span>
-                            </div>
-                            
-                            {% if not candidato.candidato_online and candidato.funcionario_responsavel %}
-                            <div class="info-item">
-                                <span class="info-label">Encaminhado por:</span>
-                                <span class="info-value">{{ candidato.funcionario_responsavel.get_full_name|default:candidato.funcionario_responsavel.username }}</span>
-                            </div>
-                            {% endif %}
+                        
+                        <div class="info-item">
+                            <span class="info-label">Vagas Disponíveis:</span>
+                            <span class="info-value">{{ vaga.quantidadeVagas }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Aviso sobre a Seleção -->
-            <div class="warning-box">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
-                    <div>
-                        <h6 class="mb-1">Atenção - Seleção de Candidato</h6>
-                        <p class="mb-0">
-                            Ao confirmar, este candidato será marcado como <strong>contratado</strong> para esta vaga. 
-                            {% if vaga.quantidadeVagas == 1 %}
-                                Como esta vaga possui apenas 1 posição, ela será automaticamente <strong>inativada</strong> após a seleção.
-                            {% else %}
-                                Esta ação reduzirá o número de vagas disponíveis.
-                            {% endif %}
-                        </p>
+                
+                <!-- Informações do Candidato -->
+                <div class="card candidato-card col-md-6 me-auto ms-2">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Candidato Selecionado
+                        </h5>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Formulário de Confirmação -->
-            <form method="POST">
-                {% csrf_token %}
-                <div class="action-buttons">
-                    <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" 
-                       class="btn btn-outline-secondary btn-large">
-                        <i class="fas fa-arrow-left me-2"></i>Cancelar
-                    </a>
-                    
-                    <button type="submit" class="btn btn-success btn-large">
-                        <i class="fas fa-check me-2"></i>Confirmar Seleção
-                    </button>
-                </div>
-            </form>
-            
-            <!-- Links Úteis -->
-            <div class="text-center mt-4">
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="{% url 'vagas:visualizar_candidato' candidato.id %}" 
-                       class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="fas fa-eye me-1"></i>Ver Perfil Completo
-                    </a>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="candidato-avatar">
+                                {{ candidato.nome|first|upper }}
+                            </div>
+                            <div>
+                                <h3 class="mb-1">{{ candidato.nome }}</h3>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-id-card me-1"></i>CPF: {{ candidato.cpf }}
+                                </p>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Candidatura em {{ candidato.dt_inclusao|date:"d/m/Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% if candidato.telefone %}
+                                <div class="info-item">
+                                    <span class="info-label">Telefone:</span>
+                                    <span class="info-value">{{ candidato.telefone }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if candidato.email %}
+                                <div class="info-item">
+                                    <span class="info-label">E-mail:</span>
+                                    <span class="info-value">{{ candidato.email }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Tipo:</span>
+                                    <span class="info-value">
+                                        {% if candidato.candidato_online %}
+                                            <span class="badge bg-info">Candidatura Online</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Encaminhamento</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                {% if not candidato.candidato_online and candidato.funcionario_responsavel %}
+                                <div class="info-item">
+                                    <span class="info-label">Encaminhado por:</span>
+                                    <span class="info-value">{{ candidato.funcionario_responsavel.get_full_name|default:candidato.funcionario_responsavel.username }}</span>
+                                </div>
+                                {% endif %}
+                                <!-- Links Úteis -->
+                <div class="links-uteis">                    
                     
                     {% if candidato.curriculo_user_id %}
                     <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
@@ -247,6 +281,44 @@
                     </a>
                     {% endif %}
                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aviso sobre a Seleção -->
+                <div class="warning-box col-11 mx-auto">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Atenção - Seleção de Candidato</h6>
+                            <p class="mb-0">
+                                Ao confirmar, este candidato será marcado como <strong>contratado</strong> para esta vaga. 
+                                {% if vaga.quantidadeVagas == 1 %}
+                                    Como esta vaga possui apenas 1 posição, ela será automaticamente <strong>inativada</strong> após a seleção.
+                                {% else %}
+                                    Esta ação reduzirá o número de vagas disponíveis.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulário de Confirmação -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="action-buttons">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" 
+                           class="btn btn-outline-secondary btn-large">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success btn-large">
+                            <i class="fas fa-check me-2"></i>Confirmar Seleção
+                        </button>
+                    </div>
+                </form>
+                                
             </div>
         </div>
     </div>
@@ -262,6 +334,26 @@ $(document).ready(function() {
             e.preventDefault();
         }
     });
+    
+    // Animação dos cards
+    function animateElements() {
+        const cards = document.querySelectorAll('.candidato-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            }, index * 150);
+        });
+    }
+    
+    // Executar animação quando a página carregar
+    animateElements();
 });
 </script>
 {% endblock %}

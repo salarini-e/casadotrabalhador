@@ -19,7 +19,7 @@
                         <i class="fas fa-chart-pie"></i>
                         <span>Dashboard</span>
                     </a>
-                </li>
+                </li>                
                 <li class="nav-item {% if request.resolver_match.url_name == 'empresa_vagas' %}active{% endif %}" title="Vagas">
                     <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
                         <i class="fas fa-briefcase"></i>
@@ -36,6 +36,12 @@
                     <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
                         <i class="fas fa-file-alt"></i>
                         <span>Formulários</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'nova_vaga' %}active{% endif %}" title="Nova Vaga">
+                    <a href="{% url 'vagas:empresa_formulario_criar' %}" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Nova vaga</span>
                     </a>
                 </li>
             </ul>

@@ -1,0 +1,213 @@
+/* 
+   Empresa Perfil CSS - Casa do Trabalhador
+   Este arquivo contém os estilos específicos para a página de perfil da empresa
+*/
+
+/* Cabeçalho do perfil */
+.profile-header {
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    border-left: 5px solid var(--primary-color);
+}
+
+.empresa-logo {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.empresa-logo i {
+    font-size: 2rem;
+}
+
+/* Cards de informação */
+.info-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.info-card .card-header {
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 10px 10px 0 0;
+}
+
+.info-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Itens de detalhe */
+.detail-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    margin-right: 0.5rem;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+}
+
+.detail-label i {
+    margin-right: 8px;
+    color: var(--primary-color);
+    width: 20px;
+    text-align: center;
+}
+
+.detail-value {
+    color: #212529;
+    flex: 1;
+}
+
+/* Estatísticas */
+.stats-section {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    border-radius: 10px;
+    padding: 1.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stats-section h5 {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.75rem;
+}
+
+.stat-item {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+.stat-item:last-child {
+    margin-bottom: 0;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Responsáveis */
+.responsavel-card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    border-left: 3px solid var(--primary-color);
+}
+
+.responsavel-card:last-child {
+    margin-bottom: 0;
+}
+
+.responsavel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-right: 1rem;
+}
+
+/* Badges de status */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-ativo {
+    background-color: rgba(25, 135, 84, 0.15);
+    color: #198754;
+}
+
+/* Animações */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .detail-label {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .empresa-logo {
+        width: 50px;
+        height: 50px;
+        margin-right: 1rem;
+    }
+    
+    .empresa-logo i {
+        font-size: 1.5rem;
+    }
+}

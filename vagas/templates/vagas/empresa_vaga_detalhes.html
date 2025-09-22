@@ -22,7 +22,7 @@
         padding: 1.2rem;
         border-radius: 10px;
         text-align: center;
-        border-left: 4px solid #104a74;
+        /* border-left: 4px solid #104a74; */
         transition: all 0.3s ease;
     }
     
@@ -268,36 +268,31 @@
                 <i class="fas fa-briefcase me-2"></i>{{ vaga.cargo.nome }}
             </h1>
             
-            <p class="mb-0 opacity-75">Gerencie candidatos e detalhes da vaga</p>
-        </div>
-
-        <!-- Ações Rápidas -->
-        <div class="action-buttons">
+            <div class="action-buttons">
             <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-1"></i>Voltar para Vagas
             </a>
             {% if vaga.ativo %}
-            <button class="btn btn-warning" onclick="toggleVagaStatus({{ vaga.id }}, false)">
+            <a class="btn btn-warning" href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">
                 <i class="fas fa-pause me-1"></i>Desativar Vaga
-            </button>
-            {% else %}
-            <button class="btn btn-success" onclick="toggleVagaStatus({{ vaga.id }}, true)">
-                <i class="fas fa-play me-1"></i>Ativar Vaga
-            </button>
+            </a>            
             {% endif %}
         </div>
+        </div>
+
+        
 
         <!-- Informações da Vaga -->
         <div class="vaga-info-card">
             <div class="d-flex">
                 <h3 class="vaga-title">{{ vaga.cargo.nome }}</h3>
-            <div class="detail-group">
+            <div class="detail-group ms-2 mt-1">
                         
                         <div class="detail-value">
                             {% if vaga.ativo %}
-                                <span class="text-success fw-bold">Ativa</span>
+                                <span class="text-success fw-bold">(Ativa)</span>
                             {% else %}
-                                <span class="text-danger fw-bold">Inativa</span>
+                                <span class="text-danger fw-bold">(Inativa)</span>
                             {% endif %}
                         </div>
                     </div>
@@ -309,7 +304,7 @@
                     <div class="stat-label">Vaga{{ vaga.quantidadeVagas|pluralize }} Disponívei{{ vaga.quantidadeVagas|pluralize }}</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value">R$ {{ vaga.salario|floatformat:2 }}</div>
+                    <div class="stat-value">{{ vaga.salario }}</div>
                     <div class="stat-label">Salário</div>
                 </div>
                 <div class="stat-box">
@@ -469,9 +464,9 @@
                                     </a>
                                     
                                     {% if not candidato.conseguiu_vaga %}
-                                    <button class="btn btn-sm btn-success" onclick="contratarCandidato({{ candidato.id }})">
+                                    <a href="{% url 'vagas:empresa_selecionar_candidato' vaga.id candidato.id %}" class="btn btn-sm btn-success">
                                         <i class="fas fa-handshake me-1"></i>Selecionar
-                                    </button>
+                                    </a>
                                     {% else %}
                                     <button class="btn btn-sm btn-outline-success" disabled>
                                         <i class="fas fa-check me-1"></i>Selecionado

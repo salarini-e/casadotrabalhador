@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 {% endblock %}
 
-{% block main %}
+{% block content %}
 <div class="dashboard-wrapper">
     {% include 'vagas/includes/sidebar_empresa.html' %}
 
@@ -117,8 +117,6 @@
         <!-- Main Content Area -->
         <div class="row">
             <!-- Left Column -->
-            <div class="col-lg-4 mb-4">
-            
             <div class="col-lg-4">
                 <!-- Personal Information Card -->
                 <div class="profile-card mb-4">
@@ -745,8 +743,14 @@
     /* Application Grid */
     .application-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem;
+    }
+    
+    @media (max-width: 991px) {
+        .application-grid {
+            grid-template-columns: 1fr;
+        }
     }
     
     .application-item {
@@ -1170,7 +1174,7 @@
     }
     
     /* Responsive Fixes */
-    @media (max-width: 767px) {
+    @media (max-width: 991px) {
         .profile-header {
             padding: 1.5rem;
         }
@@ -1183,10 +1187,6 @@
             width: 80px;
             height: 80px;
             font-size: 2rem;
-        }
-        
-        .application-grid {
-            grid-template-columns: 1fr;
         }
         
         .history-table-header, .history-table-row {
@@ -1213,6 +1213,21 @@
         
         .action-group-buttons {
             margin-top: 0.5rem;
+        }
+    }
+    
+    @media (max-width: 767px) {
+        .action-buttons-container {
+            flex-direction: column;
+        }
+        
+        .action-button-large {
+            width: 100%;
+        }
+        
+        .profile-actions {
+            justify-content: center;
+            flex-wrap: wrap;
         }
     }
 </style>

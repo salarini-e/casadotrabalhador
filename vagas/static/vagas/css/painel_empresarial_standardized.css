@@ -433,7 +433,7 @@
 }
 
 .vaga-card.ativa {
-    border-top-color: #104a74;
+    border-top-color:  #10b981;;
     display: flex; /* Garantir que seja exibido */
     opacity: 1;
 }

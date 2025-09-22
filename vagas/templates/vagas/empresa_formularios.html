@@ -2,7 +2,7 @@
 {% load static %}
 {% load widget_tweaks %}
 
-{% block title %}Formulários - {{ empresa.nome_fantasia }}{% endblock %}
+{% block title %}Requisições de Vagas - {{ empresa.nome_fantasia }}{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
@@ -39,7 +39,7 @@
                     <li class="nav-item active">
                         <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
                             <i class="fas fa-file-alt"></i>
-                            <span>Formulários</span>
+                            <span>Requisições de Vagas</span>
                         </a>
                     </li>
                 </ul>
@@ -73,7 +73,7 @@
                             <i class="fas fa-home me-1"></i>Dashboard
                         </a>
                     </li>
-                    <li class="breadcrumb-item active" aria-current="page">Formulários</li>
+                    <li class="breadcrumb-item active" aria-current="page">Requisições de Vagas</li>
                 </ol>
             </nav>
         </div>
@@ -81,9 +81,9 @@
         <!-- Content Header -->
         <div class="content-header">
             <h1 class="mb-2">
-                <i class="fas fa-file-alt me-2"></i>Formulários de Solicitação
+                <i class="fas fa-file-alt me-2"></i>Requisições de Vagas
             </h1>
-            <p class="mb-0 opacity-75">{{ empresa.nome_fantasia }} - Acompanhe suas solicitações de vagas</p>
+            <p class="mb-0 opacity-75">{{ empresa.nome_fantasia }} - Acompanhe suas requisições para abertura de vagas</p>
         </div>
 
         <!-- Filtros -->
@@ -112,23 +112,23 @@
                     <div class="text-end">
                         <span class="badge bg-primary fs-6 p-2">
                             <i class="fas fa-file-alt me-1"></i>
-                            {{ formularios|length }} formulário{{ formularios|length|pluralize }}
+                            {{ formularios|length }} requisição(ões) de vaga
                         </span>
                     </div>
                 </div>
             </form>
         </div>
 
-        <!-- Estatísticas de Formulários -->
+        <!-- Estatísticas de Requisições -->
         {% if formularios %}
         <div class="stats-summary">
             <h6 class="mb-3">
-                <i class="fas fa-chart-bar me-2"></i>Status dos Formulários
+                <i class="fas fa-chart-bar me-2"></i>Status das Requisições de Vagas
             </h6>
             <div class="stats-row">
                 <div class="stat-item">
                     <div class="stat-value">{{ formularios|length }}</div>
-                    <div class="stat-label">Total de Formulários</div>
+                    <div class="stat-label">Total de Requisições</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ formularios_pendentes }}</div>
@@ -136,33 +136,33 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ formularios_aprovados }}</div>
-                    <div class="stat-label">Aprovados</div>
+                    <div class="stat-label">Aprovadas</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">{{ formularios_rejeitados }}</div>
-                    <div class="stat-label">Rejeitados</div>
+                    <div class="stat-label">Rejeitadas</div>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- Ação Rápida para Novo Formulário -->
+        <!-- Ação Rápida para Nova Requisição -->
         {% if not formularios %}
         <div class="quick-action-card">
             <div class="action-icon">
                 <i class="fas fa-plus"></i>
             </div>
-            <h4 class="mb-3">Solicite sua primeira vaga</h4>
+            <h4 class="mb-3">Crie sua primeira requisição de vaga</h4>
             <p class="text-muted mb-4">
-                Para publicar vagas em nossa plataforma, você precisa enviar um formulário de solicitação que será analisado por nossa equipe.
+                Para publicar vagas em nossa plataforma, você precisa enviar uma requisição de vaga que será analisada por nossa equipe.
             </p>
             <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-file-plus me-2"></i>Criar Formulário
+                <i class="fas fa-file-plus me-2"></i>Criar Requisição
             </a>
         </div>
         {% endif %}
 
-        <!-- Lista de Formulários -->
+        <!-- Lista de Requisições de Vagas -->
         {% if formularios %}
         <div class="formularios-grid">
             {% for formulario in formularios %}
@@ -188,10 +188,10 @@
                     <div class="formulario-stats">
                         <div class="formulario-stat">
                             <div class="stat-number">{{ formulario.quantidade_vagas }}</div>
-                            <div class="stat-text">Vaga{{ formulario.quantidade_vagas|pluralize }}</div>
+                            <div class="stat-text">Requisição de {{ formulario.quantidade_vagas }} vaga{{ formulario.quantidade_vagas|pluralize }}</div>
                         </div>
                         <div class="formulario-stat">
-                            <div class="stat-number">R$ {{ formulario.salario|floatformat:2 }}</div>
+                            <div class="stat-number">{{ formulario.salario }}</div>
                             <div class="stat-text">Salário</div>
                         </div>
                     </div>
@@ -241,7 +241,7 @@
         <!-- Ação para Novo Formulário -->
         <div class="text-center mt-4">
             <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-file-plus me-2"></i>Solicitar Nova Vaga
+                <i class="fas fa-file-plus me-2"></i>Nova Requisição de Vaga
             </a>
         </div>
         
@@ -250,10 +250,10 @@
         {% if status_filter %}
         <div class="empty-state">
             <i class="fas fa-search"></i>
-            <h5>Nenhum formulário encontrado</h5>
-            <p>Não há formulários com o status selecionado.</p>
+            <h5>Nenhuma requisição encontrada</h5>
+            <p>Não há requisições de vaga com o status selecionado.</p>
             <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
-                <i class="fas fa-eye me-1"></i>Ver todos os formulários
+                <i class="fas fa-eye me-1"></i>Ver todas as requisições
             </a>
         </div>
         {% endif %}
