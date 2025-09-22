@@ -5,7 +5,9 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.models import Group
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.contrib import messages
+from django.urls import reverse
 
 def api_user(view_func):    
     def wrap(request, *args, **kwargs):
@@ -23,7 +25,8 @@ def empresa_user_required(view_func):
     """
     def wrap(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return HttpResponseForbidden("Acesso negado. Faça login para continuar.")
+            messages.error(request, "Acesso negado. Faça login para continuar.")
+            return HttpResponseRedirect(reverse('login'))
         
         # Superuser e staff sempre têm acesso
         if request.user.is_superuser or request.user.is_staff:
@@ -33,11 +36,25 @@ def empresa_user_required(view_func):
         try:
             grupo_empresa = Group.objects.get(name='empresa_user')
             if grupo_empresa in request.user.groups.all():
-                return view_func(request, *args, **kwargs)
+                # Verificar se o usuário é responsável por alguma empresa
+                from vagas.models import ResponsavelEmpresa
+                if ResponsavelEmpresa.objects.filter(user=request.user, ativo=True).exists():
+                    return view_func(request, *args, **kwargs)
+                else:
+                    messages.warning(request, "Você não é responsável por nenhuma empresa ativa. Entre em contato com o administrador.")
+                    return HttpResponseRedirect(reverse('vagas:home'))
+            else:
+                messages.error(request, "Seu usuário não tem permissão para acessar o Painel Empresarial.")
+                return HttpResponseRedirect(reverse('vagas:home'))
         except Group.DoesNotExist:
-            pass
+            messages.error(request, "Grupo de permissão para empresas não está configurado. Entre em contato com o administrador.")
+            return HttpResponseRedirect(reverse('vagas:home'))
+        except Exception as e:
+            messages.error(request, f"Erro ao verificar permissões: {str(e)}. Entre em contato com o administrador.")
+            return HttpResponseRedirect(reverse('vagas:home'))
         
-        return HttpResponseForbidden("Acesso negado. Você não tem permissão para acessar esta página.")
+        messages.error(request, "Acesso negado. Você não tem permissão para acessar esta página.")
+        return HttpResponseRedirect(reverse('vagas:home'))
     
     return wrap
 

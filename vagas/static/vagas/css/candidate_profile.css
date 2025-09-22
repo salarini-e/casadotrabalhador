@@ -1,0 +1,669 @@
+/* Candidate Profile Styles */
+
+/* Profile Header */
+.profile-header {
+    background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    right: -50px;
+    top: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.profile-avatar-container {
+    position: relative;
+    margin-right: 1.5rem;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.avatar-status {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid white;
+}
+
+.avatar-status.success {
+    background-color: #10b981;
+    color: white;
+}
+
+.profile-header-content {
+    flex: 1;
+    padding-left: 1.5rem;
+}
+
+.profile-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.profile-subtitle {
+    opacity: 0.85;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.profile-status {
+    margin-left: auto;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-badge.success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.status-badge.pending {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.status-badge.warning {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.action-btn i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.action-btn.whatsapp {
+    background-color: #25d366;
+    color: white;
+}
+
+.action-btn.whatsapp:hover {
+    background-color: #1faa52;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(31, 170, 82, 0.3);
+}
+
+.action-btn.call {
+    background-color: #64748b;
+    color: white;
+}
+
+.action-btn.call:hover {
+    background-color: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(71, 85, 105, 0.3);
+}
+
+.action-btn.email {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.action-btn.email:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+}
+
+.action-btn.select {
+    background-color: #10b981;
+    color: white;
+}
+
+.action-btn.select:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
+}
+
+/* Profile Cards */
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.profile-card:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+}
+
+.profile-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #f9fafc;
+}
+
+.profile-card-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #104a74;
+    display: flex;
+    align-items: center;
+}
+
+.profile-card-header h2 i {
+    margin-right: 0.75rem;
+    color: #104a74;
+}
+
+.profile-card-body {
+    padding: 1.5rem;
+}
+
+/* Info List */
+.info-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.info-list li {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.info-list li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f0f7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #104a74;
+    flex-shrink: 0;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: #104a74;
+}
+
+/* Education Section */
+.education-level {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.edu-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f0f7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #104a74;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.edu-details {
+    flex: 1;
+}
+
+.edu-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #104a74;
+    margin-bottom: 0.5rem;
+}
+
+.edu-compatibility {
+    margin-top: 0.5rem;
+}
+
+.compat-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.compat-badge.success {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.compat-badge.warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.experience-items {
+    margin-top: 1rem;
+}
+
+.experience-item {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.exp-title {
+    font-weight: 600;
+    color: #104a74;
+    margin-bottom: 0.5rem;
+}
+
+.exp-company {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.comparison-bar {
+    margin-top: 0.5rem;
+}
+
+.bar-container {
+    height: 8px;
+    background-color: #f0f2f5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.bar-fill.success {
+    background-color: #198754;
+}
+
+.bar-fill.warning {
+    background-color: #ffc107;
+}
+
+/* Curriculum Section */
+.curriculum-info {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.curriculum-icon {
+    font-size: 3rem;
+    color: #104a74;
+    margin-bottom: 1rem;
+}
+
+.curriculum-text {
+    margin-bottom: 1.5rem;
+    color: #495057;
+    text-align: center;
+}
+
+.btn-view-curriculum {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: #104a74;
+    color: #fff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-view-curriculum:hover {
+    background-color: #0d3a5c;
+    transform: translateY(-2px);
+}
+
+/* Application Grid */
+.application-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.25rem;
+}
+
+.application-item {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+
+.application-item:hover {
+    background-color: #f0f7ff;
+    transform: translateY(-2px);
+}
+
+.item-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #104a74;
+    font-size: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.item-content {
+    flex: 1;
+}
+
+.item-title {
+    font-weight: 600;
+    color: #104a74;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.item-value {
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* History Table */
+.history-table {
+    margin-top: 1.5rem;
+}
+
+.history-table-header {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr 1fr;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.history-table-row {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr 1fr;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    align-items: center;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.history-table-row:hover {
+    background-color: #f0f7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.row-column {
+    padding: 0 0.5rem;
+}
+
+/* Action Bar */
+.action-bar {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+    padding: 1.25rem;
+    margin-top: 2rem;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.action-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button i {
+    margin-right: 0.5rem;
+}
+
+.action-button.primary {
+    background-color: #104a74;
+    color: #fff;
+    border: none;
+}
+
+.action-button.primary:hover {
+    background-color: #0d3a5c;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.danger {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+.action-button.danger:hover {
+    background-color: #bb2d3b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.secondary {
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+}
+
+.action-button.secondary:hover {
+    background-color: #5c636a;
+}
+
+.action-button.back {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #ced4da;
+}
+
+.action-button.back:hover {
+    background-color: #e9ecef;
+}
+
+.action-button.whatsapp, .action-button.call, .action-button.email {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+}
+
+.action-button.whatsapp {
+    background-color: #25d366;
+    color: #fff;
+}
+
+.action-button.call {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+.action-button.email {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.action-group-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.action-group-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Observation Box */
+.observation-box {
+    border-left: 4px solid #104a74;
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    transition: border-color 0.3s ease;
+}
+
+.observation-box:hover {
+    border-color: #0d6efd;
+}
+
+/* Responsive Fixes */
+@media (max-width: 767px) {
+    .profile-header {
+        padding: 1.5rem;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .application-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .history-table-header, .history-table-row {
+        grid-template-columns: 2fr 1fr 1fr;
+    }
+    
+    .row-column:nth-child(2), .header-column:nth-child(2) {
+        display: none;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .action-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .action-group-buttons {
+        margin-top: 0.5rem;
+    }
+}

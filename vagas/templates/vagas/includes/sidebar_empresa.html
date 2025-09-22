@@ -26,12 +26,12 @@
                         <span>Vagas</span>
                     </a>
                 </li>
-                <li class="nav-item {% if request.resolver_match.url_name == 'empresa_candidatos' or request.resolver_match.url_name == 'empresa_vaga_detalhes' and active_page == 'candidatos' %}active{% endif %}" title="Candidatos">
+                <!-- <li class="nav-item {% if request.resolver_match.url_name == 'empresa_candidatos' or request.resolver_match.url_name == 'empresa_vaga_detalhes' and active_page == 'candidatos' %}active{% endif %}" title="Candidatos">
                     <a href="{% url 'vagas:empresa_vagas' %}?view=candidatos" class="nav-link">
                         <i class="fas fa-users"></i>
                         <span>Candidatos</span>
                     </a>
-                </li>
+                </li> -->
                 <li class="nav-item {% if request.resolver_match.url_name == 'empresa_formularios' %}active{% endif %}" title="Formulários">
                     <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
                         <i class="fas fa-file-alt"></i>
@@ -54,17 +54,17 @@
         </div>
     </nav>
     
-    <div class="sidebar-footer">
+    <!-- <div class="sidebar-footer">
         <div class="user-info">
             <div class="user-avatar">
                 <i class="fas fa-user"></i>
             </div>
             <div class="user-details">
-                <span class="user-name">{{ user.first_name|default:user.username }}</span>
-                <span class="user-role">Representante</span>
+                <span class="user-name">{{ responsavel.nome|default:user.username }}</span>
+                <span class="user-role">{{ responsavel.cargo|default:"Representante" }}</span>
             </div>
         </div>
-    </div>
+    </div> -->
 </div>
 
 <script>

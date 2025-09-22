@@ -102,17 +102,21 @@
         {% if vagas %}
         <div class="vagas-grid">
             {% for vaga in vagas %}
-            <div class="vaga-card {% if vaga.ativo %}ativa{% else %}inativa{% endif %}">
+            <div id="vaga-{{ vaga.id }}" class="vaga-card {% if vaga.ativo %}ativa{% else %}inativa{% endif %}">
                 <div class="vaga-header">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="vaga-title">{{ vaga.cargo.nome }}</h6>
+                    <div class="d-flex justify-content-between align-items-start w-100">
+                        <h6 class="vaga-title">                            
+                            {{ vaga.cargo.nome }}
+                        </h6>
                         <span class="vaga-status {% if vaga.ativo %}status-ativa{% else %}status-inativa{% endif %}">
                             {% if vaga.ativo %}
-                                <i class="fas fa-check-circle me-1"></i>Ativa
+                                #{{ vaga.id }}</span>
                             {% else %}
-                                <i class="fas fa-times-circle me-1"></i>Inativa
+                                #{{ vaga.id }}</span>
                             {% endif %}
                         </span>
+                    </div>
+                    <div>                        
                     </div>
                 </div>
                 
@@ -166,18 +170,18 @@
                             {% if vaga.candidatos_contratados > 0 %}
                                 {{ vaga.candidatos_contratados }} contratado{{ vaga.candidatos_contratados|pluralize }}
                             {% else %}
-                                Nenhuma contratação realizada
+                                Nenhuma contratação informada
                             {% endif %}
                         </div>
                     </div>
                     
                     <!-- Ações -->
-                    <div class="vaga-actions">
-                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="btn btn-primary">
+                    <div class="vaga-actions w-100">
+                        <!-- <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="btn btn-primary">
                             <i class="fas fa-cog me-1"></i>Gerenciar
-                        </a>
+                        </a> -->
                         {% if vaga.total_candidatos > 0 %}
-                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}#candidatos" class="btn btn-outline-primary">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}#candidatos" class="btn btn-outline-primary w-100">
                             <i class="fas fa-users me-1"></i>Candidatos
                         </a>
                         {% else %}
@@ -208,7 +212,7 @@
             </a>
             {% else %}
             <div class="mt-3">
-                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-primary">
+                                <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary">
                     <i class="fas fa-file-alt me-2"></i>Solicitar Nova Vaga
                 </a>
                 <p class="text-muted mt-2 mb-0">
@@ -230,14 +234,34 @@ document.addEventListener('DOMContentLoaded', function() {
         this.closest('form').submit();
     });
     
-    // Animação das vagas
+    // Forçar redraw para resolver problemas de layout
+    const vagasGrid = document.querySelector('.vagas-grid');
+    if (vagasGrid) {
+        vagasGrid.style.display = 'none';
+        // Forçar reflow
+        void vagasGrid.offsetHeight;
+        vagasGrid.style.display = 'grid';
+    }
+    
+    // Animação das vagas com verificação de existência
     const vagas = document.querySelectorAll('.vaga-card');
-    vagas.forEach((vaga, index) => {
-        setTimeout(() => {
-            vaga.style.opacity = '1';
-            vaga.style.transform = 'translateY(0)';
-        }, 100 * index);
-    });
+    if (vagas.length > 0) {
+        vagas.forEach((vaga, index) => {
+            // Garantir que todos os cards estejam visíveis primeiro
+            vaga.style.opacity = '0';
+            vaga.style.transform = 'translateY(20px)';
+            vaga.style.display = 'flex';
+            
+            // Aplicar animação com um pequeno atraso
+            setTimeout(() => {
+                vaga.style.opacity = '1';
+                vaga.style.transform = 'translateY(0)';
+            }, 50 + (80 * index)); // Timing mais rápido para melhor UX
+        });
+        
+        // Log para debug
+        console.log(`Total de vagas renderizadas: ${vagas.length}`);
+    }
     
     // Tooltip para informações adicionais
     if (typeof bootstrap !== 'undefined') {

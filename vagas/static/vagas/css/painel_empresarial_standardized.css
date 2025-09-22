@@ -33,7 +33,7 @@
     padding: 1.8rem 1.5rem;
     border-bottom: 1px solid rgba(255,255,255,0.1);
     background: rgba(0, 0, 0, 0.1);
-    margin-top: 150px; /* Para compensar o header fixo */
+    margin-top: 130px; /* Para compensar o header fixo */
 }
 
 .brand-logo {
@@ -103,22 +103,32 @@
 .dashboard-content {
     flex: 1;
     margin-left: 280px;
-    padding: 2rem;
+    padding: 0px 2rem;
     transition: all 0.3s ease;
     margin-top: 150px; /* Para compensar o header fixo */
     min-height: calc(100vh - 150px); /* Altura ajustada para o header */
+
 }
 
 /* Header do Conteúdo - Tema Administrativo */
 .content-header {
-    background: linear-gradient(120deg, #104a74 0%, #24364F 100%);
+    /* background: linear-gradient(120deg, #104a74 0%, #24364F 100%);
     padding: 2.2rem 2.5rem;
     border-radius: 12px;
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     margin-bottom: 2.5rem;
     color: white;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; */
+     background: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .content-header::before {
@@ -191,11 +201,11 @@
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border-bottom: 3px solid transparent;
     opacity: 0;
-    transform: translateY(20px);
+    /* transform: translateY(20px); */
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); */
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
     border-bottom: 3px solid #104a74;
 }
@@ -398,6 +408,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
+    grid-auto-flow: dense; /* Garante que não haja espaços vazios */
+    grid-auto-rows: minmax(min-content, max-content); /* Altura automática baseada no conteúdo */
 }
 
 .vaga-card {
@@ -410,16 +422,20 @@
     display: flex;
     flex-direction: column;
     opacity: 0;
-    transform: translateY(20px);
+    /* transform: translateY(20px); */
+    height: 100%; /* Garantir altura consistente */
+    min-height: 360px; /* Altura mínima para evitar problemas de layout */
 }
 
 .vaga-card:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); */
     box-shadow: 0 12px 20px rgba(0,0,0,0.1);
 }
 
 .vaga-card.ativa {
     border-top-color: #104a74;
+    display: flex; /* Garantir que seja exibido */
+    opacity: 1;
 }
 
 .vaga-card.inativa {
@@ -438,6 +454,17 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: #104a74;
+}
+
+.vaga-ref {
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: #f0f2f5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+    display: inline-block;
 }
 
 .vaga-status {
@@ -539,9 +566,7 @@
 }
 
 .vaga-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    display: flex;
     margin-top: auto;
 }
 
@@ -633,7 +658,7 @@
     border-top: 3px solid transparent;
     display: flex;
     flex-direction: column;
-    opacity: 0;
+    opacity: 1;
     transform: translateY(20px);
 }
 
@@ -973,6 +998,10 @@ body.sidebar-open .sidebar-backdrop {
     .content-grid {
         grid-template-columns: 1fr;
     }
+    
+    .vagas-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
@@ -1001,7 +1030,10 @@ body.sidebar-open .sidebar-backdrop {
     }
     
     .stats-grid,
-    .vagas-grid,
+    .vagas-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .formularios-grid {
         grid-template-columns: 1fr;
     }
@@ -1073,10 +1105,9 @@ body.sidebar-open .sidebar-backdrop {
     }
     
     /* Fix para o layout em dispositivos muito pequenos */
-    .vaga-card,
-    .formulario-card,
-    .candidato-card {
-        min-width: 100%;
+    .vagas-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .vaga-title,

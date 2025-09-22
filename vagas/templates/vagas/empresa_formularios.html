@@ -61,9 +61,10 @@
 
     <!-- Main Content -->
     <div class="dashboard-content">
-        {% include 'vagas/includes/seletor_empresa.html' %}
+        {% include 'vagas/includes/sidebar_empresa.html' %}
         
         <!-- Breadcrumb -->
+         {% include 'vagas/includes/seletor_empresa.html' %}
         <div class="breadcrumb-nav">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -155,7 +156,7 @@
             <p class="text-muted mb-4">
                 Para publicar vagas em nossa plataforma, você precisa enviar um formulário de solicitação que será analisado por nossa equipe.
             </p>
-            <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-file-plus me-2"></i>Criar Formulário
             </a>
         </div>
@@ -165,6 +166,7 @@
         {% if formularios %}
         <div class="formularios-grid">
             {% for formulario in formularios %}
+            
             <div class="formulario-card {% if formulario.status_requisicao == 'PE' %}pendente{% elif formulario.status_requisicao == 'AP' %}aprovado{% elif formulario.status_requisicao == 'RE' %}rejeitado{% endif %}">
                 <div class="formulario-header">
                     <div class="d-flex justify-content-between align-items-start">
@@ -238,7 +240,7 @@
         
         <!-- Ação para Novo Formulário -->
         <div class="text-center mt-4">
-            <a href="{% url 'vagas:admin_formularios_create' %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-file-plus me-2"></i>Solicitar Nova Vaga
             </a>
         </div>

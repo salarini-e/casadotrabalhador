@@ -795,6 +795,31 @@ def infoempresa(request):
     }
     return render(request, 'vagas/infoempresa.html', context)
 
+
+@login_required
+@staff_required
+def empresas_responsaveis(request):
+    """View para listar empresas e seus respectivos responsáveis."""
+    empresas = Empresa.objects.all().prefetch_related('responsaveis').order_by('nome')
+    
+    # Adicionar informações adicionais para cada empresa
+    for empresa in empresas:
+        empresa.vagas_ativas_count = empresa.get_active_vagas_count()
+        empresa.total_vagas_count = empresa.get_total_vagas_count()
+        empresa.formularios_ativos_count = RequisicaoVaga.objects.filter(
+            cnpj_da_empresa=empresa.cnpj, 
+            status_requisicao__in=['AG', 'PE']
+        ).count()
+        empresa.total_formularios_count = RequisicaoVaga.objects.filter(
+            cnpj_da_empresa=empresa.cnpj
+        ).count()
+    
+    context = {
+        'empresas': empresas,
+    }
+    
+    return render(request, 'vagas/empresas_responsaveis.html', context)
+
 @login_required
 def empresa_profile(request, empresa_id):
     empresa = get_object_or_404(Empresa, id=empresa_id)
@@ -2644,22 +2669,32 @@ def get_empresa_selecionada(request):
         return None, None, None
     
     # Verificar se há empresa selecionada via POST ou session
-    empresa_id = request.POST.get('empresa_id') or request.session.get('empresa_selecionada')
+    empresa_id = None
+    if request.POST.get('empresa_id'):
+        empresa_id = request.POST.get('empresa_id')
+    elif request.session.get('empresa_selecionada'):
+        empresa_id = request.session.get('empresa_selecionada')
     
     # Se há empresa específica selecionada
     if empresa_id:
         try:
             responsavel = responsaveis.get(empresa_id=empresa_id)
             # Salvar na session
-            request.session['empresa_selecionada'] = empresa_id
+            request.session['empresa_selecionada'] = str(empresa_id)
         except ResponsavelEmpresa.DoesNotExist:
             # Se a empresa não existe para este responsável, usar a primeira
             responsavel = responsaveis.first()
-            request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+            if responsavel:
+                request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+            else:
+                return None, None, responsaveis
     else:
         # Se não há empresa selecionada, usar a primeira
         responsavel = responsaveis.first()
-        request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+        if responsavel:
+            request.session['empresa_selecionada'] = str(responsavel.empresa.id)
+        else:
+            return None, None, responsaveis
     
     return responsavel, responsavel.empresa, responsaveis
 
@@ -2747,12 +2782,20 @@ def empresa_formularios(request):
         if status_filter:
             formularios = formularios.filter(status_requisicao=status_filter)
         
+        # Calcular estatísticas
+        formularios_pendentes = formularios.filter(status_requisicao='PE').count()
+        formularios_aprovados = formularios.filter(status_requisicao='AP').count()
+        formularios_rejeitados = formularios.filter(status_requisicao='RE').count()
+        
         context = {
             'responsavel': responsavel,
             'empresa': empresa,
             'empresas_disponiveis': empresas_disponiveis,
             'formularios': formularios,
             'status_filter': status_filter,
+            'formularios_pendentes': formularios_pendentes,
+            'formularios_aprovados': formularios_aprovados,
+            'formularios_rejeitados': formularios_rejeitados,
         }
         
         return render(request, 'vagas/empresa_formularios.html', context)
@@ -2760,6 +2803,98 @@ def empresa_formularios(request):
     except Exception as e:
         messages.error(request, f'Erro ao carregar formulários: {str(e)}')
         return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_formulario_criar(request):
+    """Criar novo formulário de requisição pelo painel da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Buscar escolaridades para o formulário
+        escolaridades = Escolaridade.objects.all().order_by('id')
+        
+        if request.method == 'POST':
+            # Dados da vaga
+            cargo_ofertado = request.POST.get('cargo_ofertado', '').strip()
+            quantidade_de_vagas = request.POST.get('quantidade_de_vagas', 1)
+            salario = request.POST.get('salario', 0)
+            escolaridade_id = request.POST.get('escolaridade_id', 1)
+            turno = request.POST.get('turno', 'IN')
+            regime = request.POST.get('regime', 'CLT')
+            tipo_vaga = request.POST.get('tipo_vaga', 'NML')
+            experiencia = request.POST.get('experiencia', 'Des')
+            local_de_trabalho = request.POST.get('local_de_trabalho', '').strip()
+            descricao_cargo = request.POST.get('descricao_cargo', '').strip()
+            beneficios = request.POST.get('beneficios', '').strip()
+            
+            # Verificações básicas
+            if not cargo_ofertado or not descricao_cargo:
+                messages.error(request, 'Por favor, preencha todos os campos obrigatórios.')
+                return redirect('vagas:empresa_formulario_criar')
+            
+            # Criar chave de acesso a partir da hash da sessão
+            session_key = request.session.session_key or request.session.create()
+            chave_acesso = f"{empresa.cnpj[:8]}_{session_key[:8]}_{timezone.now().strftime('%y%m%d%H%M%S')}"
+            
+            # Criar nova requisição com dados completos
+            requisicao = RequisicaoVaga.objects.create(
+                # Dados do responsável (preenchidos automaticamente)
+                nome_do_responsavel_pela_divulgacao_da_vaga=responsavel.nome,
+                cpf_do_responsavel=responsavel.cpf,
+                contato_do_responsavel=responsavel.telefone or '',
+                
+                # Dados da empresa (preenchidos automaticamente)
+                nome_da_empresa=empresa.nome,
+                cnpj_da_empresa=empresa.cnpj,
+                email_da_empresa=empresa.email or '',
+                endereco_da_empresa=empresa.endereco or '',
+                telefone_da_empresa=empresa.telefone or '',
+                whatsapp_da_empresa=empresa.whatsapp or '',
+                segmento_da_empresa='', # Poderia ser adicionado ao modelo Empresa
+                
+                # Dados da vaga (fornecidos no formulário)
+                quantidade_de_vagas=quantidade_de_vagas,
+                cargo_ofertado=cargo_ofertado,
+                escolaridade_id=escolaridade_id,
+                tipo_de_vaga=tipo_vaga,
+                regime=regime,
+                experiencia=experiencia,
+                faixa_salarial='VALOR', # Usando o valor informado
+                valor_salario=salario,
+                
+                # Benefícios
+                vale_transporte='vale_transporte' in request.POST,
+                vale_alimentacao='vale_alimentacao' in request.POST,
+                outros_beneficios=beneficios,
+                
+                # Informações adicionais
+                observacao=descricao_cargo,
+                
+                # Status e controle
+                status_requisicao='PE',  # Pendente por padrão
+                chave_de_acesso=chave_acesso,
+            )
+            
+            messages.success(request, 'Solicitação de vaga enviada com sucesso! Aguarde a análise da nossa equipe.')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=requisicao.pk)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'escolaridades': escolaridades,
+        }
+        
+        return render(request, 'vagas/empresa_formulario_criar.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao criar formulário: {str(e)}')
+        return redirect('vagas:empresa_formularios')
 
 
 @empresa_user_required
@@ -2778,11 +2913,27 @@ def empresa_formulario_detalhes(request, formulario_id):
             cnpj_da_empresa=empresa.cnpj
         )
         
+        # Verificar se existe vaga vinculada usando o método get_vaga()
+        vaga_vinculada = formulario.get_vaga()
+        candidatos_da_vaga = []
+        
+        if vaga_vinculada:
+            # Buscar pessoas que se candidataram a esta vaga
+            # Primeiro, buscar os candidatos do modelo Candidato
+            candidatos_modelo = Candidato.objects.filter(vaga=vaga_vinculada)
+            
+            # Depois buscar as pessoas correspondentes no modelo Pessoa
+            from autenticacao.models import Pessoa
+            cpfs_candidatos = candidatos_modelo.values_list('cpf', flat=True)
+            candidatos_da_vaga = Pessoa.objects.filter(cpf__in=cpfs_candidatos)
+        
         context = {
             'responsavel': responsavel,
             'empresa': empresa,
             'empresas_disponiveis': empresas_disponiveis,
             'formulario': formulario,
+            'vaga_vinculada': vaga_vinculada,
+            'candidatos_da_vaga': candidatos_da_vaga,
         }
         
         return render(request, 'vagas/empresa_formulario_detalhes.html', context)
@@ -2848,6 +2999,54 @@ def empresa_vagas(request):
 @empresa_user_required
 def empresa_perfil(request):
     """Perfil e dados da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Processar mudança de empresa, se solicitado
+        if request.method == 'POST' and 'empresa_id' in request.POST:
+            empresa_id = request.POST.get('empresa_id')
+            # Verificar se o usuário tem acesso a essa empresa
+            if ResponsavelEmpresa.objects.filter(user=request.user, empresa_id=empresa_id, ativo=True).exists():
+                request.session['empresa_selecionada'] = empresa_id
+                messages.success(request, 'Empresa alterada com sucesso!')
+                return redirect('vagas:empresa_perfil')
+            else:
+                messages.error(request, 'Você não tem permissão para acessar esta empresa.')
+                return redirect('vagas:empresa_perfil')
+        
+        # Dados da empresa
+        total_vagas = Vaga_Emprego.objects.filter(empresa=empresa).count()
+        vagas_ativas = Vaga_Emprego.objects.filter(empresa=empresa, ativo=True).count()
+        
+        # Candidatos da empresa
+        candidatos_total = Candidato.objects.filter(vaga__empresa=empresa).count()
+        candidatos_unicos = Candidato.objects.filter(vaga__empresa=empresa).values('cpf').distinct().count()
+        candidatos_contratados = Candidato.objects.filter(vaga__empresa=empresa, conseguiu_vaga=True).count()
+        
+        # Todos os responsáveis da empresa
+        responsaveis = ResponsavelEmpresa.objects.filter(empresa=empresa, ativo=True)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'responsaveis': responsaveis,
+            'total_vagas': total_vagas,
+            'vagas_ativas': vagas_ativas,
+            'candidatos_total': candidatos_total,
+            'candidatos_unicos': candidatos_unicos,
+            'candidatos_contratados': candidatos_contratados,
+        }
+        
+        return render(request, 'vagas/empresa_perfil.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar perfil: {str(e)}')
+        return redirect('vagas:home')
 
 
 @empresa_user_required
@@ -2976,6 +3175,10 @@ def empresa_vaga_detalhes(request, vaga_id):
         except:
             pass
         
+        # Verificar se há um parâmetro de tab na URL
+        active_tab = request.GET.get('tab', 'detalhes')
+        show_candidatos_section = active_tab == 'candidatos'
+        
         context = {
             'responsavel': responsavel,
             'empresa': empresa,
@@ -2987,6 +3190,8 @@ def empresa_vaga_detalhes(request, vaga_id):
             'candidatos_online': candidatos_online,
             'candidatos_balcao': candidatos_balcao,
             'formulario': formulario,
+            'active_tab': active_tab,
+            'show_candidatos_section': show_candidatos_section,
         }
         
         return render(request, 'vagas/empresa_vaga_detalhes.html', context)

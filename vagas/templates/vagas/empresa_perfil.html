@@ -321,21 +321,13 @@
                 </div>
                 
                 <div class="stat-item">
-                    <span class="stat-number">{{ empresa.vaga_emprego_set.filter:ativo=True.count }}</span>
+                    <span class="stat-number">{{ vagas_ativas }}</span>
                     <span class="stat-label">Vagas Ativas</span>
                 </div>
                 
                 <div class="stat-item">
-                    {% with total_candidatos=0 %}
-                    {% for vaga in empresa.vaga_emprego_set.all %}
-                        {% with total_candidatos=total_candidatos|add:vaga.candidato_set.count %}{% endwith %}
-                    {% endfor %}
-                    <span class="stat-number">
-                        <!-- Calculado via JavaScript ou view context -->
-                        0 <!-- Placeholder - seria calculado na view -->
-                    </span>
+                    <span class="stat-number">{{ candidatos_unicos }}</span>
                     <span class="stat-label">Total de Candidatos</span>
-                    {% endwith %}
                 </div>
                 
                 <div class="stat-item">

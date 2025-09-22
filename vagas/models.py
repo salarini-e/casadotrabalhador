@@ -457,10 +457,10 @@ class ResponsavelEmpresa(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='responsaveis', verbose_name='Empresa')
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Usuário', null=True, blank=True)
     nome = models.CharField(max_length=100, verbose_name='Nome completo', null=True, blank=True)
-    cpf = models.CharField(max_length=14, verbose_name='CPF', null=True, blank=True)
+    cpf = models.CharField(max_length=14, verbose_name='CPF', validators=[validate_CPF])
     email = models.EmailField(verbose_name='Email', null=True, blank=True)
-    cargo = models.CharField(max_length=100, verbose_name='Cargo na empresa', blank=True)
-    telefone = models.CharField(max_length=15, verbose_name='Telefone', blank=True)
+    cargo = models.CharField(max_length=100, verbose_name='Cargo na empresa')
+    telefone = models.CharField(max_length=15, verbose_name='Telefone para contato', validators=[validate_TELEFONE])
     ativo = models.BooleanField(default=True, verbose_name='Ativo')
     dt_criacao = models.DateTimeField(auto_now_add=True, verbose_name='Data de criação')
     criado_por = models.ForeignKey(User, on_delete=models.PROTECT, related_name='responsaveis_criados', 
