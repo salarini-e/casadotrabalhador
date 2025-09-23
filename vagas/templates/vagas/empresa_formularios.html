@@ -6,11 +6,12 @@
 
 {% block extra_css %}
 <link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="{% static 'vagas/css/empresa_formularios.css' %}" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block main %}
-<div class="dashboard-wrapper">
+<div class="dashboard-wrapper pb-5">
     <!-- Sidebar Menu -->
     <div class="dashboard-sidebar">
         <div class="sidebar-header">
@@ -164,86 +165,132 @@
 
         <!-- Lista de Requisições de Vagas -->
         {% if formularios %}
-        <div class="formularios-grid">
+        <div class="vagas-grid">
             {% for formulario in formularios %}
-            
-            <div class="formulario-card {% if formulario.status_requisicao == 'PE' %}pendente{% elif formulario.status_requisicao == 'AP' %}aprovado{% elif formulario.status_requisicao == 'RE' %}rejeitado{% endif %}">
-                <div class="formulario-header">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h6 class="formulario-title">{{ formulario.cargo.nome }}</h6>
-                        <span class="status-badge {% if formulario.status_requisicao == 'PE' %}status-pendente{% elif formulario.status_requisicao == 'AP' %}status-aprovado{% elif formulario.status_requisicao == 'RE' %}status-rejeitado{% endif %}">
-                            {% if formulario.status_requisicao == 'PE' %}
-                                <i class="fas fa-clock me-1"></i>Pendente
-                            {% elif formulario.status_requisicao == 'AP' %}
-                                <i class="fas fa-check-circle me-1"></i>Aprovado
-                            {% elif formulario.status_requisicao == 'RE' %}
-                                <i class="fas fa-times-circle me-1"></i>Rejeitado
-                            {% endif %}
+            <div id="formulario-{{ formulario.id }}" class="vaga-card {% if formulario.status_requisicao == 'AP' %}ativa{% else %}inativa{% endif %}">
+                <div class="vaga-header">
+                    <div class="d-flex justify-content-between align-items-start w-100">
+                        <h6 class="vaga-title">                            
+                            {{ formulario.cargo_ofertado }}
+                        </h6>
+                        <span class="vaga-status {% if formulario.status_requisicao == 'AP' %}status-ativa{% elif formulario.status_requisicao == 'PE' %}status-pendente{% else %}status-inativa{% endif %}">
+                            #{{ formulario.id }}
                         </span>
                     </div>
                 </div>
                 
-                <div class="formulario-body">
-                    <!-- Estatísticas do Formulário -->
-                    <div class="formulario-stats">
-                        <div class="formulario-stat">
-                            <div class="stat-number">{{ formulario.quantidade_vagas }}</div>
-                            <div class="stat-text">Requisição de {{ formulario.quantidade_vagas }} vaga{{ formulario.quantidade_vagas|pluralize }}</div>
+                <div class="vaga-body">
+                    <!-- Estatísticas da Vaga -->
+                    <div class="vaga-stats">
+                        <div class="vaga-stat">
+                            <div class="stat-number">{{ formulario.quantidade_de_vagas }}</div>
+                            <div class="stat-text">Vaga{{ formulario.quantidade_de_vagas|pluralize }}</div>
                         </div>
-                        <div class="formulario-stat">
-                            <div class="stat-number">{{ formulario.salario }}</div>
+                        <div class="vaga-stat">
+                            <div class="stat-number">
+                                {% if formulario.faixa_salarial == 'VALOR' %}
+                                    {{ formulario.valor_salario }}
+                                {% elif formulario.faixa_salarial == 'MIN' %}
+                                    Mínimo
+                                {% else %}
+                                    À combinar
+                                {% endif %}
+                            </div>
                             <div class="stat-text">Salário</div>
                         </div>
                     </div>
                     
-                    <!-- Detalhes do Formulário -->
-                    <div class="formulario-details">
+                    <!-- Detalhes da Requisição -->
+                    <div class="vaga-details">
                         <div class="detail-item">
                             <i class="fas fa-calendar"></i>
-                            <span>Criado em {{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</span>
+                            <span>Criada em {{ formulario.dt_inclusao|date:"d/m/Y" }}</span>
                         </div>
-                        {% if formulario.escolaridade_minima %}
+                        {% if formulario.escolaridade %}
                         <div class="detail-item">
                             <i class="fas fa-graduation-cap"></i>
-                            <span>{{ formulario.escolaridade_minima.escolaridade }}</span>
+                            <span>{{ formulario.escolaridade }}</span>
                         </div>
                         {% endif %}
-                        {% if formulario.turno %}
                         <div class="detail-item">
                             <i class="fas fa-clock"></i>
-                            <span>{{ formulario.get_turno_display }}</span>
+                            <span>
+                                {% if formulario.carga_horaria == '40' %}
+                                    40h semanais
+                                {% elif formulario.carga_horaria == '44' %}
+                                    44h semanais
+                                {% else %}
+                                    {{ formulario.outra_carga_horaria }}
+                                {% endif %}
+                            </span>
                         </div>
-                        {% endif %}
-                        {% if formulario.status_requisicao == 'AP' and formulario.vaga_criada %}
                         <div class="detail-item">
-                            <i class="fas fa-link"></i>
-                            <span>Vaga criada com sucesso</span>
+                            <i class="fas fa-tag"></i>
+                            <span>
+                                {% if formulario.status_requisicao == 'AG' %}
+                                    <span class="badge bg-secondary">Aguardando</span>
+                                {% elif formulario.status_requisicao == 'PE' %}
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                {% elif formulario.status_requisicao == 'AP' %}
+                                    <span class="badge bg-success">Aprovada</span>
+                                {% elif formulario.status_requisicao == 'RE' %}
+                                    <span class="badge bg-danger">Rejeitada</span>
+                                {% elif formulario.status_requisicao == 'AE' %}
+                                    <span class="badge bg-info">Aguardando Encerramento</span>
+                                {% elif formulario.status_requisicao == 'EN' %}
+                                    <span class="badge bg-dark">Encerrada</span>
+                                {% endif %}
+                            </span>
                         </div>
-                        {% endif %}
                     </div>
                     
-                    <!-- Descrição do Formulário -->
-                    {% if formulario.descricao_cargo %}
-                    <div class="formulario-description">
-                        {{ formulario.descricao_cargo|truncatechars:120 }}
+                    <!-- Descrição da Requisição -->
+                    {% if formulario.observacao %}
+                    <div class="vaga-description">
+                        {{ formulario.observacao|truncatechars:120 }}
                     </div>
                     {% endif %}
                     
-                    <!-- Ação -->
-                    <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="btn btn-primary formulario-action">
-                        <i class="fas fa-eye me-1"></i>Ver Detalhes
-                    </a>
+                    <!-- Informações sobre Vaga Criada -->
+                    {% if formulario.status_requisicao == 'AP' %}
+                    <div class="candidatos-info">
+                        <div class="candidatos-count">
+                            <i class="fas fa-check-circle me-1 text-success"></i>
+                            Requisição aprovada
+                        </div>
+                        <div class="candidatos-label">
+                            {% if formulario.get_vaga %}
+                                Vaga #{{ formulario.get_vaga.id }} criada com sucesso
+                            {% else %}
+                                Aguardando criação da vaga
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Ações -->
+                    <div class="vaga-actions w-100 d-flex flex-column">
+                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-eye me-1"></i>Ver Detalhes
+                        </a>
+                        
+                        {% if formulario.status_requisicao == 'AP' and formulario.get_vaga %}
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' formulario.get_vaga.id %}" class="mt-2 btn btn-outline-primary w-100">
+                            <i class="fas fa-briefcase me-1"></i>Ver Vaga Criada
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         
         <!-- Ação para Novo Formulário -->
-        <div class="text-center mt-4">
+        <!-- <div class="text-center mt-4">
             <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-file-plus me-2"></i>Nova Requisição de Vaga
             </a>
-        </div>
+        </div> -->
         
         {% else %}
         <!-- Estado Vazio com Filtros -->
@@ -264,14 +311,48 @@
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // Auto-submit do formulário de filtro quando mudar o select
-    $('#status').on('change', function() {
-        $(this).closest('form').submit();
+    document.getElementById('status').addEventListener('change', function() {
+        this.closest('form').submit();
     });
     
+    // Forçar redraw para resolver problemas de layout
+    const vagasGrid = document.querySelector('.vagas-grid');
+    if (vagasGrid) {
+        vagasGrid.style.display = 'none';
+        // Forçar reflow
+        void vagasGrid.offsetHeight;
+        vagasGrid.style.display = 'grid';
+    }
+    
+    // Animação das vagas com verificação de existência
+    const vagas = document.querySelectorAll('.vaga-card');
+    if (vagas.length > 0) {
+        vagas.forEach((vaga, index) => {
+            // Garantir que todos os cards estejam visíveis primeiro
+            vaga.style.opacity = '0';
+            vaga.style.transform = 'translateY(20px)';
+            vaga.style.display = 'flex';
+            
+            // Aplicar animação com um pequeno atraso
+            setTimeout(() => {
+                vaga.style.opacity = '1';
+                vaga.style.transform = 'translateY(0)';
+            }, 50 + (80 * index)); // Timing mais rápido para melhor UX
+        });
+        
+        // Log para debug
+        console.log(`Total de requisições renderizadas: ${vagas.length}`);
+    }
+    
     // Tooltip para informações adicionais
-    $('[data-bs-toggle="tooltip"]').tooltip();
+    if (typeof bootstrap !== 'undefined') {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+    }
 });
 </script>
 {% endblock %}

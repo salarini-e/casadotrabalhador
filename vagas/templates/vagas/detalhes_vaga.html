@@ -259,8 +259,11 @@
               <div class="row">
                 <!-- Informações da Empresa -->
                 <div class="col-lg-6 mb-3">
-                  <div class="section-header">
+                  <div class="section-header d-flex justify-content-between align-items-center">
                     <h6><i class="fas fa-building me-2"></i>Informações da Empresa</h6>
+                    <a href="{% url 'vagas:empresa_profile' vaga.empresa.id %}" target="_blank" class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-external-link-alt me-1"></i>Ver Perfil
+                    </a>
                   </div>
                   <div class="row">
                     <div class="col-12 mb-3">

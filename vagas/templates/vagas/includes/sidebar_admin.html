@@ -63,7 +63,7 @@
                         <span>Vagas com Candidatos</span>
                     </a>
                 </li>
-                <li class="nav-item {% if request.resolver_match.url_name == 'candidatosporfuncionario' %}active{% endif %}" title="Por Funcionário">
+                <li class="nav-item {% if request.resolver_match.url_name == 'candidatosporfuncionario' or request.resolver_match.url_name == 'funcionarios_encaminhados' %}active{% endif %}" title="Por Funcionário">
                     <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
                         <i class="fas fa-user-tie"></i>
                         <span>Por Funcionário</span>

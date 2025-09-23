@@ -1,0 +1,22 @@
+/* Estilos adicionais para empresa_formularios.html */
+
+/* Status pendente para cards de requisição */
+.status-pendente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Animação dos cards */
+.vaga-card {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.vaga-card.ativa {
+    border-top-color: #28a745;
+}
+
+.vaga-card.inativa {
+    border-top-color: #dc3545;
+}

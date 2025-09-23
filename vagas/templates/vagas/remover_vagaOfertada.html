@@ -1,128 +1,81 @@
-{% extends 'base_site.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
-{% block css %}
-{{block.super}}
-{% endblock%}
-{% block main_conteudo %}
-{% load widget_tweaks %}   
-{% load bootstrap5 %}  
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-{% if success.0 %}
-<div class="row px-4 mb-3">
-    <div class="col d-flex bg-success py-2">
-        <p class="m-auto text-white">{{success.1}}</p>
-    </div>
-</div>
-{% endif %}                  
-<div class="row">
-    <div class="col d-flex">
-      <h2 class="text-start text-uppercase">REMOVER VAGA OFERTADA</h2>
-      <span class="ms-auto"><a class="btn btn-btfl bg-primary" href="{% url 'vagas:visualizar_vaga' id %}">Voltar</a></span>
-    </div>
-</div>
-<div class="row">
-    <div class="col">
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="remover" value="{{id}}">
-            <h4>Você tem certeza que deseja fazer isso?</h4>
-            <p>{{vaga}}</p>
-            <button class="btn btn-btfl bg-danger mt-3">SIM, REMOVER VAGA</button>
-        </form>
-        
-    </div>
-</div>
-  <style>
-    #form_cadastro_vaga ul, li{
-        list-style: none;
-    }
-    #form_cadastro_vaga button:hover{
-        background-color: #329787 !important;
-        border-color: #329787;
-        color: white !important;
-    }
-    #form_cadastro button, .btn-primary{
-        background-color: #329787 !important;
-        border-color: #329787;
-    }
-    #id_ativo{
-        opacity: 0;
-    }
-    .form-check{
-        display: flex;            
-    }
-    .form-switch span{
-        margin-left: 10px;
-        padding-top: 4px;
-    }
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
 
-    .form-switch .form-check-input{
-        margin-left: 0;
+{% block title %}Remover Vaga - {{ vaga.cargo.nome }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .confirmation-card {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    .form-check-input:checked[type=checkbox]{
-        background-color:#329787;
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
     }
-    ul, li{
-        margin: 0;
-        padding: 0;
+    
+    .btn-danger:hover {
+        background-color: #bb2d3b;
+        border-color: #b02a37;
+    }
+    
+    .vaga-details {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6c757d;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 4px;
     }
 </style>
-<script>
-    function destacar(){
-        span_destaque=document.getElementById('span_destaque')
-        if (span_destaque.innerText=='Sim, destacar.'){
-            span_destaque.innerText='Não destacar.';
-        }else{
-            span_destaque.innerText='Sim, destacar.';
-        }
-    }
-</script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script>
-    function searchVaga(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getVaga(e.value)
-        }        
-    }    
-    function searchEmpresa(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getEmpresa(e.value)
-        }        
-    }    
-    function getEmpresa(value){
-        var url = '/get_empresa/';  
-        $.ajax({ 
-            url: url,
-            data: {
-                'empresa': value,
-            },
-            success: function(data) {                               
-                $("#search_empresa_result").html(data);
-            }
-        });                
-    };
-    function getVaga(value){
-        var url = '/get_vaga/';         
-        $.ajax({ 
-            url: url,
-            data: {
-                'vaga': value,
-            },
-            success: function(data) {                               
-                $("#search_vaga_result").html(data);
-            }
-        });                
-    };
-    function selectThisVaga(e){
-        document.getElementById('id_vaga').value=e.value
-        document.getElementById('search_vaga_result').innerHTML=''
-    }
-    function selectThisEmpresa(e){
-        document.getElementById('id_empresa').value=e.value
-        document.getElementById('search_empresa_result').innerHTML=''
-    }
-</script>
-
 {% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col d-flex align-items-center">
+            <h2 class="page-title">Remover Vaga</h2>
+            <div class="ms-auto">
+                <a class="btn btn-outline-secondary" href="{% url 'vagas:visualizar_vaga' id %}">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="confirmation-card">
+                <h4 class="mb-4 fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmação de Remoção</h4>
+                
+                <div class="vaga-details">
+                    <h5>{{ vaga.cargo.nome }}</h5>
+                    <p class="mb-1"><strong>Empresa:</strong> {{ vaga.empresa.nome }}</p>
+                    <p class="mb-1"><strong>Vagas disponíveis:</strong> {{ vaga.quantidadeVagas }}</p>
+                    {% if vaga.dt_inclusao %}
+                    <p class="mb-1"><strong>Data de cadastro:</strong> {{ vaga.dt_inclusao|date:"d/m/Y" }}</p>
+                    {% endif %}
+                </div>
+                
+                <p class="mt-4">Você tem certeza que deseja remover esta vaga? Esta ação não poderá ser desfeita.</p>
+                
+                <form method="POST" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="remover" value="{{id}}">
+                    
+                    <div class="d-flex mt-4">
+                        <a href="{% url 'vagas:visualizar_vaga' id %}" class="btn btn-outline-secondary me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Confirmar Remoção
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>{% endblock %}

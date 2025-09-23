@@ -417,7 +417,86 @@
 
         .custom-select-wrapper.active .custom-select-arrow {
             transform: translateY(-50%) rotate(180deg);
-        }        .form-select {
+        }
+        
+        /* Arrow Navigation Indicators */
+        .select-arrow-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+        
+        .arrow-left, .arrow-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--totem-primary);
+            color: white;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .field-highlighted .arrow-left, .field-highlighted .arrow-right {
+            opacity: 1;
+            transform: scale(1.2);
+            background: var(--totem-warning);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(245, 158, 11, 0.5);
+            }
+            to {
+                transform: scale(1.2);
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+            }
+        }
+        
+        /* Animations for option changes */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.2s ease forwards;
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.2s ease forwards;
+        }
+        
+        .form-select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.75rem center;
@@ -707,7 +786,9 @@
                                name="nome" 
                                value="{{ form.nome.value|default:'' }}"
                                required 
-                               tabindex="1">
+                               tabindex="1"
+                               autocomplete="off"
+                               >
                         {% if form.nome.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -728,7 +809,9 @@
                                value="{{ form.cpf.value|default:'' }}"
                                placeholder="000.000.000-00"
                                required 
-                               tabindex="2">
+                               tabindex="2"
+                               autocomplete="off"
+                               >
                         {% if form.cpf.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -748,7 +831,9 @@
                                name="data_nascimento" 
                                value="{{ form.data_nascimento.value|default:'' }}"
                                required 
-                               tabindex="3">
+                               tabindex="3"
+                               autocomplete="off"
+                               >
                         {% if form.data_nascimento.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -767,7 +852,7 @@
                                    class="form-control custom-select {% if form.sexo.errors %}is-invalid{% endif %}" 
                                    id="sexo-display" 
                                    readonly
-                                   placeholder="Clique para selecionar"
+                                   placeholder="Use as setas ← → para selecionar"
                                    data-select-target="sexo">
                             <i class="fas fa-chevron-down custom-select-arrow"></i>
                             <select id="sexo" name="sexo" style="display: none;" required>
@@ -797,7 +882,8 @@
                                value="{{ form.celular.value|default:'' }}"
                                placeholder="(00) 00000-0000"
                                required 
-                               tabindex="5">
+                               tabindex="5"
+                               autocomplete="off">
                         {% if form.celular.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -817,7 +903,9 @@
                                name="email" 
                                value="{{ form.email.value|default:'' }}"
                                placeholder="seu@email.com"
-                               tabindex="6">
+                               tabindex="6"
+                               autocomplete="off"
+                               >
                         {% if form.email.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -836,7 +924,9 @@
                                id="bairro" 
                                name="bairro" 
                                value="{{ form.bairro.value|default:'' }}"
-                               tabindex="7">
+                               tabindex="7"
+                               autocomplete="off"
+                               >
                         {% if form.bairro.errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle"></i>
@@ -855,7 +945,7 @@
                                    class="form-control custom-select {% if form.escolaridade.errors %}is-invalid{% endif %}" 
                                    id="escolaridade-display" 
                                    readonly
-                                   placeholder="Clique para selecionar"
+                                   placeholder="Use as setas ← → para selecionar"
                                    data-select-target="escolaridade">
                             <i class="fas fa-chevron-down custom-select-arrow"></i>
                             <select id="escolaridade" name="escolaridade" style="display: none;" required>
@@ -917,7 +1007,6 @@
     </div>
 
     <!-- Navigation Help -->
-        <!-- Navigation Help -->
     <div class="navigation-help">
         <div class="help-instruction">
             <i class="fas fa-arrows-alt-v"></i>
@@ -925,7 +1014,7 @@
         </div>
         <div class="help-instruction">
             <i class="fas fa-arrows-alt-h"></i>
-            <span>←→ Navegar entre campos</span>
+            <span>←→ Escolher opções</span>
         </div>
         <div class="help-instruction">
             <i class="fas fa-check"></i>
@@ -1035,14 +1124,6 @@
                     field.addEventListener('focus', () => {
                         this.currentFieldIndex = index;
                         this.highlightCurrentField();
-                        
-                        // If this is a custom select field, open modal
-                        if (field.classList.contains('custom-select')) {
-                            const selectTarget = field.getAttribute('data-select-target');
-                            if (selectTarget && !this.selectModalOpen) {
-                                this.openSelectModal(selectTarget);
-                            }
-                        }
                     });
 
                     // Prevent Tab navigation
@@ -1059,11 +1140,7 @@
                     cpfInput.addEventListener('blur', () => this.validateCPF());
                 }
 
-                // Phone validation
-                const phoneInput = document.getElementById('celular');
-                if (phoneInput) {
-                    phoneInput.addEventListener('input', () => this.formatPhone());
-                }
+                // A validação do telefone agora é feita no setupInputMasks
             }
 
             handleKeydown(e) {
@@ -1075,6 +1152,8 @@
                 // Prevent default behavior for navigation keys
                 if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Tab', 'Escape'].includes(e.code)) {
                     
+                    const currentField = this.formFields[this.currentFieldIndex];
+                    
                     switch(e.code) {
                         case 'Escape':
                             e.preventDefault();
@@ -1082,26 +1161,40 @@
                             break;
                             
                         case 'ArrowDown':
-                        case 'ArrowRight':
                             e.preventDefault();
                             this.navigateToField('next');
                             break;
                             
                         case 'ArrowUp':
-                        case 'ArrowLeft':
                             e.preventDefault();
                             this.navigateToField('prev');
+                            break;
+                        
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            // Check if current field is for selection (sexo or escolaridade)
+                            if (currentField && currentField.classList.contains('custom-select')) {
+                                const selectTarget = currentField.getAttribute('data-select-target');
+                                this.navigateSelectOption(selectTarget, 'prev');
+                            } else {
+                                this.navigateToField('prev');
+                            }
+                            break;
+                            
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            // Check if current field is for selection (sexo or escolaridade)
+                            if (currentField && currentField.classList.contains('custom-select')) {
+                                const selectTarget = currentField.getAttribute('data-select-target');
+                                this.navigateSelectOption(selectTarget, 'next');
+                            } else {
+                                this.navigateToField('next');
+                            }
                             break;
                             
                         case 'Enter':
                             e.preventDefault();
-                            // Check if current field is a custom select
-                            const currentField = this.formFields[this.currentFieldIndex];
-                            if (currentField && currentField.classList.contains('custom-select')) {
-                                // Open the select modal
-                                const selectTarget = currentField.getAttribute('data-select-target');
-                                this.openSelectModal(selectTarget);
-                            } else if (this.isLastField() && this.isCurrentFieldFilled()) {
+                            if (this.isLastField() && this.isCurrentFieldFilled()) {
                                 // Submit form if on last field and it's filled
                                 this.form.requestSubmit();
                             } else if (this.isCurrentFieldFilled()) {
@@ -1117,6 +1210,110 @@
                             e.preventDefault(); // Disable tab navigation
                             break;
                     }
+                }
+            }
+            
+            navigateSelectOption(selectTarget, direction) {
+                const selectElement = document.getElementById(selectTarget);
+                if (!selectElement) return;
+                
+                const options = Array.from(selectElement.querySelectorAll('option')).filter(opt => opt.value !== '');
+                if (options.length === 0) return;
+                
+                let currentIndex = -1;
+                if (selectElement.value) {
+                    currentIndex = options.findIndex(opt => opt.value === selectElement.value);
+                }
+                
+                // Calculate new index
+                if (direction === 'next') {
+                    currentIndex = (currentIndex + 1) % options.length;
+                } else {
+                    currentIndex = (currentIndex - 1 + options.length) % options.length;
+                }
+                
+                // Select new option
+                const newOption = options[currentIndex];
+                selectElement.value = newOption.value;
+                
+                // Update display
+                const displayElement = document.getElementById(`${selectTarget}-display`);
+                if (displayElement) {
+                    displayElement.value = newOption.textContent;
+                }
+                
+                // Visual feedback
+                this.showOptionChangeAnimation(displayElement, direction);
+                
+                // Trigger change event
+                selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            showOptionChangeAnimation(element, direction) {
+                if (!element) return;
+                
+                // Remove any existing animations
+                element.style.transition = 'none';
+                element.classList.remove('slide-in-left', 'slide-in-right');
+                
+                // Force reflow
+                void element.offsetWidth;
+                
+                // Add animation class
+                element.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                
+                // Highlight the arrow that was pressed
+                const wrapper = element.closest('.custom-select-wrapper');
+                if (wrapper) {
+                    const arrowRight = wrapper.querySelector('.arrow-right');
+                    const arrowLeft = wrapper.querySelector('.arrow-left');
+                    
+                    if (direction === 'next' && arrowRight) {
+                        arrowRight.style.transform = 'scale(1.3)';
+                        arrowRight.style.opacity = '1';
+                        arrowRight.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.7)';
+                        setTimeout(() => {
+                            arrowRight.style.transform = '';
+                            arrowRight.style.opacity = '';
+                            arrowRight.style.boxShadow = '';
+                        }, 300);
+                    } else if (direction === 'prev' && arrowLeft) {
+                        arrowLeft.style.transform = 'scale(1.3)';
+                        arrowLeft.style.opacity = '1';
+                        arrowLeft.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.7)';
+                        setTimeout(() => {
+                            arrowLeft.style.transform = '';
+                            arrowLeft.style.opacity = '';
+                            arrowLeft.style.boxShadow = '';
+                        }, 300);
+                    }
+                }
+                
+                // Animate the text change
+                if (direction === 'next') {
+                    element.style.transform = 'translateX(-10px)';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(10px)';
+                        
+                        setTimeout(() => {
+                            element.style.transform = 'translateX(0)';
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 150);
+                } else {
+                    element.style.transform = 'translateX(10px)';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(-10px)';
+                        
+                        setTimeout(() => {
+                            element.style.transform = 'translateX(0)';
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 150);
                 }
             }
 
@@ -1239,28 +1436,89 @@
                 return digit1 === parseInt(cpf.charAt(9)) && digit2 === parseInt(cpf.charAt(10));
             }
 
-            addInputMasks() {
+            // As funções addInputMasks e formatPhone foram incorporadas em setupInputMasks
+            
+            setupInputMasks() {
                 // CPF mask
                 const cpfInput = document.getElementById('cpf');
+                const self = this;
+                
                 if (cpfInput) {
-                    cpfInput.addEventListener('input', (e) => {
+                    cpfInput.addEventListener('keyup', function(e) {
                         let value = e.target.value.replace(/\D/g, '');
-                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                        value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                        
+                        if (value.length > 11) {
+                            value = value.substring(0, 11);
+                        }
+                        
+                        if (value.length > 0) {
+                            value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+                        }
+                        
+                        if (value.length > 3) {
+                            value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+                        }
+                        
+                        if (value.length > 6) {
+                            value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+                        }
+                        
                         e.target.value = value;
+                        
+                        // Validação em tempo real quando o CPF estiver completo
+                        if (value.replace(/\D/g, '').length === 11) {
+                            self.validateCPF();
+                        } else if (value.replace(/\D/g, '').length < 11) {
+                            // Se ainda não está completo, remover mensagem de erro se existir
+                            cpfInput.classList.remove('is-invalid');
+                            const errorMsg = cpfInput.nextElementSibling;
+                            if (errorMsg && errorMsg.classList.contains('error-message')) {
+                                errorMsg.remove();
+                            }
+                        }
                     });
                 }
-            }
-
-            formatPhone() {
-                const phoneInput = document.getElementById('celular');
-                let value = phoneInput.value.replace(/\D/g, '');
                 
-                if (value.length <= 11) {
-                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
-                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
-                    phoneInput.value = value;
+                // Celular mask
+                const celularInput = document.getElementById('celular');
+                if (celularInput) {
+                    celularInput.addEventListener('keyup', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        
+                        if (value.length > 11) {
+                            value = value.substring(0, 11);
+                        }
+                        
+                        if (value.length > 0) {
+                            value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                        }
+                        
+                        if (value.length > 2) {
+                            value = value.replace(/^\((\d{2})\) (\d{5})(\d)/, '($1) $2-$3');
+                        }
+                        
+                        e.target.value = value;
+                        
+                        // Validação simples do telefone (pelo menos 10 dígitos)
+                        if (value.length < 10 && value.length > 0) {
+                            celularInput.classList.add('is-invalid');
+                            
+                            // Mostrar erro se não existir
+                            let errorDiv = celularInput.nextElementSibling;
+                            if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                                errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message';
+                                celularInput.parentNode.insertBefore(errorDiv, celularInput.nextSibling);
+                            }
+                            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Telefone incompleto';
+                        } else {
+                            celularInput.classList.remove('is-invalid');
+                            const errorMsg = celularInput.nextElementSibling;
+                            if (errorMsg && errorMsg.classList.contains('error-message')) {
+                                errorMsg.remove();
+                            }
+                        }
+                    });
                 }
             }
 
@@ -1290,15 +1548,23 @@
                 this.highlightedOptionIndex = 0;
                 this.selectModalOpen = false;
 
-                // Setup click events for custom selects
+                // No modal on click, now we use arrow keys for navigation
                 document.querySelectorAll('.custom-select').forEach(select => {
-                    select.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        this.openSelectModal(e.target.getAttribute('data-select-target'));
-                    });
-
-                    // Remove the separate focus event since it's now handled in the global focus tracking
+                    // Add visual indicator for arrow navigation
+                    const wrapper = select.closest('.custom-select-wrapper');
+                    if (wrapper) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'select-arrow-indicator';
+                        indicator.innerHTML = `
+                            <div class="arrow-left">
+                                <i class="fas fa-chevron-left"></i>
+                            </div>
+                            <div class="arrow-right">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        `;
+                        wrapper.appendChild(indicator);
+                    }
                 });
 
                 // Update display values for initially selected options

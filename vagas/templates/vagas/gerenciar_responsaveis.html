@@ -109,9 +109,23 @@
           <a href="{% url 'vagas:empresa_profile' empresa.id %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil
           </a>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addResponsavelModal">
-            <i class="fas fa-user-plus me-2"></i>Adicionar Responsável
-          </button>
+          <div class="dropdown d-inline-block">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="addUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user-plus me-2"></i>Adicionar Usuário
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="addUserDropdown">
+              <li>
+                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addResponsavelModal" onclick="setModalNivel('RESP')">
+                  <i class="fas fa-user-tie me-2"></i>Responsável Principal
+                </button>
+              </li>
+              <li>
+                <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addResponsavelModal" onclick="setModalNivel('AUX')">
+                  <i class="fas fa-user-cog me-2"></i>Auxiliar
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -152,9 +166,14 @@
                         <div class="card-body">
                           <div class="d-flex justify-content-between align-items-start mb-2">
                             <h6 class="card-title mb-0">{{ responsavel.nome }}</h6>
-                            <span class="badge {% if responsavel.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
-                              {% if responsavel.ativo %}Ativo{% else %}Inativo{% endif %}
-                            </span>
+                            <div>
+                              <span class="badge bg-{% if responsavel.nivel == 'RESP' %}primary{% else %}secondary{% endif %} me-1">
+                                {% if responsavel.nivel == 'RESP' %}Principal{% else %}Auxiliar{% endif %}
+                              </span>
+                              <span class="badge {% if responsavel.ativo %}badge-ativo{% else %}badge-inativo{% endif %}">
+                                {% if responsavel.ativo %}Ativo{% else %}Inativo{% endif %}
+                              </span>
+                            </div>
                           </div>
                           
                           <p class="card-text small mb-1">
@@ -181,6 +200,10 @@
                           </p>
                           
                           <div class="d-flex gap-1">
+                            <a href="{% url 'vagas:editar_responsavel_empresa' responsavel.id %}" class="btn btn-sm btn-info" title="Editar responsável">
+                              <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            
                             <form method="post" action="{% url 'vagas:toggle_responsavel_ativo' responsavel.id %}" class="d-inline">
                               {% csrf_token %}
                               <button type="submit" class="btn btn-sm {% if responsavel.ativo %}btn-warning{% else %}btn-success{% endif %}" 
@@ -228,7 +251,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-user-plus me-2"></i>Adicionar Responsável
+          <i class="fas fa-user-plus me-2"></i><span id="modalTitleType">Adicionar Responsável</span>
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -261,6 +284,18 @@
             <label for="telefone">Telefone</label>
           </div>
           
+          <div class="mb-3 mt-3">
+            <label class="form-label d-block">Nível de acesso</label>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="nivel" id="nivelResp" value="RESP" checked>
+              <label class="form-check-label" for="nivelResp">Responsável Principal</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="nivel" id="nivelAux" value="AUX">
+              <label class="form-check-label" for="nivelAux">Auxiliar</label>
+            </div>
+          </div>
+          
           <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>
             <strong>Importante:</strong>
@@ -268,13 +303,14 @@
               <li>O sistema verificará se já existe um usuário cadastrado com esse CPF</li>
               <li>Se não existir, será criado um novo usuário com senha temporária</li>
               <li>O responsável receberá permissões específicas para esta empresa</li>
+              <li>Auxiliares possuem acesso limitado comparado aos responsáveis principais</li>
             </ul>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save me-2"></i>Adicionar Responsável
+            <i class="fas fa-save me-2"></i><span id="modalButtonText">Adicionar Responsável</span>
           </button>
         </div>
       </form>
@@ -340,6 +376,22 @@ function mascaraCPF(campo) {
   cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
   cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
   campo.value = cpf;
+}
+
+// Função para definir o nível ao abrir o modal
+function setModalNivel(nivel) {
+  // Atualiza o radio button selecionado
+  if (nivel === 'RESP') {
+    document.getElementById('nivelResp').checked = true;
+    document.getElementById('nivelAux').checked = false;
+    document.getElementById('modalTitleType').textContent = 'Adicionar Responsável Principal';
+    document.getElementById('modalButtonText').textContent = 'Adicionar Responsável Principal';
+  } else {
+    document.getElementById('nivelResp').checked = false;
+    document.getElementById('nivelAux').checked = true;
+    document.getElementById('modalTitleType').textContent = 'Adicionar Auxiliar';
+    document.getElementById('modalButtonText').textContent = 'Adicionar Auxiliar';
+  }
 }
 </script>
 {% endblock %}

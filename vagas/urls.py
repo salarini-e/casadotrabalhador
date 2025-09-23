@@ -49,6 +49,7 @@ urlpatterns = [
     path('empresa/<int:empresa_id>/responsaveis/', views.gerenciar_responsaveis_empresa, name='gerenciar_responsaveis_empresa'),
     path('responsavel/<int:responsavel_id>/remover/', views.remover_responsavel_empresa, name='remover_responsavel_empresa'),
     path('responsavel/<int:responsavel_id>/toggle/', views.toggle_responsavel_ativo, name='toggle_responsavel_ativo'),
+    path('responsavel/<int:responsavel_id>/editar/', views.editar_responsavel_empresa, name='editar_responsavel_empresa'),
     path('empresas-responsaveis/', views.empresas_responsaveis, name='empresas_responsaveis'),
     path('candidatos-por-funcionario/', views.candidatosporfuncionario, name='candidatosporfuncionario'),
     path('candidatos-por-funcionario/<id>', views.funcionario_encaminhados, name='funcionarios_encaminhados'), 
@@ -91,4 +92,9 @@ urlpatterns = [
     path('painel-empresarial/vaga/<int:vaga_id>/encerrar/', views.empresa_encerrar_vaga, name='empresa_encerrar_vaga'),
     path('painel-empresarial/candidato/<int:candidato_id>/', views.empresa_candidato_perfil, name='empresa_candidato_perfil'),
     path('painel-empresarial/perfil/', views.empresa_perfil, name='empresa_perfil'),
+    path('painel-empresarial/auxiliar/novo/', views.empresa_form_add_auxiliar, name='empresa_form_add_auxiliar'),
+    path('painel-empresarial/auxiliar/adicionar/', views.empresa_add_auxiliar, name='empresa_add_auxiliar'),
+    path('painel-empresarial/auxiliar/desativar/', views.empresa_desativar_auxiliar, name='empresa_desativar_auxiliar'),
+    path('painel-empresarial/auxiliar/reativar/', views.empresa_reativar_auxiliar, name='empresa_reativar_auxiliar'),
+    path('painel-empresarial/vaga/solicitar-desativacao/', views.empresa_solicitar_desativacao, name='empresa_solicitar_desativacao'),
 ]

@@ -244,6 +244,19 @@
             box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
             color: white;
         }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--totem-warning), #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
 
         .countdown {
             position: fixed;
@@ -358,6 +371,63 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .print-instruction {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            /* background-color: rgba(16, 185, 129, 0.1); */
+            border-radius: 8px;
+            color: var(--totem-success);
+            animation: pulse 2s infinite;
+        }
+        
+        .print-instruction i {
+            font-size: 1.2rem;
+        }
+        
+        kbd {
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: bold;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 0 #cbd5e1;
+            display: inline-block;
+            margin: 0 4px;
+            color: var(--totem-text-primary);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .success-container, .countdown, .keyboard-hint, .loading-overlay, .print-instruction, .btn {
+                display: none !important;
+            }
+            
+            .print-template {
+                display: block !important;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -383,7 +453,13 @@
 
             <h1 class="success-title">Candidatura Realizada!</h1>
             <p class="success-subtitle">Seus dados foram enviados com sucesso</p>
-
+            <!-- Instrução de impressão -->
+            <div class="print-instruction">
+                <div class="help-instruction">
+                    <i class="fas fa-keyboard"></i>
+                    <span>Pressione <kbd>Enter</kbd> para imprimir o encaminhamento</span>
+                </div>
+            </div>
             <div class="candidate-info">
                 <div class="info-header">
                     <i class="fas fa-user-check"></i>
@@ -443,15 +519,116 @@
             </div>
 
             <div class="actions">
+                <button type="button" class="btn btn-warning" id="printBtn">
+                    <i class="fas fa-print"></i>
+                    Imprimir Encaminhamento
+                </button>
                 <a href="{% url 'vagas:totem_v1' %}" class="btn btn-primary" id="backBtn">
                     <i class="fas fa-home"></i>
                     Voltar às Vagas
-                </a>
-                <a href="{% url 'vagas:totem_candidatarse' vaga.id %}" class="btn btn-secondary">
-                    <i class="fas fa-redo"></i>
-                    Nova Candidatura
-                </a>
-            </div>
+                </a>                
+            </div>                        
+        </div>
+    </div>
+
+    <!-- Template de Impressão (oculto até a impressão) -->
+    <div class="print-template" style="display: none;">
+        <style>
+            h1{
+                font-family: Verdana, Arial, sans-serif;
+            }
+            p{
+                text-indent: 30px;
+                text-align: justify;
+                font-family: Arial, sans-serif;
+                font-size: 14pt;
+            }
+            span{
+                font-family: Arial, sans-serif;
+                font-size: 14pt;
+            }
+            b{
+                text-transform: uppercase;
+            }
+            @media print {
+                .print-template {
+                    display: block !important;
+                }
+            }
+        </style>
+
+        <div style="margin: auto; width: 100%;">
+            <header style="display: flex; width: 800px; margin: auto;">            
+                <img src="/static/images/logo.jpg" style="height: 110px;" alt="">            
+                <img src="/static/images/SUBSECRETARIA.png" style="width: 500px; height: auto; margin-left:0px; margin-right: 0px; margin-top: auto; margin-bottom: auto; margin-left: auto;" alt="">            
+            </header>
+            <main style="padding: 0 100px; width: 800px; display: flex; flex-direction: column; padding-top: 60px; margin: auto;"> 
+                <h1 style="margin: auto;">ENCAMINHAMENTO</h1>
+
+                <span style="margin-top: 40px;">Prezado(a),</span>
+                <p>
+                    A CASA DO TRABALHADOR, no exercício de suas atribuições legais e regimentais,  
+                    encaminha pelo presente o candidato <b>{{ candidato.nome }}</b>, portador do cpf de nº <b>{{ candidato.get_cpf }}</b>, 
+                    interessado na vaga de <b>{{ vaga.cargo.nome }}</b>{% if vaga.empresa_fantasia %},
+                    à empresa <b>{{ vaga.empresa_fantasia }}</b>{% endif %}.
+                </p>
+                
+                <p>Pedimos ao candidato que busque fazer contato:</p>
+                
+                {% if vaga.contato_presencial %}
+                <p style="margin: 0 30px;">                
+                De forma presencial, munido de seu currículo e com este encaminhamento em mãos, no endereço: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.empresa_endereco }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_telefone %}
+                <p style="margin: 10px 30px;">                
+                Por telefone: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_telefone }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_whatsapp %}
+                <p style="margin: 10px 30px;">                
+                    O candidato deve enviar o seu currículo digital para o whatsapp abaixo: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_whatsapp }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_email %}
+                <p style="margin: 0 30px;">                
+                Por email, com seu currículo em anexo, ao endereço: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_email }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_link %}
+                <p style="margin: 0 30px;">                
+                Pelo endereço eletrônico: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_link }}</span></p>
+                {% endif %}
+                
+                <p style="margin-top: 30px;">
+                    <b>OBS.:</b>
+                    {% if vaga.observacao %}{{ vaga.observacao }}{% else %}As informações presentes nesta são de responsabilidade do candidato.{% endif %}
+                </p>
+                
+                <p style="margin-top: 0;">
+                    Desde já agradecemos e continuamos a disposição de V. srª para maiores
+                    informações no telefone (22)2525-9205.                 
+                </p>
+                
+                <p style="margin-bottom: 0; text-indent: 0; text-align: center;">                    
+                    <span>Documento gerado automaticamente pelo</span><br>
+                    <span><b>TOTEM DA CASA DO TRABALHADOR</b></span>
+                </p>
+                
+                <p style="text-align: center; margin-top: 40px; text-indent: 0;">
+                    Nova Friburgo, {% now "d \d\e F \d\e Y" %}.
+                </p>
+                
+                <p style="text-align: center; margin: 80px; text-indent: 0;">
+                    João Vitor Guerra Toledo Tamez <br>Matrícula: 063.734<br>
+                    Subsecretário de Trabalho e Renda                
+                </p>
+            </main>
         </div>
     </div>
 
@@ -484,6 +661,12 @@
                     e.preventDefault();
                     this.goBack();
                 });
+                
+                // Handle print button click
+                document.getElementById('printBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.printEncaminhamento();
+                });
 
                 // Handle any click to reset countdown
                 document.addEventListener('click', () => {
@@ -505,6 +688,9 @@
             handleKeydown(e) {
                 switch(e.code) {
                     case 'Enter':
+                        e.preventDefault();
+                        this.printEncaminhamento();
+                        break;
                     case 'Space':
                         e.preventDefault();
                         this.goBack();
@@ -558,6 +744,48 @@
                 setTimeout(() => {
                     window.location.href = "{% url 'vagas:totem_v1' %}";
                 }, 1000);
+            }
+            
+            printEncaminhamento() {
+                // Pausar o countdown durante a impressão
+                if (this.countdownTimer) {
+                    clearInterval(this.countdownTimer);
+                }
+                
+                // Mostrar feedback visual antes da impressão
+                const printBtn = document.getElementById('printBtn');
+                const originalText = printBtn.innerHTML;
+                
+                printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Imprimindo...';
+                printBtn.disabled = true;
+                
+                // Formatação de telefones, se existirem
+                this.formatPhoneNumbers();
+                
+                // Pequeno delay para mostrar o feedback visual
+                setTimeout(() => {
+                    // Executa a impressão
+                    window.print();
+                    
+                    // Retorna ao estado normal após a impressão
+                    printBtn.innerHTML = originalText;
+                    printBtn.disabled = false;
+                    
+                    // Reinicia o countdown
+                    this.resetCountdown();
+                    this.startCountdown();
+                }, 300);
+            }
+            
+            formatPhoneNumbers() {
+                // Formata números de telefone no formato (XX) XXXX-XXXX
+                const phones = document.querySelectorAll('.print-template [data-phone]');
+                phones.forEach(phone => {
+                    const phoneNumber = phone.textContent.trim();
+                    if (phoneNumber && phoneNumber.length === 10) {
+                        phone.textContent = phoneNumber.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+                    }
+                });
             }
 
             showLoading(show) {

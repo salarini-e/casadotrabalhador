@@ -705,17 +705,6 @@
                     <i class="fas fa-user me-2"></i>{{ request.user.first_name }}
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
-                    {% if request.user.is_superuser or request.user.is_staff %}
-                      <li><a class="dropdown-item" href="/painel_administrativo/">
-                        <i class="fa-solid fa-user-tie me-2"></i>Painel Administrativo
-                      </a></li>
-                    {% endif %}
-                    {% if request.user.is_superuser %}
-                      <li><a class="dropdown-item" href="/admin/">
-                        <i class="fas fa-cog me-2"></i>Administração
-                      </a></li>
-                    {% endif %}
-                    <!-- Painel Empresarial para Responsáveis -->
                     {% if request.user.groups.all|length > 0 %}
                       {% for group in request.user.groups.all %}
                         {% if group.name == 'empresa_user' %}
@@ -725,6 +714,23 @@
                         {% endif %}
                       {% endfor %}
                     {% endif %}
+                    {% if request.user.is_superuser or request.user.is_staff %}
+                      <li><a class="dropdown-item" href="/painel_administrativo/">
+                        <i class="fa-solid fa-user-tie me-2"></i>Painel Administrativo
+                      </a></li>
+                    {% endif %}                    
+                    <li>
+                      <a class="dropdown-item" href="{% url 'cv:editar_dados' %}">
+                        <i class="fas fa-user-cog me-2"></i>Editar Perfil
+                      </a>
+                    </li>
+                    {% if request.user.is_superuser %}
+                      <li><a class="dropdown-item" href="/admin/">
+                        <i class="fas fa-cog me-2"></i>Administração
+                      </a></li>
+                    {% endif %}
+                    <!-- Painel Empresarial para Responsáveis -->
+                    
                     <li><a class="dropdown-item" href="{% url 'autenticacao:logout' %}">
                       <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </a></li>

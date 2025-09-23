@@ -28,6 +28,18 @@
             <div class="stat-card">
                 <div class="d-flex">
                     <div class="stat-icon my-auto">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <div class="stat-title">Formulários</div>
+                        <div class="stat-value">{{ formularios.count }}</div>
+                    </div>
+                </div>
+                <div class="stat-description">{{ formularios_pendentes }} pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="d-flex">
+                    <div class="stat-icon my-auto">
                         <i class="fas fa-briefcase"></i>
                     </div>
                     <div>
@@ -51,32 +63,9 @@
                 <div class="stat-description">{{ candidatos_unicos }} candidatos únicos</div>
             </div>
             
-            <div class="stat-card">
-                <div class="d-flex">
-                    <div class="stat-icon my-auto">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div>
-                        <div class="stat-title">Formulários</div>
-                        <div class="stat-value">{{ formularios.count }}</div>
-                    </div>
-                </div>
-                <div class="stat-description">{{ formularios_pendentes }} pendentes</div>
-            </div>
             
-            <div class="stat-card">
-                <div class="d-flex">
-                    <div class="stat-icon my-auto">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div>
-                    <div class="stat-title">Taxa de Contratação</div>
-                    <div class="stat-value">{{ taxa_conversao }}%</div>
-                
-                </div>
-                </div>
-                <div class="stat-description">{{ candidatos_contratados }} contratados</div>
-            </div>
+            
+            
         </div>
 
 

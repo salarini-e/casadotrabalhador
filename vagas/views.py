@@ -21,7 +21,7 @@ import requests
 import pdfkit
 from datetime import date, datetime
 # VIEWS
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.conf import settings
 
@@ -1068,35 +1068,65 @@ def candidatosporfuncionario(request):
     else: 
         candidatos_interval = Candidato.objects.all()
 
+    total_encaminhamentos = 0
     for i in usuarios:
-        lista.append([i.first_name, len(
-            candidatos_interval.filter(funcionario_encaminhamento=i)), i.id])
+        encaminhamentos = len(candidatos_interval.filter(funcionario_encaminhamento=i))
+        total_encaminhamentos += encaminhamentos
+        lista.append([i.first_name, encaminhamentos, i.id])
+    
+    # Calculate the average
+    media_por_atendente = 0
+    if len(usuarios) > 0:
+        media_por_atendente = total_encaminhamentos / len(usuarios)
         
     context = {
         'lista': lista,
         'mes': month,
-        'ano': year
+        'ano': year,
+        'total_encaminhamentos': total_encaminhamentos,
+        'media_por_atendente': media_por_atendente
     }
 
-    return render(request, 'vagas/indicadores_candidatos_por_funcionarios.html', context)
+    # Use the new admin template
+    return render(request, 'vagas/admin_candidatos_por_funcionario.html', context)
 
 
 @login_required
 @staff_required
 def funcionario_encaminhados(request, id):
+    funcionario = User.objects.get(id=id)
     candidatos = Candidato.objects.filter(funcionario_encaminhamento=id)
+    
+    # Apply search and status filters if provided
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('search', '')
+    
+    if status_filter:
+        candidatos = candidatos.filter(status=status_filter)
+    
+    if search_query:
+        candidatos = candidatos.filter(
+            Q(nome__icontains=search_query) |
+            Q(vaga__cargo__nome__icontains=search_query) |
+            Q(vaga__empresa__nome__icontains=search_query)
+        )
+    
+    # Get all candidatos for statistics before pagination
+    todos_candidatos = candidatos
+    
     paginator = Paginator(candidatos, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     page_obj.page_range = paginator.page_range
 
     context = {
-        'candidatos': page_obj,
-        'fulano': User.objects.get(id=id).first_name,
-        'id': id
+        'object_list': page_obj,
+        'todos_candidatos': todos_candidatos,
+        'funcionario': funcionario.first_name,
+        'funcionario_id': id
     }
 
-    return render(request, 'vagas/candidatos_por_funcionarios_detalhe.html', context)
+    return render(request, 'vagas/admin_candidatos_por_funcionario_detalhe.html', context)
 
 
 @login_required
@@ -1413,10 +1443,30 @@ def excluir_cpf(request):
 @login_required
 @staff_required
 def indicadores(request):
-
     timezone.activate(settings.TIME_ZONE)
-    start_date = date(2022, 9, 1)
-    end_date = date.today()
+    
+    month = ''
+    year = ''
+    
+    # Define default date range
+    if request.method == 'POST':
+        month = request.POST['mes']
+        year = request.POST['ano']
+        
+        date_start = datetime(int(year), int(month), 1)
+        
+        if date_start.month == 12:
+            _, last_day = calendar.monthrange(date_start.year + 1, 1)
+            date_end = datetime(date_start.year + 1, 1, 1) + timedelta(days=last_day - 1)
+        else:
+            _, last_day = calendar.monthrange(date_start.year, date_start.month + 1)
+            date_end = date_start + timedelta(days=last_day)
+            
+        start_date = date_start.date()
+        end_date = date_end.date()
+    else:
+        start_date = date(2022, 9, 1)
+        end_date = date.today()
 
     top_x = 11
 
@@ -1512,6 +1562,11 @@ def indicadores(request):
         start_date += delta
 
         
+    # Calculate online vs balcao counts for the pie chart
+    candidatos_periodo = Candidato.objects.filter(dt_inclusao__gte=start_date, dt_inclusao__lt=end_date)
+    online = candidatos_periodo.filter(candidato_online=True).count()
+    balcao = candidatos_periodo.filter(candidato_online=False).count()
+    
     context = {
         'top_x': top_x,
         'top_cargos_ofertados': cargos_ofertados[:top_x],
@@ -1519,7 +1574,13 @@ def indicadores(request):
         'candidatos_por_mes': candidatos_por_mes,
         'vagas_por_empresa': vagas_por_empresa[:top_x],
         'vagas_cadastradas_por_mes': vagas_cadastradas_por_mes,
-        'relacao_online_balcao': relacao_online_balcao
+        'relacao_online_balcao': relacao_online_balcao,
+        'mes': month,
+        'ano': year,
+        'online': online,
+        'balcao': balcao,
+        'periodo_inicio': start_date.strftime('%d/%m/%Y'),
+        'periodo_fim': end_date.strftime('%d/%m/%Y')
     }
 
     return render(request, 'vagas/indicadores_novo.html', context)
@@ -2529,6 +2590,9 @@ def gerenciar_responsaveis_empresa(request, empresa_id):
                 empresas_nomes = ", ".join([resp.empresa.nome for resp in outras_empresas])
                 messages.warning(request, f'O CPF {cpf} já é responsável da(s) empresa(s): {empresas_nomes}, mas será adicionado também a esta empresa.')
             
+            # Verificar o nível de responsável (principal ou auxiliar)
+            nivel = request.POST.get('nivel', 'RESP')  # Default para Responsável Principal
+            
             # Criar ResponsavelEmpresa
             responsavel = ResponsavelEmpresa.objects.create(
                 empresa=empresa,
@@ -2537,6 +2601,7 @@ def gerenciar_responsaveis_empresa(request, empresa_id):
                 email=email,
                 cargo=cargo,
                 telefone=telefone,
+                nivel=nivel,
                 criado_por=request.user
             )
             
@@ -2635,6 +2700,54 @@ def remover_responsavel_empresa(request, responsavel_id):
 
 
 @staff_required
+def editar_responsavel_empresa(request, responsavel_id):
+    """View para editar detalhes de um responsável da empresa"""
+    responsavel = get_object_or_404(ResponsavelEmpresa, id=responsavel_id)
+    empresa_id = responsavel.empresa.id
+    
+    if request.method == 'POST':
+        try:
+            # Dados básicos
+            nome = request.POST.get('nome', '').strip()
+            email = request.POST.get('email', '').strip()
+            cargo = request.POST.get('cargo', '').strip()
+            telefone = request.POST.get('telefone', '').strip()
+            nivel = request.POST.get('nivel', responsavel.nivel)
+            ativo = request.POST.get('ativo') == 'on'
+            observacoes = request.POST.get('observacoes', '').strip()
+            
+            # Atualizar os dados
+            responsavel.nome = nome
+            responsavel.email = email
+            responsavel.cargo = cargo
+            responsavel.telefone = telefone
+            responsavel.nivel = nivel
+            responsavel.ativo = ativo
+            responsavel.observacoes = observacoes
+            responsavel.save()
+            
+            # Atualizar email do usuário também se necessário
+            if responsavel.user and responsavel.user.email != email:
+                responsavel.user.email = email
+                responsavel.user.save()
+            
+            messages.success(request, f'Dados do responsável {nome} atualizados com sucesso!')
+            return redirect('vagas:gerenciar_responsaveis_empresa', empresa_id=empresa_id)
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar responsável: {str(e)}')
+            
+    # Se for GET ou se houver erro no POST, exibir o formulário
+    empresa = responsavel.empresa
+    context = {
+        'empresa': empresa,
+        'responsavel': responsavel,
+    }
+    
+    return render(request, 'vagas/editar_responsavel.html', context)
+
+
+@staff_required
 def toggle_responsavel_ativo(request, responsavel_id):
     """Ativa/Desativa um responsável da empresa"""
     responsavel = get_object_or_404(ResponsavelEmpresa, id=responsavel_id)
@@ -2664,7 +2777,7 @@ def get_empresa_selecionada(request):
     """Função auxiliar para obter a empresa selecionada pelo responsável"""
     # Buscar todas as empresas do responsável
     responsaveis = ResponsavelEmpresa.objects.filter(user=request.user, ativo=True)
-    
+    print(responsaveis)
     if not responsaveis.exists():
         return None, None, None
     
@@ -2917,6 +3030,9 @@ def empresa_formulario_detalhes(request, formulario_id):
         vaga_vinculada = formulario.get_vaga()
         candidatos_da_vaga = []
         
+        # Flag para indicar que devemos usar os dados da vaga vinculada em vez dos dados do formulário
+        usar_dados_vaga = formulario.status_requisicao == 'AP' and vaga_vinculada is not None
+        
         if vaga_vinculada:
             # Buscar pessoas que se candidataram a esta vaga
             # Primeiro, buscar os candidatos do modelo Candidato
@@ -2927,6 +3043,27 @@ def empresa_formulario_detalhes(request, formulario_id):
             cpfs_candidatos = candidatos_modelo.values_list('cpf', flat=True)
             candidatos_da_vaga = Pessoa.objects.filter(cpf__in=cpfs_candidatos)
         
+        # Garantir que sempre temos um "cargo" disponível para o template, independente do status
+        from types import SimpleNamespace
+        
+        # Se houver uma vaga vinculada, não precisamos adicionar o cargo manualmente, pois será usado vaga_vinculada.cargo
+        if not vaga_vinculada:
+            # Tentar encontrar o cargo pelo nome no campo cargo_ofertado
+            try:
+                cargo = Cargo.objects.get(nome__iexact=formulario.cargo_ofertado)
+                formulario.cargo = cargo
+            except Cargo.DoesNotExist:
+                # Se não encontrar cargo, criar um objeto virtual apenas para o template
+                formulario.cargo = SimpleNamespace(nome=formulario.cargo_ofertado)
+                
+            # Buscar a escolaridade
+            try:
+                escolaridade = Escolaridade.objects.get(pk=formulario.escolaridade_id)
+                # Já deve estar carregado pelo foreign key, mas vamos garantir
+            except Exception:
+                # Se não conseguir carregar, criar um placeholder
+                formulario.escolaridade = SimpleNamespace(nome="Não especificada")
+                
         context = {
             'responsavel': responsavel,
             'empresa': empresa,
@@ -2934,6 +3071,7 @@ def empresa_formulario_detalhes(request, formulario_id):
             'formulario': formulario,
             'vaga_vinculada': vaga_vinculada,
             'candidatos_da_vaga': candidatos_da_vaga,
+            'usar_dados_vaga': formulario.status_requisicao == 'AP' and vaga_vinculada is not None,
         }
         
         return render(request, 'vagas/empresa_formulario_detalhes.html', context)
@@ -3359,3 +3497,247 @@ def empresa_candidato_perfil(request, candidato_id):
     except Exception as e:
         messages.error(request, f'Erro ao carregar perfil do candidato: {str(e)}')
         return redirect('vagas:dashboard_empresa')
+
+
+@empresa_user_required
+def empresa_form_add_auxiliar(request):
+    """Exibe o formulário para adicionar um novo usuário auxiliar"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        # Verificar se o usuário é responsável principal
+        if not responsavel or not responsavel.eh_responsavel_principal():
+            messages.error(request, 'Apenas responsáveis principais podem adicionar auxiliares.')
+            return redirect('vagas:empresa_perfil')
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+        }
+        
+        return render(request, 'vagas/empresa_form_add_auxiliar.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao carregar formulário: {str(e)}')
+        return redirect('vagas:empresa_perfil')
+
+
+@empresa_user_required
+def empresa_add_auxiliar(request):
+    """Adiciona um novo usuário auxiliar à empresa"""
+    if request.method != 'POST':
+        return redirect('vagas:empresa_form_add_auxiliar')
+    
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        # Verificar se o usuário é responsável principal
+        if not responsavel or not responsavel.eh_responsavel_principal():
+            messages.error(request, 'Apenas responsáveis principais podem adicionar auxiliares.')
+            return redirect('vagas:empresa_perfil')
+        
+        # Obter dados do formulário
+        nome = request.POST.get('nome')
+        cpf = request.POST.get('cpf')
+        email = request.POST.get('email')
+        cargo = request.POST.get('cargo')
+        telefone = request.POST.get('telefone')
+        observacoes = request.POST.get('observacoes', '')
+        
+        # Limpar CPF (remover pontuação)
+        cpf = ''.join(filter(str.isdigit, cpf))
+        
+        # Verificar se já existe um auxiliar com este CPF para esta empresa
+        auxiliar_existente = ResponsavelEmpresa.objects.filter(empresa=empresa, cpf=cpf).first()
+        
+        if auxiliar_existente:
+            if auxiliar_existente.ativo:
+                messages.warning(request, f'Já existe um auxiliar com este CPF ({cpf}) para esta empresa.')
+            else:
+                # Se existe mas está inativo, reativar
+                auxiliar_existente.ativo = True
+                auxiliar_existente.save()
+                messages.success(request, 'Auxiliar reativado com sucesso.')
+            
+            return redirect('vagas:empresa_perfil')
+        
+        # Criar novo auxiliar
+        from django.contrib.auth.models import User, Group
+        
+        # Verificar se já existe um usuário com este email
+        user = User.objects.filter(email=email).first()
+        
+        if not user:
+            # Gerar um nome de usuário único baseado no email
+            username = email.split('@')[0]
+            base_username = username
+            count = 1
+            
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{count}"
+                count += 1
+            
+            # Gerar senha aleatória
+            import random
+            import string
+            password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            
+            # Criar usuário
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=nome.split(' ')[0] if ' ' in nome else nome,
+                last_name=' '.join(nome.split(' ')[1:]) if ' ' in nome else '',
+            )
+            
+            # Adicionar ao grupo empresa_user
+            try:
+                grupo_empresa = Group.objects.get(name='empresa_user')
+                user.groups.add(grupo_empresa)
+            except Group.DoesNotExist:
+                messages.warning(request, 'Grupo empresa_user não encontrado. O usuário foi criado mas não está no grupo correto.')
+            
+            # Enviar email com as credenciais
+            # TODO: Implementar envio de email
+        
+        # Criar registro de ResponsavelEmpresa
+        novo_auxiliar = ResponsavelEmpresa.objects.create(
+            empresa=empresa,
+            user=user,
+            nome=nome,
+            cpf=cpf,
+            email=email,
+            cargo=cargo,
+            telefone=telefone,
+            nivel='AUX',  # Auxiliar
+            ativo=True,
+            criado_por=request.user,
+            observacoes=observacoes
+        )
+        
+        messages.success(request, f'Auxiliar {nome} adicionado com sucesso!')
+        
+        return redirect('vagas:empresa_perfil')
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao adicionar auxiliar: {str(e)}')
+        return redirect('vagas:empresa_form_add_auxiliar')
+
+
+@empresa_user_required
+def empresa_desativar_auxiliar(request):
+    """Desativa um usuário auxiliar da empresa"""
+    if request.method != 'POST':
+        messages.error(request, 'Método não permitido.')
+        return redirect('vagas:empresa_perfil')
+    
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        # Verificar se o usuário é responsável principal
+        if not responsavel or not responsavel.eh_responsavel_principal():
+            messages.error(request, 'Apenas responsáveis principais podem desativar auxiliares.')
+            return redirect('vagas:empresa_perfil')
+        
+        # Obter ID do auxiliar a ser desativado
+        auxiliar_id = request.POST.get('responsavel_id')
+        
+        # Buscar o auxiliar
+        auxiliar = get_object_or_404(ResponsavelEmpresa, id=auxiliar_id, empresa=empresa, nivel='AUX')
+        
+        # Desativar
+        auxiliar.ativo = False
+        auxiliar.save()
+        
+        messages.success(request, f'Auxiliar {auxiliar.nome} desativado com sucesso.')
+        
+        return redirect('vagas:empresa_perfil')
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao desativar auxiliar: {str(e)}')
+        return redirect('vagas:empresa_perfil')
+
+
+@empresa_user_required
+def empresa_reativar_auxiliar(request):
+    """Reativa um usuário auxiliar da empresa"""
+    if request.method != 'POST':
+        messages.error(request, 'Método não permitido.')
+        return redirect('vagas:empresa_perfil')
+    
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        # Verificar se o usuário é responsável principal
+        if not responsavel or not responsavel.eh_responsavel_principal():
+            messages.error(request, 'Apenas responsáveis principais podem reativar auxiliares.')
+            return redirect('vagas:empresa_perfil')
+        
+        # Obter ID do auxiliar a ser reativado
+        auxiliar_id = request.POST.get('responsavel_id')
+        
+        # Buscar o auxiliar
+        auxiliar = get_object_or_404(ResponsavelEmpresa, id=auxiliar_id, empresa=empresa, nivel='AUX')
+        
+        # Reativar
+        auxiliar.ativo = True
+        auxiliar.save()
+        
+        messages.success(request, f'Auxiliar {auxiliar.nome} reativado com sucesso.')
+        
+        return redirect('vagas:empresa_perfil')
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao reativar auxiliar: {str(e)}')
+        return redirect('vagas:empresa_perfil')
+
+
+@empresa_user_required
+def empresa_solicitar_desativacao(request):
+    """Solicita desativação de uma vaga"""
+    if request.method != 'POST':
+        messages.error(request, 'Método não permitido.')
+        return redirect('vagas:empresa_formularios')
+    
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Obter dados do formulário
+        vaga_id = request.POST.get('vaga_id')
+        formulario_id = request.POST.get('formulario_id')
+        motivo = request.POST.get('motivo_desativacao')
+        observacoes = request.POST.get('observacoes_desativacao', '')
+        
+        # Buscar a vaga
+        vaga = get_object_or_404(Vaga_Emprego, id=vaga_id, empresa=empresa)
+        
+        # Criar um novo objeto para registrar a solicitação de desativação
+        from django.utils import timezone
+        
+        # Criar um histórico para a vaga
+        # Aqui você pode criar um modelo específico para solicitações de desativação
+        # Por enquanto, apenas marcar a vaga como solicitada para desativação
+        vaga.solicitacao_desativacao = True
+        vaga.motivo_solicitacao_desativacao = motivo
+        vaga.observacoes_solicitacao_desativacao = observacoes
+        vaga.dt_solicitacao_desativacao = timezone.now()
+        vaga.usuario_solicitacao_desativacao = request.user
+        vaga.save()
+        
+        # Enviar notificação para os administradores
+        # TODO: Implementar notificação
+        
+        messages.success(request, 'Solicitação de desativação enviada com sucesso! A equipe da Casa do Trabalhador irá analisar sua solicitação em breve.')
+        
+        # Redirecionar de volta para os detalhes do formulário
+        return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario_id)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao solicitar desativação: {str(e)}')
+        return redirect('vagas:empresa_formularios')

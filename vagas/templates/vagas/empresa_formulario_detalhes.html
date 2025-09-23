@@ -56,11 +56,19 @@
         
         <!-- Header do Formulário -->
         <div class="formulario-header-card">
-            <div class="formulario-header-content">
+                            <div class="formulario-header-content">
                 <div class="row align-items-center">
                     <div class="col">
                         <div class="d-flex align-items-center mb-2">
-                            <h1 class="mb-0 me-3">{{ formulario.cargo.nome }}</h1>
+                            <h1 class="mb-0 me-3">
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {{ formulario.cargo_ofertado|default:formulario.cargo.nome|default:"Cargo não especificado" }}
+                                {% elif usar_dados_vaga and vaga_vinculada %}
+                                    {{ vaga_vinculada.cargo.nome|default:"Cargo não especificado" }}
+                                {% else %}
+                                    {{ formulario.cargo_ofertado|default:formulario.cargo.nome|default:"Cargo não especificado" }}
+                                {% endif %}
+                            </h1>
                             {% if formulario.status_requisicao == 'PE' %}
                                 <span class="status-badge status-pendente">
                                     <i class="fas fa-clock me-2"></i>Pendente
@@ -80,14 +88,34 @@
                         </p>
                         <div class="d-flex align-items-center">
                             <span class="me-4">
-                                <i class="fas fa-users me-2"></i>{{ formulario.quantidade_vagas }} vaga{{ formulario.quantidade_vagas|pluralize }}
+                                <i class="fas fa-users me-2"></i>
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {{ formulario.quantidade_de_vagas }} vaga{{ formulario.quantidade_de_vagas|pluralize }}
+                                {% elif usar_dados_vaga %}
+                                    {{ vaga_vinculada.quantidadeVagas }} vaga{{ vaga_vinculada.quantidadeVagas|pluralize }}
+                                {% else %}
+                                    {{ formulario.quantidade_vagas }} vaga{{ formulario.quantidade_vagas|pluralize }}
+                                {% endif %}
                             </span>
                             <span>
-                                <i class="fas fa-money-bill me-2"></i>R$ {{ formulario.salario|floatformat:2 }}
+                                <i class="fas fa-money-bill me-2"></i>
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {% if formulario.faixa_salarial == 'VALOR' and formulario.valor_salario %}
+                                        R$ {{ formulario.valor_salario }}
+                                    {% elif formulario.faixa_salarial == 'ACB' %}
+                                        A combinar
+                                    {% elif formulario.faixa_salarial == 'MIN' %}
+                                        Salário mínimo
+                                    {% else %}
+                                        Não informado
+                                    {% endif %}
+                                {% elif usar_dados_vaga %}
+                                    {{ vaga_vinculada.salario }}
+                                {% else %}
+                                    R$ {{ formulario.salario|floatformat:2 }}
+                                {% endif %}
                             </span>
                         </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -103,52 +131,127 @@
                     <div class="card-body">
                         <div class="detail-item">
                             <span class="detail-label">Cargo:</span>
-                            <span class="detail-value text-highlight">{{ formulario.cargo.nome }}</span>
+                            <span class="detail-value text-highlight">
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {{ formulario.cargo_ofertado|default:formulario.cargo.nome|default:"Cargo não especificado" }}
+                                {% elif usar_dados_vaga and vaga_vinculada %}
+                                    {{ vaga_vinculada.cargo.nome|default:"Cargo não especificado" }}
+                                {% else %}
+                                    {{ formulario.cargo_ofertado|default:formulario.cargo.nome|default:"Cargo não especificado" }}
+                                {% endif %}
+                            </span>
                         </div>
                         
                         <div class="detail-item">
                             <span class="detail-label">Quantidade de Vagas:</span>
                             <span class="detail-value">
-                                <span class="badge bg-primary">{{ formulario.quantidade_vagas }}</span>
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    <span class="badge bg-primary">{{ formulario.quantidade_de_vagas }}</span>
+                                {% elif usar_dados_vaga %}
+                                    <span class="badge bg-primary">{{ vaga_vinculada.quantidadeVagas }}</span>
+                                {% else %}
+                                    <span class="badge bg-primary">{{ formulario.quantidade_vagas }}</span>
+                                {% endif %}
                             </span>
                         </div>
                         
                         <div class="detail-item">
                             <span class="detail-label">Salário:</span>
                             <span class="detail-value">
-                                <strong class="text-success">R$ {{ formulario.salario|floatformat:2 }}</strong>
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {% if formulario.faixa_salarial == 'VALOR' and formulario.valor_salario %}
+                                        <strong class="text-success">R$ {{ formulario.valor_salario }}</strong>
+                                    {% elif formulario.faixa_salarial == 'ACB' %}
+                                        <strong class="text-success">A combinar</strong>
+                                    {% elif formulario.faixa_salarial == 'MIN' %}
+                                        <strong class="text-success">Salário mínimo</strong>
+                                    {% else %}
+                                        <strong class="text-muted">Não informado</strong>
+                                    {% endif %}
+                                {% elif usar_dados_vaga %}
+                                    <strong class="text-success">{{ vaga_vinculada.salario }}</strong>
+                                {% else %}
+                                    <strong class="text-success">R$ {{ formulario.salario|floatformat:2 }}</strong>
+                                {% endif %}
                             </span>
                         </div>
                         
-                        {% if formulario.escolaridade_minima %}
                         <div class="detail-item">
                             <span class="detail-label">Escolaridade Mínima:</span>
-                            <span class="detail-value">{{ formulario.escolaridade_minima.escolaridade }}</span>
+                            <span class="detail-value">
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {{ formulario.escolaridade.nome }}
+                                {% elif usar_dados_vaga %}
+                                    {{ vaga_vinculada.escolaridade.nome }}
+                                {% elif formulario.escolaridade_minima %}
+                                    {{ formulario.escolaridade_minima.escolaridade }}
+                                {% else %}
+                                    {{ formulario.escolaridade.nome }}
+                                {% endif %}
+                            </span>
                         </div>
-                        {% endif %}
                         
                         {% if formulario.turno %}
                         <div class="detail-item">
                             <span class="detail-label">Turno:</span>
                             <span class="detail-value">{{ formulario.get_turno_display }}</span>
                         </div>
+                        {% elif usar_dados_vaga and vaga_vinculada.turno %}
+                        <div class="detail-item">
+                            <span class="detail-label">Turno:</span>
+                            <span class="detail-value">{{ vaga_vinculada.get_turno_display }}</span>
+                        </div>
                         {% endif %}
                     
-                    {% if formulario.tipo_contrato %}
+                    {% if formulario.status_requisicao == 'PE' %}
+                        <div class="detail-item">
+                            <span class="detail-label">Tipo de Contrato:</span>
+                            <span class="detail-value">{{ formulario.get_regime_display }}</span>
+                        </div>
+                    {% elif usar_dados_vaga %}
+                        <div class="detail-item">
+                            <span class="detail-label">Tipo de Contrato:</span>
+                            <span class="detail-value">{{ vaga_vinculada.regime }}</span>
+                        </div>
+                    {% elif formulario.tipo_contrato %}
                         <div class="detail-item">
                             <span class="detail-label">Tipo de Contrato:</span>
                             <span class="detail-value">{{ formulario.get_tipo_contrato_display }}</span>
                         </div>
-                        {% endif %}
+                    {% endif %}
                         
-                        {% if formulario.experiencia_minima %}
                         <div class="detail-item">
-                            <span class="detail-label">Experiência Mínima:</span>
-                            <span class="detail-value">{{ formulario.experiencia_minima }} anos</span>
+                            <span class="detail-label">Experiência:</span>
+                            <span class="detail-value">
+                                {% if formulario.status_requisicao == 'PE' %}
+                                    {% if formulario.experiencia == 'Sim' %}
+                                        Necessária
+                                    {% elif formulario.experiencia == 'Não' %}
+                                        Não necessária
+                                    {% elif formulario.experiencia == 'Des' %}
+                                        Desejável
+                                    {% else %}
+                                        {{ formulario.experiencia }}
+                                    {% endif %}
+                                {% elif usar_dados_vaga %}
+                                    {% if vaga_vinculada.experiencia == 'Sim' %}
+                                        Necessária
+                                    {% elif vaga_vinculada.experiencia == 'Não' %}
+                                        Não necessária
+                                    {% elif vaga_vinculada.experiencia == 'Des' %}
+                                        Desejável
+                                    {% else %}
+                                        {{ vaga_vinculada.experiencia }}
+                                    {% endif %}
+                                {% elif formulario.experiencia_minima %}
+                                    {{ formulario.experiencia_minima }} anos
+                                {% else %}
+                                    Não especificada
+                                {% endif %}
+                            </span>
                         </div>
-                        {% endif %}
                         
-                        {% if formulario.idade_minima or formulario.idade_maxima %}
+                    {% if formulario.idade_minima or formulario.idade_maxima %}
                         <div class="detail-item">
                             <span class="detail-label">Faixa Etária:</span>
                             <span class="detail-value">
@@ -157,11 +260,33 @@
                                 {% if formulario.idade_maxima %}{{ formulario.idade_maxima }}{% endif %} anos
                             </span>
                         </div>
-                        {% endif %}
+                    {% endif %}
                     </div>
                 </div>
                 
-                {% if formulario.descricao_cargo %}
+                {% if formulario.status_requisicao == 'PE' and formulario.observacao %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-file-text me-2"></i>Observações
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ formulario.observacao|linebreaks }}</p>
+                    </div>
+                </div>
+                {% elif usar_dados_vaga and vaga_vinculada.observacao %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-file-text me-2"></i>Descrição do Cargo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ vaga_vinculada.observacao|linebreaks }}</p>
+                    </div>
+                </div>
+                {% elif formulario.descricao_cargo %}
                 <div class="content-card">
                     <div class="card-header">
                         <h5>
@@ -174,7 +299,18 @@
                 </div>
                 {% endif %}
                 
-                {% if formulario.requisitos %}
+                {% if usar_dados_vaga and vaga_vinculada.requisitos %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-list-check me-2"></i>Requisitos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ vaga_vinculada.requisitos|linebreaks }}</p>
+                    </div>
+                </div>
+                {% elif formulario.status_requisicao != 'PE' and formulario.requisitos %}
                 <div class="content-card">
                     <div class="card-header">
                         <h5>
@@ -187,7 +323,41 @@
                 </div>
                 {% endif %}
                 
-                {% if formulario.beneficios %}
+                {% if formulario.status_requisicao == 'PE' %}
+                    {% if formulario.vale_transporte or formulario.vale_alimentacao or formulario.outros_beneficios %}
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h5>
+                                <i class="fas fa-gift me-2"></i>Benefícios
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="mb-0 list-unstyled">
+                                {% if formulario.vale_transporte %}
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Vale Transporte</li>
+                                {% endif %}
+                                {% if formulario.vale_alimentacao %}
+                                <li><i class="fas fa-check-circle text-success me-2"></i> Vale Alimentação</li>
+                                {% endif %}
+                                {% if formulario.outros_beneficios %}
+                                <li class="mt-2">{{ formulario.outros_beneficios|linebreaks }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% elif usar_dados_vaga and vaga_vinculada.beneficios %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-gift me-2"></i>Benefícios
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ vaga_vinculada.beneficios|linebreaks }}</p>
+                    </div>
+                </div>
+                {% elif formulario.beneficios %}
                 <div class="content-card">
                     <div class="card-header">
                         <h5>
@@ -284,7 +454,71 @@
                     </div>
                 </div>
                 
-                {% if formulario.status_requisicao == 'AP' %}
+                {% if formulario.status_requisicao == 'PE' %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-info-circle me-2"></i>Status da Solicitação
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-clock me-2"></i>
+                            <strong>Formulário pendente de aprovação</strong>
+                            <p class="mb-0 mt-2">Este formulário está aguardando análise da equipe da Casa do Trabalhador. 
+                            Após aprovado, a vaga será publicada e ficará disponível para candidaturas.</p>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar para Meus Formulários
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if formulario.enviar_curriculo_para_email or formulario.levar_curriculo_direto_ao_local or formulario.via_telefone_ou_whatsapp or formulario.outra_forma_de_contato %}
+                <div class="content-card">
+                    <div class="card-header">
+                        <h5>
+                            <i class="fas fa-envelope me-2"></i>Formas de Contato Solicitadas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            {% if formulario.enviar_curriculo_para_email %}
+                            <li class="mb-2">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <strong>Email:</strong> {{ formulario.email_para_envio|default:"Não informado" }}
+                            </li>
+                            {% endif %}
+                            
+                            {% if formulario.levar_curriculo_direto_ao_local %}
+                            <li class="mb-2">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <strong>Endereço:</strong> {{ formulario.endereco_para_levar_curriculo|default:"Não informado" }}
+                            </li>
+                            {% endif %}
+                            
+                            {% if formulario.via_telefone_ou_whatsapp %}
+                            <li class="mb-2">
+                                <i class="fas fa-phone text-success me-2"></i>
+                                <strong>Telefone/WhatsApp:</strong> {{ formulario.telefone_ou_whatsapp|default:"Não informado" }}
+                            </li>
+                            {% endif %}
+                            
+                            {% if formulario.outra_forma_de_contato %}
+                            <li>
+                                <i class="fas fa-comment-alt text-info me-2"></i>
+                                <strong>Outra forma de contato:</strong> {{ formulario.outra_forma_de_contato_descricao|default:"Não informado" }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% elif formulario.status_requisicao == 'AP' %}
                 <div class="content-card">
                     <div class="card-header">
                         <h5>
@@ -299,14 +533,28 @@
                         <!-- Botão para ver candidatos da vaga -->
                         <a href="{% url 'vagas:empresa_vaga_detalhes' vaga_vinculada.id %}?tab=candidatos" 
                            class="btn btn-primary w-100 mb-2">
-                            <i class="fas fa-users me-2"></i>Ver Candidatos da Vaga ({{ candidatos_da_vaga.count|default:'0' }})
+                            <i class="fas fa-users me-2"></i>Ver Candidatos da Vaga ({{ candidatos_da_vaga|length|default:'0' }})
+                        </a>
+                        
+                        <!-- Botão para ver detalhes da vaga -->
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga_vinculada.id %}" 
+                           class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-eye me-2"></i>Ver Detalhes Completos da Vaga
                         </a>
                         {% endif %}
+                        
                         <!-- Botão para ver todas as vagas do mesmo cargo -->
-                        <a href="{% url 'vagas:empresa_vagas' %}?cargo={{ formulario.cargo.nome }}" 
-                           class="btn btn-outline-primary w-100">
+                        <a href="{% url 'vagas:empresa_vagas' %}?cargo={% if vaga_vinculada %}{{ vaga_vinculada.cargo.nome|default:'Não especificado' }}{% else %}{{ formulario.cargo_ofertado|default:formulario.cargo.nome|default:'Não especificado' }}{% endif %}" 
+                           class="btn btn-outline-primary w-100 mb-2">
                             <i class="fas fa-briefcase me-2"></i>Ver Todas as Vagas do Cargo
                         </a>
+                        
+                        {% if vaga_vinculada and vaga_vinculada.ativo %}
+                        <!-- Botão para solicitar desativação da vaga -->
+                        <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#modalDesativarVaga">
+                            <i class="fas fa-ban me-2"></i>Solicitar Desativação da Vaga
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -315,6 +563,50 @@
     </div>
 </div>
 {% endblock %}
+
+<!-- Modal para Solicitar Desativação da Vaga -->
+<div class="modal fade" id="modalDesativarVaga" tabindex="-1" aria-labelledby="modalDesativarVagaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDesativarVagaLabel">Solicitar Desativação da Vaga</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'vagas:empresa_solicitar_desativacao' %}">
+                {% csrf_token %}
+                <input type="hidden" name="vaga_id" value="{{ vaga_vinculada.id }}">
+                <input type="hidden" name="formulario_id" value="{{ formulario.id }}">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção!</strong> Esta ação enviará uma solicitação para a Casa do Trabalhador para desativar a vaga. A vaga permanecerá ativa até que a solicitação seja aprovada.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="motivo_desativacao" class="form-label">Motivo da solicitação de desativação *</label>
+                        <select class="form-select" id="motivo_desativacao" name="motivo_desativacao" required>
+                            <option value="">Selecione um motivo...</option>
+                            <option value="vaga_preenchida">Vaga já preenchida</option>
+                            <option value="sem_candidatos">Não recebemos candidatos adequados</option>
+                            <option value="vaga_suspensa">Vaga temporariamente suspensa</option>
+                            <option value="vaga_cancelada">Vaga cancelada</option>
+                            <option value="outro">Outro motivo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="observacoes_desativacao" class="form-label">Observações adicionais</label>
+                        <textarea class="form-control" id="observacoes_desativacao" name="observacoes_desativacao" rows="3" placeholder="Forneça mais detalhes sobre o motivo da solicitação..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Enviar Solicitação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% block extra_js %}
 <script>
@@ -331,6 +623,22 @@
         if (headerCard) {
             headerCard.style.animation = 'fadeInUp 0.8s ease forwards 0.1s';
             headerCard.style.opacity = '0';
+        }
+        
+        // Mostrar campo de texto adicional quando selecionar "Outro motivo"
+        const motivoSelect = document.getElementById('motivo_desativacao');
+        const observacoesField = document.getElementById('observacoes_desativacao');
+        
+        if (motivoSelect && observacoesField) {
+            motivoSelect.addEventListener('change', function() {
+                if (this.value === 'outro') {
+                    observacoesField.setAttribute('required', 'required');
+                    observacoesField.parentElement.classList.add('required-field');
+                } else {
+                    observacoesField.removeAttribute('required');
+                    observacoesField.parentElement.classList.remove('required-field');
+                }
+            });
         }
     });
 </script>

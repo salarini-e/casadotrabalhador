@@ -140,6 +140,13 @@ class Vaga_Emprego(models.Model):
     dt_desativacao = models.DateTimeField(verbose_name='Dt. Desativação', null=True, blank=True)
     ativo=models.BooleanField(default=True)        
 
+    # Campos para solicitação de desativação
+    solicitacao_desativacao = models.BooleanField(default=False, verbose_name='Solicitação de desativação')
+    motivo_solicitacao_desativacao = models.CharField(max_length=255, blank=True, null=True, verbose_name='Motivo da solicitação de desativação')
+    observacoes_solicitacao_desativacao = models.TextField(blank=True, null=True, verbose_name='Observações da solicitação de desativação')
+    dt_solicitacao_desativacao = models.DateTimeField(verbose_name='Data de solicitação de desativação', null=True, blank=True)
+    usuario_solicitacao_desativacao = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitacoes_desativacao', verbose_name='Usuário que solicitou a desativação')
+
     dt_atualizacao = models.DateTimeField(verbose_name='Dt. Atualização', null=True, blank=True)
     
     def __str__(self):
@@ -448,18 +455,25 @@ class CandidatoSelecionado(models.Model):
 class ResponsavelEmpresa(models.Model):
     """Modelo para gerenciar usuários responsáveis pelas empresas"""
     
+    NIVEL_CHOICES = (
+        ('RESP', 'Responsável Principal'),
+        ('AUX', 'Auxiliar')
+    )
+    
     class Meta:
         verbose_name = "Responsável da Empresa"
         verbose_name_plural = "Responsáveis das Empresas"
         ordering = ['nome']
-        # Uma pessoa pode ser responsável por várias empresas
+        # Um usuário pode ser responsável por várias empresas
+        # Removemos a restrição OneToOneField para permitir isso
     
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='responsaveis', verbose_name='Empresa')
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Usuário', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Usuário', null=True, blank=True, related_name='empresas_responsavel')
     nome = models.CharField(max_length=100, verbose_name='Nome completo', null=True, blank=True)
-    cpf = models.CharField(max_length=14, verbose_name='CPF', validators=[validate_CPF])
+    cpf = models.CharField(max_length=14, verbose_name='CPF', validators=[validate_CPF], null=True)
     email = models.EmailField(verbose_name='Email', null=True, blank=True)
     cargo = models.CharField(max_length=100, verbose_name='Cargo na empresa')
+    nivel = models.CharField(max_length=4, choices=NIVEL_CHOICES, default='RESP', verbose_name='Nível de acesso')
     telefone = models.CharField(max_length=15, verbose_name='Telefone para contato', validators=[validate_TELEFONE])
     ativo = models.BooleanField(default=True, verbose_name='Ativo')
     dt_criacao = models.DateTimeField(auto_now_add=True, verbose_name='Data de criação')
@@ -468,40 +482,52 @@ class ResponsavelEmpresa(models.Model):
     observacoes = models.TextField(blank=True, verbose_name='Observações internas')
     
     def __str__(self):
-        return f"{self.nome} ({self.get_cpf_formatado()}) - {self.empresa.nome}"
+        cpf_info = f"({self.get_cpf_formatado()})" if self.cpf else ""
+        nome = self.nome or "Nome não informado"
+        return f"{nome} {cpf_info} - {self.empresa.nome}"
     
     def get_cpf_formatado(self):
         """Retorna CPF formatado"""
+        if not self.cpf:
+            return "CPF não informado"
         if len(self.cpf) == 11:
             return f"{self.cpf[:3]}.{self.cpf[3:6]}.{self.cpf[6:9]}-{self.cpf[9:]}"
         return self.cpf
     
     def get_cpf_numeros(self):
         """Retorna apenas os números do CPF"""
+        if not self.cpf:
+            return ""
         return ''.join(filter(str.isdigit, self.cpf))
     
     def pode_acessar_empresa(self, empresa_id):
         """Verifica se o responsável pode acessar os dados da empresa"""
         return self.ativo and self.empresa.id == empresa_id
     
+    def eh_responsavel_principal(self):
+        """Verifica se o usuário é responsável principal (não auxiliar)"""
+        return self.nivel == 'RESP'
+    
     def vincular_usuario_existente(self):
         """Tenta vincular a um usuário existente com base no CPF ou email"""
         from autenticacao.models import Pessoa
         
         # Primeiro tenta encontrar por CPF na tabela Pessoa
-        try:
-            pessoa = Pessoa.objects.get(cpf=self.get_cpf_numeros())
-            self.user = pessoa.user
-            return True
-        except Pessoa.DoesNotExist:
-            pass
+        if self.cpf:
+            try:
+                pessoa = Pessoa.objects.get(cpf=self.get_cpf_numeros())
+                self.user = pessoa.user
+                return True
+            except Pessoa.DoesNotExist:
+                pass
         
         # Se não encontrou por CPF, tenta por email
-        try:
-            user = User.objects.get(email=self.email)
-            self.user = user
-            return True
-        except User.DoesNotExist:
-            pass
+        if self.email:
+            try:
+                user = User.objects.get(email=self.email)
+                self.user = user
+                return True
+            except User.DoesNotExist:
+                pass
             
         return False
