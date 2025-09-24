@@ -3950,17 +3950,25 @@ def install_demo(request):
                 data_inclusao = timezone.now() - timedelta(days=dias_atras)
                 
                 vaga = Vaga_Emprego.objects.create(
-                    titulo=vaga_data['titulo'],
-                    descricao=vaga_data['descricao'],
-                    salario=vaga_data['salario'],
-                    cargo=cargos_criados[vaga_data['cargo_idx']],
                     empresa=empresas_criadas[vaga_data['empresa_idx']],
+                    cargo=cargos_criados[vaga_data['cargo_idx']],
+                    quantidadeVagas=random.randint(1, 3),
+                    tipo_de_vaga='NML',  # Padrão
                     escolaridade=escolaridades_criadas[vaga_data['escolaridade_idx']],
+                    salario=f"R$ {vaga_data['salario']:.2f}".replace('.', ','),
+                    carga_horaria='40 horas semanais',
+                    regime='CLT',
+                    experiencia=random.choice(['Sim', 'Não', 'Des']),
+                    observacao=vaga_data['descricao'],
+                    atribuicoes=f"Atribuições para {vaga_data['titulo']}: " + vaga_data['descricao'][:100] + "...",
                     user=random.choice(demo_users),
                     ativo=True,
-                    destaque=random.choice([True, False]),
-                    dt_inclusao=data_inclusao
+                    destaque=random.choice([True, False])
                 )
+                
+                # Definir data de inclusão manualmente após a criação
+                vaga.dt_inclusao = data_inclusao
+                vaga.save()
                 
                 # Criar alguns candidatos para algumas vagas
                 if random.choice([True, False, False]):  # 33% chance
