@@ -123,7 +123,7 @@
                   <i class="fas fa-list me-2"></i>{{ page_title }}
                 </h5>
               </div>
-              <div class="col-auto d-flex align-items-center">
+              <div class="col-auto d-flex align-items-center">                
                 <!-- Toggle Button for Active/Archived Vacancies -->
                 <div class="me-3">
                   <a href="{% url 'vagas:admin_vagas_list' %}{% if mostrar_inativas %}{% else %}?inativas=true{% endif %}" 
@@ -134,6 +134,23 @@
                       <i class="fas fa-archive me-1"></i>Ver Vagas Arquivadas
                     {% endif %}
                   </a>
+                </div>
+                <div class="dropdown me-3">
+                  <button class="btn btn-primary dropdown-toggle" type="button" id="crudDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-cogs me-1"></i>Configurações
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="crudDropdown">
+                    <li>
+                      <a class="dropdown-item" href="{% url 'vagas:listar_cargos' %}">
+                        <i class="fas fa-user-tie me-2"></i>Gerenciar Cargos
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" href="{% url 'vagas:escolaridades' %}">
+                        <i class="fas fa-graduation-cap me-2"></i>Gerenciar Escolaridade
+                      </a>
+                    </li>                    
+                  </ul>
                 </div>
                 <div class="input-group" style="width: 300px;">
                   <input type="text" class="form-control" id="searchInput" placeholder="Buscar por REF, cargo ou empresa...">

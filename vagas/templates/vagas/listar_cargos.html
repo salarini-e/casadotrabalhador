@@ -1,55 +1,399 @@
-{% extends 'base_site.html' %}
+{% extends 'template_new.html' %}
 {% load static %}
-{% block title %}vagas cadastradas{% endblock %}
+
+{% block title %}Gerenciar Cargos{% endblock %}
+
 {% block css %}
 {{block.super}}
-{% endblock%}
-{% block main_conteudo %}
-<div class="col">
-    <!-- <h2 class="text-start">VAGAS DISPONÍVEIS</h2> -->
-    <div class="row">
-      <div class="col d-flex">
-        <h2 class="text-start">VAGAS CADASTRADAS</h2>
-        {% if request.user.is_staff %}
-        <span class="ms-auto"><a class="btn btn-btfl" href="{% url 'vagas:cadastrar_cargo' %}">CADASTRAR</a></span>
-        {% endif %}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.action-cell {
+  width: 120px;
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(0,123,255,0.1);
+}
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.sortable:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.sortable i {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.sortable:hover i {
+  opacity: 1;
+}
+
+.sortable.sort-asc i:before {
+  content: "\f0de"; /* fa-sort-up */
+}
+
+.sortable.sort-desc i:before {
+  content: "\f0dd"; /* fa-sort-down */
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Page Header -->
+      <div class="row mb-4">
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:painel_administrativo' %}">Dashboard</a>
+              </li>
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:admin_vagas_list' %}">Vagas</a>
+              </li>
+              <li class="breadcrumb-item active">Cargos</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto">
+          {% if request.user.is_staff %}
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarCargo">
+            <i class="fas fa-plus me-2"></i>Novo Cargo
+          </button>
+          {% endif %}
+        </div>
+      </div>      
+      <!-- Cargos Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-briefcase me-2"></i>Cargos Cadastrados ({{ cargos|length }})
+              </h5>
+            </div>
+            <div class="col-auto">
+              <div class="input-group" style="width: 300px;">
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar cargos...">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if cargos %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th class="sortable text-center" data-column="id">
+                      ID <i class="fas fa-sort ms-1"></i>
+                    </th>
+                    <th class="sortable" data-column="nome">
+                      Nome do Cargo <i class="fas fa-sort ms-1"></i>
+                    </th>
+                    <th class="sortable text-center user-info-column" data-column="user">
+                      Cadastrado por <i class="fas fa-sort ms-1"></i>
+                    </th>
+                    <th class="sortable text-center date-info-column" data-column="dt_inclusao">
+                      Data de Inclusão <i class="fas fa-sort ms-1"></i>
+                    </th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for cargo in cargos %}
+                  <tr>
+                    <td class="text-center">
+                      <span class="badge bg-light text-dark">#{{ cargo.id }}</span>
+                    </td>
+                    <td>
+                      <div class="fw-bold">{{ cargo.nome }}</div>
+                    </td>
+                    <td class="text-center user-info-column">
+                      <div class="d-flex flex-column align-items-center">
+                        <span class="fw-bold text-primary">{{ cargo.user.first_name|default:cargo.user.username }}</span>
+                        <small class="text-muted">@{{ cargo.user.username }}</small>
+                      </div>
+                    </td>
+                    <td class="text-center date-info-column">
+                      <div class="d-flex flex-column align-items-center">
+                        <span class="fw-bold">{{ cargo.dt_inclusao|date:"d/m/Y" }}</span>
+                        <small class="text-muted">{{ cargo.dt_inclusao|date:"H:i" }}</small>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <div class="btn-group" role="group">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary"
+                                title="Editar cargo"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEditarCargo"
+                                onclick="prepararEdicaoCargo({{ cargo.id }}, '{{ cargo.nome|escapejs }}')">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Nenhum cargo encontrado</h5>
+              <p class="text-muted">Comece cadastrando um novo cargo.</p>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarCargo">
+                <i class="fas fa-plus me-2"></i>Cadastrar Primeiro Cargo
+              </button>
+            </div>
+          {% endif %}
+        </div>
       </div>
+
     </div>
-    <table class="table table-hover mt-4">
-      <thead>
-          <tr> 
-              {% if user.is_authenticated %}
-              <th class="col-1"></th>
-              {% endif %}
-              <th scope="col">Vaga</th>                         
-            </tr>
-          </thead>
-          <tbody>
-          {% for vaga in vagas %}        
-          <tr onpointerover="showEditIcon(editIcon_1532{{vaga.id}}d1sa56)" onpointerout="hiddenEditIcon(editIcon_1532{{vaga.id}}d1sa56)" style="background-color: rgba(230, 230, 230, 0.274);{% if user.is_authenticated %}cursor: pointer;{% endif %}" {% if user.is_authenticated %}onclick="(window.location.href='{% url 'vagas:alterar_cargo' vaga.id %}')"{% endif %}>
-            {% if user.is_authenticated %}
-              <td style="vertical-align: middle;"><img id="editIcon_1532{{vaga.id}}d1sa56" style="height: 18px;" src="{% static 'images/edit-icon.png' %}" alt=""></td>     
-              {% endif %}
-              <td scope="row">{{vaga.nome}}</td>                 
-            </tr>
-          {% endfor %}
-      </tbody>
-    </table>
-    <style>
-      td img{
-        visibility: hidden;
-      }
-      table{
-        font-size:  0.9em;
-      }
-    </style>
-    <script>
-      function showEditIcon(id){
-        id.style.visibility='visible'              
-      }
-      function hiddenEditIcon(id){
-        id.style.visibility='hidden'              
-      }
-    </script>
+  </div>
 </div>
+
+<!-- Modal Cadastrar Cargo -->
+<div class="modal fade" id="modalCadastrarCargo" tabindex="-1" aria-labelledby="modalCadastrarCargoLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCadastrarCargoLabel">
+          <i class="fas fa-plus me-2"></i>Cadastrar Novo Cargo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'vagas:cadastrar_cargo' %}">
+        <div class="modal-body">
+          {% csrf_token %}
+          <input type="hidden" name="user" value="{{ request.user.id }}">
+          <div class="mb-3">
+            <label for="id_nome" class="form-label">Nome do Cargo *</label>
+            <input type="text" class="form-control" id="id_nome" name="nome" required maxlength="200">
+            <div class="form-text">Digite o nome do cargo (máximo 200 caracteres)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Salvar Cargo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Cargo -->
+<div class="modal fade" id="modalEditarCargo" tabindex="-1" aria-labelledby="modalEditarCargoLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarCargoLabel">
+          <i class="fas fa-edit me-2"></i>Editar Cargo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="formEditarCargo">
+        <div class="modal-body">
+          {% csrf_token %}
+          <input type="hidden" name="user" value="{{ request.user.id }}">
+          <div class="mb-3">
+            <label for="nomeCargoEditar" class="form-label">Nome do Cargo *</label>
+            <input type="text" class="form-control" id="nomeCargoEditar" name="nome" required maxlength="200">
+            <div class="form-text">Digite o nome do cargo (máximo 200 caracteres)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Salvar Alterações
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('table tbody');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let shouldShow = false;
+                
+                if (searchTerm === '') {
+                    shouldShow = true;
+                } else {
+                    // Search in ID, Nome, User, and Date
+                    const id = cells[0]?.textContent?.toLowerCase() || '';
+                    const nome = cells[1]?.textContent?.toLowerCase() || '';
+                    const usuario = cells[2]?.textContent?.toLowerCase() || '';
+                    const data = cells[3]?.textContent?.toLowerCase() || '';
+                    
+                    shouldShow = id.includes(searchTerm) || 
+                               nome.includes(searchTerm) ||
+                               usuario.includes(searchTerm) ||
+                               data.includes(searchTerm);
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        });
+    }
+});
+
+// Table sorting functionality
+function sortTable(table, column, direction) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const sortedRows = rows.sort((a, b) => {
+        let aValue, bValue;
+        
+        const aCells = a.querySelectorAll('td');
+        const bCells = b.querySelectorAll('td');
+        
+        const headers = table.querySelectorAll('th');
+        let columnIndex = -1;
+        headers.forEach((header, index) => {
+            if (header.dataset.column === column) {
+                columnIndex = index;
+            }
+        });
+        
+        if (columnIndex === -1) return 0;
+        
+        if (column === 'id') {
+            const aText = aCells[columnIndex]?.textContent?.trim() || '0';
+            const bText = bCells[columnIndex]?.textContent?.trim() || '0';
+            aValue = parseInt(aText.replace(/[^0-9]/g, ''));
+            bValue = parseInt(bText.replace(/[^0-9]/g, ''));
+        } else if (column === 'dt_inclusao') {
+            // Sort by date
+            const aText = aCells[columnIndex]?.textContent?.trim() || '';
+            const bText = bCells[columnIndex]?.textContent?.trim() || '';
+            // Extract date part (first line)
+            const aDate = aText.split('\n')[0] || '';
+            const bDate = bText.split('\n')[0] || '';
+            aValue = aDate;
+            bValue = bDate;
+        } else {
+            aValue = aCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+            bValue = bCells[columnIndex]?.textContent?.trim().toLowerCase() || '';
+        }
+        
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return direction === 'asc' ? aValue - bValue : bValue - aValue;
+        } else {
+            if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+            if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+            return 0;
+        }
+    });
+    
+    tbody.innerHTML = '';
+    sortedRows.forEach(row => tbody.appendChild(row));
+}
+
+// Add click handlers to sortable headers
+document.addEventListener('DOMContentLoaded', function() {
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    
+    sortableHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const column = this.dataset.column;
+            const table = this.closest('table');
+            
+            sortableHeaders.forEach(h => {
+                if (h !== this) {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                }
+            });
+            
+            let direction = 'asc';
+            if (this.classList.contains('sort-asc')) {
+                direction = 'desc';
+                this.classList.remove('sort-asc');
+                this.classList.add('sort-desc');
+            } else {
+                direction = 'asc';
+                this.classList.remove('sort-desc');
+                this.classList.add('sort-asc');
+            }
+            
+            sortTable(table, column, direction);
+        });
+    });
+});
+
+// Função para preparar edição de cargo
+function prepararEdicaoCargo(cargoId, cargoNome) {
+    // Preencher o formulário com os dados
+    document.getElementById('nomeCargoEditar').value = cargoNome;
+    
+    // Configurar a action do formulário para a URL de edição
+    const form = document.getElementById('formEditarCargo');
+    form.action = '{% url "vagas:alterar_cargo" 0 %}'.replace('0', cargoId);
+}
+
+// Aguardar DOM estar pronto para adicionar event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar modais explicitamente
+    const modalCadastrarElement = document.getElementById('modalCadastrarCargo');
+    const modalEditarElement = document.getElementById('modalEditarCargo');
+    
+    if (modalCadastrarElement && typeof bootstrap !== 'undefined') {
+        const modalCadastrar = new bootstrap.Modal(modalCadastrarElement, {
+            backdrop: true,
+            keyboard: true
+        });
+        
+        // Limpar formulário quando modal de cadastro é fechado
+        modalCadastrarElement.addEventListener('hidden.bs.modal', function () {
+            const form = this.querySelector('form');
+            if (form) {
+                form.reset();
+            }
+        });
+    }
+    
+    if (modalEditarElement && typeof bootstrap !== 'undefined') {
+        const modalEditar = new bootstrap.Modal(modalEditarElement, {
+            backdrop: true,
+            keyboard: true
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -77,17 +77,28 @@
                 <label class="text-uppercase" for="id_{{f.name}}">{{f.label}}:</label>        
             {% endif %}
             {% if f.errors %}
-                {{f|add_class:'form-control  my-2 is-invalid'}}
-            {% if f.name == 'destaque' %}
-            <div class="form-check form-switch">
-                {{f|add_class:'form-check-input'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
-                <label class="form-check-label" for="id_{{f.name}}">
-                    <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
-                </label>
-            </div>
+                {% if f.name == 'destaque' %}
+                <div class="form-check form-switch">
+                    {{f|add_class:'form-check-input is-invalid'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                    <label class="form-check-label" for="id_{{f.name}}">
+                        <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+                    </label>
+                </div>
+                {% else %}
+                    {{f|add_class:'form-control my-2 is-invalid'}}
+                {% endif %}
             {% else %}
-                {{f|add_class:'form-control bg-light my-2'}}
-            {% endif  %}
+                {% if f.name == 'destaque' %}
+                <div class="form-check form-switch">
+                    {{f|add_class:'form-check-input'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                    <label class="form-check-label" for="id_{{f.name}}">
+                        <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+                    </label>
+                </div>
+                {% else %}
+                    {{f|add_class:'form-control bg-light my-2'}}
+                {% endif %}
+            {% endif %}
             <div class="invalid-feedback mb-2">
                 {{f.errors}}
             </div>

@@ -97,17 +97,7 @@
         </div>
     </nav>
     
-    <div class="sidebar-footer">
-        <div class="user-info">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="user-details">
-                <span class="user-name">{{ user.first_name|default:user.username }}</span>
-                <span class="user-role">Administrador</span>
-            </div>
-        </div>
-    </div>
+    
 </div>
 
 <script>
@@ -119,22 +109,37 @@ document.addEventListener("DOMContentLoaded", function() {
     const backdrop = document.querySelector('.sidebar-backdrop');
     
     function toggleSidebar() {
-        sidebar.classList.toggle('collapsed');
-        
-        if (sidebar.classList.contains('collapsed')) {
-            content.style.marginLeft = '80px';
-            document.body.classList.remove('sidebar-open');
-        } else {
-            content.style.marginLeft = window.innerWidth <= 768 ? '0' : '280px';
-            if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768) {
+            // Comportamento mobile
+            if (sidebar.classList.contains('collapsed')) {
+                // Expandir sidebar
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.add('show');
                 document.body.classList.add('sidebar-open');
+            } else {
+                // Colapsar sidebar
+                sidebar.classList.add('collapsed');
+                sidebar.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            }
+        } else {
+            // Comportamento desktop
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                content.style.marginLeft = '80px';
+            } else {
+                content.style.marginLeft = '280px';
             }
         }
     }
     
     // Sidebar toggle click
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSidebar();
+        });
     }
     
     // Backdrop click to close sidebar on mobile
@@ -142,30 +147,45 @@ document.addEventListener("DOMContentLoaded", function() {
         backdrop.addEventListener('click', function() {
             if (window.innerWidth <= 768) {
                 sidebar.classList.add('collapsed');
+                sidebar.classList.remove('show');
                 document.body.classList.remove('sidebar-open');
-                content.style.marginLeft = '80px';
             }
         });
     }
     
-    // Check screen width and collapse sidebar on small screens
+    // Check screen width and adjust sidebar
     const checkWidth = () => {
         if (window.innerWidth <= 768) {
-            sidebar.classList.add('collapsed');
-            content.style.marginLeft = '80px';
+            // Mobile: começar sempre colapsado
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+                document.body.classList.remove('sidebar-open');
+            }
+            sidebar.classList.remove('show');
         } else {
-            sidebar.classList.remove('collapsed');
+            // Desktop: remover classes mobile
+            sidebar.classList.remove('show');
             document.body.classList.remove('sidebar-open');
-            content.style.marginLeft = '280px';
+            
+            // Ajustar margem do conteúdo
+            if (sidebar.classList.contains('collapsed')) {
+                content.style.marginLeft = '80px';
+            } else {
+                content.style.marginLeft = '280px';
+            }
         }
     };
     
-    // Add click event to menu links for mobile
+    // Add click event to menu links for mobile - fechar sidebar ao clicar
     const menuLinks = document.querySelectorAll('.nav-link');
     menuLinks.forEach(link => {
         link.addEventListener('click', function() {
             if (window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
-                toggleSidebar();
+                setTimeout(() => {
+                    sidebar.classList.add('collapsed');
+                    sidebar.classList.remove('show');
+                    document.body.classList.remove('sidebar-open');
+                }, 100);
             }
         });
     });

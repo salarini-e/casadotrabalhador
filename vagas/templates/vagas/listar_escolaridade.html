@@ -1,61 +1,279 @@
-{% extends 'base_site.html' %}
+{% extends 'template_new.html' %}
 {% load static %}
-{% block title %}escolaridades cadastradas{% endblock %}
+
+{% block title %}Gerenciar Escolaridades{% endblock %}
+
 {% block css %}
 {{block.super}}
-{% endblock%}
-{% block main_conteudo %}
-<div class="col">
-    <!-- <h2 class="text-start">VAGAS DISPONÍVEIS</h2> -->
-    <div class="row">
-      <div class="col d-flex">
-        <h2 class="text-start">ESCOLARIDADES CADASTRADAS</h2>
-        {% if request.user.is_staff %}
-        <span class="ms-auto"><a class="btn btn-btfl" href="{% url 'vagas:cadastrar_escolaridade' %}">CADASTRAR</a></span>
-        {% endif %}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.action-cell {
+  width: 120px;
+}
+.table-hover tbody tr:hover {
+  background-color: rgba(0,123,255,0.1);
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Page Header -->
+      <div class="row mb-4">
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:painel_administrativo' %}">Dashboard</a>
+              </li>
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:admin_vagas_list' %}">Vagas</a>
+              </li>
+              <li class="breadcrumb-item active">Escolaridades</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto">
+          {% if request.user.is_staff %}
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarEscolaridade">
+            <i class="fas fa-plus me-2"></i>Nova Escolaridade
+          </button>
+          {% endif %}
+        </div>
+      </div>      
+      <!-- Escolaridades Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 class="mb-0">
+                <i class="fas fa-graduation-cap me-2"></i>Escolaridades Cadastradas ({{ escolaridades|length }})
+              </h5>
+            </div>
+            <div class="col-auto">
+              <div class="input-group" style="width: 300px;">
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar escolaridades...">
+                <span class="input-group-text">
+                  <i class="fas fa-search"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if escolaridades %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center">ID</th>
+                    <th>Nome da Escolaridade</th>
+                    <th class="text-center user-info-column">Cadastrado por</th>
+                    <th class="text-center date-info-column">Data de Inclusão</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for escolaridade in escolaridades %}
+                  <tr>
+                    <td class="text-center">
+                      <span class="badge bg-light text-dark">#{{ escolaridade.id }}</span>
+                    </td>
+                    <td>
+                      <div class="fw-bold">{{ escolaridade.nome }}</div>
+                    </td>
+                    <td class="text-center user-info-column">
+                      <div class="d-flex flex-column align-items-center">
+                        <span class="fw-bold text-primary">{{ escolaridade.user.first_name|default:escolaridade.user.username }}</span>
+                        <small class="text-muted">@{{ escolaridade.user.username }}</small>
+                      </div>
+                    </td>
+                    <td class="text-center date-info-column">
+                      <div class="d-flex flex-column align-items-center">
+                        <span class="fw-bold">{{ escolaridade.dt_inclusao|date:"d/m/Y" }}</span>
+                        <small class="text-muted">{{ escolaridade.dt_inclusao|date:"H:i" }}</small>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      {% if user.is_authenticated %}
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalEditarEscolaridade"
+                                onclick="prepararEdicaoEscolaridade({{ escolaridade.id }}, '{{ escolaridade.nome|escapejs }}')"
+                                title="Editar escolaridade">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+              <h5 class="text-muted">Nenhuma escolaridade encontrada</h5>
+              <p class="text-muted">Não há escolaridades cadastradas no sistema.</p>
+            </div>
+          {% endif %}
+        </div>
       </div>
+
     </div>
-    <table class="table table-hover mt-4">
-      <thead>
-          <tr> 
-              {% if user.is_authenticated %}
-              <th></th>
-              {% endif %}
-              <th scope="col">ID</th>
-              <th scope="col">Escolaridade</th>
-              <!-- <th scope="col">escolaridade</th>
-              <th scope="col">Vagas</th> -->              
-            </tr>
-          </thead>
-          <tbody>
-          {% for escolaridade in escolaridades %}        
-          <tr onpointerover="showEditIcon(editIcon_1532{{escolaridade.id}}d1sa56)" onpointerout="hiddenEditIcon(editIcon_1532{{escolaridade.id}}d1sa56)" style="background-color: rgba(230, 230, 230, 0.274);{% if user.is_authenticated %}cursor: pointer;{% endif %}" {% if user.is_authenticated %}onclick="(window.location.href='{% url 'vagas:alterar_escolaridade' escolaridade.id %}')"{% endif %}>
-            {% if user.is_authenticated %}
-              <td style="vertical-align: middle;"><img id="editIcon_1532{{escolaridade.id}}d1sa56" style="height: 18px;" src="{% static 'images/edit-icon.png' %}" alt=""></td>     
-              {% endif %}
-              <td scope="row">{{escolaridade.id}}</td>
-              <td>{{escolaridade.nome}}</td>            
-              <!-- <td>{{escolaridade.escolaridade}}</td>
-              <td>{{escolaridade.quantidadeescolaridades}}</td> -->              
-            </tr>
-          {% endfor %}
-      </tbody>
-    </table>
-    <style>
-      td img{
-        visibility: hidden;
-      }
-      table{
-        font-size:  0.9em;
-      }
-    </style>
-    <script>
-      function showEditIcon(id){
-        id.style.visibility='visible'              
-      }
-      function hiddenEditIcon(id){
-        id.style.visibility='hidden'              
-      }
-    </script>
+  </div>
 </div>
+
+<!-- Modal Cadastrar Escolaridade -->
+<div class="modal fade" id="modalCadastrarEscolaridade" tabindex="-1" aria-labelledby="modalCadastrarEscolaridadeLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCadastrarEscolaridadeLabel">
+          <i class="fas fa-graduation-cap me-2"></i>Nova Escolaridade
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'vagas:cadastrar_escolaridade' %}">
+        <div class="modal-body">
+          {% csrf_token %}
+          <input type="hidden" name="user" value="{{ request.user.id }}">
+          <div class="mb-3">
+            <label for="id_nome" class="form-label">Nome da Escolaridade <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="id_nome" name="nome" required maxlength="200" placeholder="Ex: Ensino Médio Completo">
+            <div class="form-text">Digite o nome da escolaridade (máximo 200 caracteres)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Cadastrar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar Escolaridade -->
+<div class="modal fade" id="modalEditarEscolaridade" tabindex="-1" aria-labelledby="modalEditarEscolaridadeLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarEscolaridadeLabel">
+          <i class="fas fa-graduation-cap me-2"></i>Editar Escolaridade
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="formEditarEscolaridade">
+        <div class="modal-body">
+          {% csrf_token %}
+          <input type="hidden" name="user" value="{{ request.user.id }}">
+          <div class="mb-3">
+            <label for="nomeEscolaridadeEditar" class="form-label">Nome da Escolaridade <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nomeEscolaridadeEditar" name="nome" required maxlength="200">
+            <div class="form-text">Digite o nome da escolaridade (máximo 200 caracteres)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-1"></i>Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save me-1"></i>Salvar Alterações
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const table = document.querySelector('table tbody');
+    
+    if (searchInput && table) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let shouldShow = false;
+                
+                if (searchTerm === '') {
+                    shouldShow = true;
+                } else {
+                    // Search in ID, nome, user, and date columns
+                    const id = cells[0]?.textContent?.toLowerCase() || '';
+                    const nome = cells[1]?.textContent?.toLowerCase() || '';
+                    const usuario = cells[2]?.textContent?.toLowerCase() || '';
+                    const data = cells[3]?.textContent?.toLowerCase() || '';
+                    
+                    shouldShow = id.includes(searchTerm) || 
+                               nome.includes(searchTerm) ||
+                               usuario.includes(searchTerm) ||
+                               data.includes(searchTerm);
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        });
+    }
+});
+
+// Função para preparar edição de escolaridade
+function prepararEdicaoEscolaridade(escolaridadeId, escolaridadeNome) {
+    // Preencher o formulário com os dados
+    document.getElementById('nomeEscolaridadeEditar').value = escolaridadeNome;
+    
+    // Configurar a action do formulário para a URL de edição
+    const form = document.getElementById('formEditarEscolaridade');
+    form.action = '{% url "vagas:alterar_escolaridade" 0 %}'.replace('0', escolaridadeId);
+}
+
+// Aguardar DOM estar pronto para adicionar event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar modais explicitamente
+    const modalCadastrarElement = document.getElementById('modalCadastrarEscolaridade');
+    const modalEditarElement = document.getElementById('modalEditarEscolaridade');
+    
+    if (modalCadastrarElement && typeof bootstrap !== 'undefined') {
+        const modalCadastrar = new bootstrap.Modal(modalCadastrarElement, {
+            backdrop: true,
+            keyboard: true
+        });
+        
+        // Limpar formulário quando modal de cadastro é fechado
+        modalCadastrarElement.addEventListener('hidden.bs.modal', function () {
+            const form = this.querySelector('form');
+            if (form) {
+                form.reset();
+            }
+        });
+    }
+    
+    if (modalEditarElement && typeof bootstrap !== 'undefined') {
+        const modalEditar = new bootstrap.Modal(modalEditarElement, {
+            backdrop: true,
+            keyboard: true
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -292,16 +292,14 @@ def alterar_empresa(request, id):
 @staff_required
 def cadastrar_cargo(request):
     if request.method == 'POST':
+        print(request.POST)
         form = Form_Cargo(request.POST)
         if form.is_valid():
-            form.save()
-            context = {
-                'tipo_cadastro': 'Cadastrar',
-                'form': Form_Cargo(initial={'user': request.user}),
-                'hidden': ['user', 'ativo'],
-                'success': [True, 'Vaga cadastrada com sucesso!']
-            }
-            return render(request, 'vagas/cadastrar_cargo.html', context)
+            form.save()            
+        else:
+            print(form.errors)
+            messages.error(request, 'Erro ao cadastrar cargo. Verifique os dados e tente novamente.')
+        return redirect('vagas:listar_cargos')
     else:
         form = Form_Cargo(initial={'user': request.user})
     context = {
@@ -319,21 +317,14 @@ def alterar_cargo(request, id):
         form = Form_Cargo(request.POST, instance=cargo)
         if form.is_valid():
             form.save()
-            context = {
-                'tipo_cadastro': 'Alterar',
-                'form': Form_Cargo(initial={'user': request.user}),
-                'hidden': ['user', 'ativo'],
-                'success': [True, 'Vaga alterada com sucesso!']
-            }
             return redirect('vagas:listar_cargos')
     else:
-
         form = Form_Cargo(instance=cargo)
     context = {
         'form': form,
         'tipo_cadastro': 'Alterar',
     }
-    return render(request, 'vagas/cadastrar_escolaridade.html', context)
+    return render(request, 'vagas/cadastrar_cargo.html', context)
 
 
 @login_required
@@ -343,13 +334,7 @@ def cadastrar_escolaridade(request):
         form = Form_Escolaridade(request.POST)
         if form.is_valid():
             form.save()
-            context = {
-                'tipo_cadastro': 'Cadastrar',
-                'form': Form_Escolaridade(initial={'user': request.user}),
-                'hidden': ['user', 'ativo'],
-                'success': [True, 'Vaga cadastrada com sucesso!']
-            }
-            return render(request, 'vagas/cadastrar_escolaridade.html', context)
+            return redirect('vagas:escolaridades')
     else:
         form = Form_Escolaridade(initial={'user': request.user})
     context = {
@@ -367,15 +352,8 @@ def alterar_escolaridade(request, id):
         form = Form_Escolaridade(request.POST, instance=escolaridade)
         if form.is_valid():
             form.save()
-            context = {
-                'tipo_cadastro': 'Alterar',
-                'form': Form_Escolaridade(initial={'user': request.user}),
-                'hidden': ['user', 'ativo'],
-                'success': [True, 'Vaga alterada com sucesso!']
-            }
             return redirect('vagas:escolaridades')
     else:
-
         form = Form_Escolaridade(instance=escolaridade)
     context = {
         'form': form,
@@ -572,7 +550,7 @@ def escolaridades(request):
 @staff_required
 def listar_cargos(request):
     context = {
-        'vagas': Cargo.objects.all()
+        'cargos': Cargo.objects.all()
     }
     return render(request, 'vagas/listar_cargos.html', context)
 
@@ -795,12 +773,11 @@ def infoempresa(request):
     }
     return render(request, 'vagas/infoempresa.html', context)
 
-
 @login_required
 @staff_required
 def empresas_responsaveis(request):
     """View para listar empresas e seus respectivos responsáveis."""
-    empresas = Empresa.objects.all().prefetch_related('responsaveis').order_by('nome')
+    empresas = Empresa.objects.filter(responsaveis__isnull=False).distinct().prefetch_related('responsaveis').order_by('nome')
     
     # Adicionar informações adicionais para cada empresa
     for empresa in empresas:
@@ -1703,10 +1680,12 @@ def totem_candidatarse(request, id):
                 candidato = Candidato.objects.get(cpf=cpf, vaga_id=id)
                 form = Form_Candidato(request.POST, instance=candidato)
             except Exception as e:
+                print(e)
                 pass
 
             candidato = form.save()
-            
+            candidato.candidato_online = False
+            candidato.save()
             # Redirect para página de sucesso do totem
             return redirect('vagas:totem_candidatura_sucesso', id=candidato.id)
         else:
@@ -3741,3 +3720,288 @@ def empresa_solicitar_desativacao(request):
     except Exception as e:
         messages.error(request, f'Erro ao solicitar desativação: {str(e)}')
         return redirect('vagas:empresa_formularios')
+
+
+@login_required
+@staff_required
+def install_demo(request):
+    """
+    View para popular o banco de dados com dados de demonstração
+    """
+    from django.contrib.auth.models import User
+    from django.utils import timezone
+    from datetime import timedelta
+    import random
+    from django.db import transaction
+    
+    try:
+        with transaction.atomic():
+            # Verificar se já existem dados
+            if Cargo.objects.count() > 5 or Escolaridade.objects.count() > 5:
+                messages.warning(request, 'Sistema já possui dados. Para reinstalar a demo, limpe o banco primeiro.')
+                return redirect('vagas:painel_administrativo')
+            
+            # Criar usuários de demonstração
+            demo_users = []
+            user_data = [
+                {'username': 'admin_demo', 'first_name': 'João', 'last_name': 'Silva', 'email': 'admin@demo.com'},
+                {'username': 'rh_demo', 'first_name': 'Maria', 'last_name': 'Santos', 'email': 'rh@demo.com'},
+                {'username': 'funcionario_demo', 'first_name': 'Pedro', 'last_name': 'Oliveira', 'email': 'func@demo.com'},
+            ]
+            
+            for user_info in user_data:
+                user, created = User.objects.get_or_create(
+                    username=user_info['username'],
+                    defaults={
+                        'first_name': user_info['first_name'],
+                        'last_name': user_info['last_name'],
+                        'email': user_info['email'],
+                        'is_staff': True,
+                        'is_active': True
+                    }
+                )
+                if created:
+                    user.set_password('demo123')
+                    user.save()
+                demo_users.append(user)
+            
+            # Criar escolaridades de demonstração
+            escolaridades_demo = [
+                'Ensino Fundamental Incompleto',
+                'Ensino Fundamental Completo', 
+                'Ensino Médio Incompleto',
+                'Ensino Médio Completo',
+                'Ensino Superior Incompleto',
+                'Ensino Superior Completo',
+                'Pós-Graduação',
+                'Mestrado',
+                'Doutorado'
+            ]
+            
+            escolaridades_criadas = []
+            for nome in escolaridades_demo:
+                escolaridade, created = Escolaridade.objects.get_or_create(
+                    nome=nome,
+                    defaults={
+                        'user': random.choice(demo_users)
+                    }
+                )
+                escolaridades_criadas.append(escolaridade)
+            
+            # Criar cargos de demonstração
+            cargos_demo = [
+                'Vendedor',
+                'Atendente',
+                'Caixa',
+                'Auxiliar Administrativo',
+                'Recepcionista',
+                'Motorista',
+                'Auxiliar de Limpeza',
+                'Garçom/Garçonete',
+                'Cozinheiro(a)',
+                'Operador de Telemarketing',
+                'Auxiliar de Produção',
+                'Estoquista',
+                'Técnico em Informática',
+                'Auxiliar Contábil',
+                'Porteiro',
+                'Vigilante',
+                'Mecânico',
+                'Eletricista',
+                'Pedreiro',
+                'Soldador'
+            ]
+            
+            cargos_criados = []
+            for nome in cargos_demo:
+                cargo, created = Cargo.objects.get_or_create(
+                    nome=nome,
+                    defaults={
+                        'user': random.choice(demo_users)
+                    }
+                )
+                cargos_criados.append(cargo)
+            
+            # Criar empresas de demonstração
+            empresas_demo = [
+                {
+                    'nome': 'Supermercado Central LTDA',
+                    'cnpj': '12345678000199',
+                    'endereco': 'Rua das Flores, 123',
+                    'bairro': 'Centro',
+                    'telefone': '11987654321',
+                    'email': 'rh@supercentral.com.br'
+                },
+                {
+                    'nome': 'Restaurante Bom Sabor',
+                    'cnpj': '98765432000155',
+                    'endereco': 'Av. Principal, 456',
+                    'bairro': 'Jardim Europa',
+                    'telefone': '11876543210',
+                    'email': 'contato@bomsabor.com.br'
+                },
+                {
+                    'nome': 'Loja de Roupas Fashion',
+                    'cnpj': '45678912000177',
+                    'endereco': 'Rua do Comércio, 789',
+                    'bairro': 'Vila Nova',
+                    'telefone': '11765432109',
+                    'email': 'rh@fashion.com.br'
+                },
+                {
+                    'nome': 'Oficina Mecânica São José',
+                    'cnpj': '78912345000133',
+                    'endereco': 'Rua das Oficinas, 321',
+                    'bairro': 'Industrial',
+                    'telefone': '11654321098',
+                    'email': 'vagas@oficinasjose.com.br'
+                },
+                {
+                    'nome': 'Construtora Edilar',
+                    'cnpj': '32165498000111',
+                    'endereco': 'Av. dos Engenheiros, 654',
+                    'bairro': 'Alphaville',
+                    'telefone': '11543210987',
+                    'email': 'rh@edilar.com.br'
+                }
+            ]
+            
+            empresas_criadas = []
+            for empresa_data in empresas_demo:
+                empresa, created = Empresa.objects.get_or_create(
+                    cnpj=empresa_data['cnpj'],
+                    defaults={
+                        'nome': empresa_data['nome'],
+                        'endereco': empresa_data['endereco'],
+                        'bairro': empresa_data['bairro'],
+                        'telefone': empresa_data['telefone'],
+                        'email': empresa_data['email'],
+                        'user': random.choice(demo_users),
+                        'contato_email': True,
+                        'contato_telefone': True,
+                        'ocultar': False
+                    }
+                )
+                empresas_criadas.append(empresa)
+            
+            # Criar vagas de demonstração
+            vagas_demo = [
+                {
+                    'titulo': 'Vendedor Experiente',
+                    'descricao': 'Buscamos vendedor com experiência em varejo para atuar em supermercado. Requisitos: ensino médio completo, experiência mínima de 6 meses.',
+                    'salario': 1800.00,
+                    'cargo_idx': 0,  # Vendedor
+                    'empresa_idx': 0,  # Supermercado
+                    'escolaridade_idx': 3  # Ensino Médio Completo
+                },
+                {
+                    'titulo': 'Garçom/Garçonete',
+                    'descricao': 'Vaga para garçom/garçonete em restaurante. Experiência desejável mas não obrigatória. Disponibilidade para trabalhar finais de semana.',
+                    'salario': 1600.00,
+                    'cargo_idx': 7,  # Garçom
+                    'empresa_idx': 1,  # Restaurante
+                    'escolaridade_idx': 2  # Ensino Médio Incompleto
+                },
+                {
+                    'titulo': 'Atendente de Loja',
+                    'descricao': 'Atendente para loja de roupas femininas. Necessário boa comunicação e disponibilidade de horário.',
+                    'salario': 1500.00,
+                    'cargo_idx': 1,  # Atendente
+                    'empresa_idx': 2,  # Loja Fashion
+                    'escolaridade_idx': 3  # Ensino Médio Completo
+                },
+                {
+                    'titulo': 'Mecânico Automotivo',
+                    'descricao': 'Mecânico com experiência em manutenção preventiva e corretiva de veículos. Conhecimento em sistemas de injeção eletrônica.',
+                    'salario': 2500.00,
+                    'cargo_idx': 16,  # Mecânico
+                    'empresa_idx': 3,  # Oficina
+                    'escolaridade_idx': 3  # Ensino Médio Completo
+                },
+                {
+                    'titulo': 'Pedreiro',
+                    'descricao': 'Pedreiro experiente para obras residenciais e comerciais. Experiência mínima de 2 anos comprovada.',
+                    'salario': 2200.00,
+                    'cargo_idx': 18,  # Pedreiro  
+                    'empresa_idx': 4,  # Construtora
+                    'escolaridade_idx': 1  # Ensino Fundamental Completo
+                },
+                {
+                    'titulo': 'Caixa de Supermercado',
+                    'descricao': 'Operador de caixa para supermercado. Experiência com sistemas PDV. Disponibilidade para trabalhar em escalas.',
+                    'salario': 1650.00,
+                    'cargo_idx': 2,  # Caixa
+                    'empresa_idx': 0,  # Supermercado
+                    'escolaridade_idx': 3  # Ensino Médio Completo
+                },
+                {
+                    'titulo': 'Auxiliar de Cozinha',
+                    'descricao': 'Auxiliar de cozinha para restaurante. Responsável por preparo de alimentos e organização da cozinha.',
+                    'salario': 1400.00,
+                    'cargo_idx': 8,  # Cozinheiro
+                    'empresa_idx': 1,  # Restaurante
+                    'escolaridade_idx': 1  # Ensino Fundamental Completo
+                }
+            ]
+            
+            for vaga_data in vagas_demo:
+                # Calcular data aleatória nos últimos 30 dias
+                dias_atras = random.randint(1, 30)
+                data_inclusao = timezone.now() - timedelta(days=dias_atras)
+                
+                vaga = Vaga_Emprego.objects.create(
+                    titulo=vaga_data['titulo'],
+                    descricao=vaga_data['descricao'],
+                    salario=vaga_data['salario'],
+                    cargo=cargos_criados[vaga_data['cargo_idx']],
+                    empresa=empresas_criadas[vaga_data['empresa_idx']],
+                    escolaridade=escolaridades_criadas[vaga_data['escolaridade_idx']],
+                    user=random.choice(demo_users),
+                    ativo=True,
+                    destaque=random.choice([True, False]),
+                    dt_inclusao=data_inclusao
+                )
+                
+                # Criar alguns candidatos para algumas vagas
+                if random.choice([True, False, False]):  # 33% chance
+                    nomes_demo = ['Ana Silva', 'Carlos Santos', 'Maria Oliveira', 'João Pereira', 'Fernanda Costa']
+                    for i in range(random.randint(1, 3)):
+                        nome = random.choice(nomes_demo)
+                        cpf_base = f"{random.randint(100, 999)}{random.randint(100, 999)}{random.randint(100, 999)}"
+                        
+                        candidato = Candidato.objects.create(
+                            vaga=vaga,
+                            nome=nome + f" {i+1}",
+                            cpf=cpf_base + f"{random.randint(10, 99)}",
+                            data_nascimento=timezone.now().date() - timedelta(days=random.randint(18*365, 50*365)),
+                            sexo=random.choice(['M', 'F']),
+                            email=f"{nome.lower().replace(' ', '.')}{i+1}@email.com",
+                            celular=f"11{random.randint(900000000, 999999999)}",
+                            bairro=random.choice(['Centro', 'Vila Nova', 'Jardim Europa', 'Industrial']),
+                            escolaridade=random.choice(escolaridades_criadas),
+                            candidato_online=True,
+                            dt_inclusao=data_inclusao + timedelta(hours=random.randint(1, 48))
+                        )
+            
+            messages.success(request, f'''
+                Demo instalada com sucesso! 📊<br><br>
+                <strong>Dados criados:</strong><br>
+                • {len(demo_users)} usuários de demonstração<br>
+                • {len(escolaridades_criadas)} níveis de escolaridade<br>
+                • {len(cargos_criados)} tipos de cargo<br>
+                • {len(empresas_criadas)} empresas<br>
+                • {len(vagas_demo)} vagas de emprego<br>
+                • Candidatos distribuídos aleatoriamente<br><br>
+                
+                <strong>Usuários criados:</strong><br>
+                • admin_demo / demo123<br>
+                • rh_demo / demo123<br>
+                • funcionario_demo / demo123
+            ''')
+            
+    except Exception as e:
+        messages.error(request, f'Erro ao instalar demo: {str(e)}')
+    
+    return redirect('vagas:painel_administrativo')
+
+

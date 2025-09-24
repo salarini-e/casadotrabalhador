@@ -97,4 +97,7 @@ urlpatterns = [
     path('painel-empresarial/auxiliar/desativar/', views.empresa_desativar_auxiliar, name='empresa_desativar_auxiliar'),
     path('painel-empresarial/auxiliar/reativar/', views.empresa_reativar_auxiliar, name='empresa_reativar_auxiliar'),
     path('painel-empresarial/vaga/solicitar-desativacao/', views.empresa_solicitar_desativacao, name='empresa_solicitar_desativacao'),
+    
+    # Demo installer
+    path('install-demo/', views.install_demo, name='install_demo'),
 ]

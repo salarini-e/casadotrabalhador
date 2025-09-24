@@ -112,17 +112,7 @@
       </div>
     </nav>
     
-    <div class="sidebar-footer">
-      <div class="user-info">
-        <div class="user-avatar">
-          <i class="fas fa-user"></i>
-        </div>
-        <div class="user-details">
-          <span class="user-name">{{ user.first_name|default:user.username }}</span>
-          <span class="user-role">Administrador</span>
-        </div>
-      </div>
-    </div>
+    
   </div>
 
   <!-- Main Dashboard Content -->
@@ -138,7 +128,7 @@
       </div>
       <div class="topbar-right">
         <div class="quick-actions">
-          <a href="{% url 'vagas:empresas_responsaveis' %}" style="color: #000000;" title="Ver relação de empresas e responsáveis">            
+          <a href="{% url 'vagas:empresas_responsaveis' %}" class="btn btn-primary" title="Ver relação de empresas e responsáveis">            
             Relação de Empresas e Responsáveis
           </a>
         </div>
@@ -164,9 +154,9 @@
                     <i class="fas fa-building me-2"></i>Empresas <span class="text-gray">({{empresas.count}})</span>
                 </h5>
                 <div class="table-actions">
-                    <a target="_blank" href="{% url 'vagas:cadastrar_empresa' %}" style="color: #2c3e50;" class="me-2">
+                    <a target="_blank" href="{% url 'vagas:cadastrar_empresa' %}" class="me-2 btn btn-primary">
                       <i class="fas fa-plus me-1"></i>
-                      Adicionar nova
+                      Nova Empresa
                     </a>
                 </div>
             </div>
