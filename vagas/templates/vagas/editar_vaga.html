@@ -8,7 +8,7 @@
 <link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
 <style>
 .form-card {
-  border-left: 4px solid #4e73df;
+  /* border-left: 4px solid #4e73df; */
   transition: all 0.3s ease;
 }
 
@@ -312,13 +312,27 @@ input:checked + .slider:before {
                     </div>
                   </div>
 
+                  <!-- Escolaridade -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Escolaridade</label>
+                      <select class="form-select" name="escolaridade" required>
+                        {% for escolaridade in escolaridades %}
+                          <option value="{{ escolaridade.id }}" {% if escolaridade.id == vaga.escolaridade.id %}selected{% endif %}>
+                            {{ escolaridade.nome }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
                   <!-- Quantidade de Vagas -->
                   <div class="col-md-6 mb-3">
                     <div class="form-group">
                       <label class="required-field">Quantidade de Vagas</label>
                       <input type="number" 
                              class="form-control" 
-                             name="quantidade_vagas" 
+                             name="quantidadeVagas" 
                              value="{{ vaga.quantidadeVagas }}"
                              min="1" 
                              max="999"
@@ -326,6 +340,99 @@ input:checked + .slider:before {
                       <div class="form-text">
                         <i class="fas fa-info-circle me-1"></i>
                         Atenção: Já existem {{ candidatos_contratados }} candidatos contratados para esta vaga.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tipo de Vaga -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Tipo de Vaga</label>
+                      <select class="form-select" name="tipo_de_vaga">
+                        <option value="NML" {% if vaga.tipo_de_vaga == 'NML' %}selected{% endif %}>Padrão</option>
+                        <option value="JAP" {% if vaga.tipo_de_vaga == 'JAP' %}selected{% endif %}>Jovem Aprendiz</option>
+                        <option value="PED" {% if vaga.tipo_de_vaga == 'PED' %}selected{% endif %}>Pessoa com Deficiência</option>
+                        <option value="EST" {% if vaga.tipo_de_vaga == 'EST' %}selected{% endif %}>Estágio</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Salário -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Salário</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="salario" 
+                             value="{{ vaga.salario }}"
+                             placeholder="Ex: R$ 1.500,00 ou A combinar">
+                    </div>
+                  </div>
+
+                  <!-- Carga Horária -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Carga Horária</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="carga_horaria" 
+                             value="{{ vaga.carga_horaria }}"
+                             placeholder="Ex: 44h semanais, Segunda à Sexta das 8h às 18h">
+                    </div>
+                  </div>
+
+                  <!-- Regime -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Regime de Contratação</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="regime" 
+                             value="{{ vaga.regime }}"
+                             placeholder="Ex: CLT, PJ, Terceirizado">
+                    </div>
+                  </div>
+
+                  <!-- Experiência -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Experiência</label>
+                      <select class="form-select" name="experiencia" required>
+                        <option value="Sim" {% if vaga.experiencia == 'Sim' %}selected{% endif %}>Sim</option>
+                        <option value="Não" {% if vaga.experiencia == 'Não' %}selected{% endif %}>Não</option>
+                        <option value="Des" {% if vaga.experiencia == 'Des' %}selected{% endif %}>Desejável</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Email para Encaminhamento -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Email para Encaminhamento</label>
+                      <input type="email" 
+                             class="form-control" 
+                             name="email" 
+                             value="{{ vaga.email }}"
+                             placeholder="email@empresa.com">
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Email específico para receber currículos desta vaga (opcional).
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Destaque -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="destaque" {% if vaga.destaque %}checked{% endif %}>
+                        <label class="form-check-label">
+                          <strong>Vaga em Destaque</strong>
+                        </label>
+                        <div class="form-text">
+                          <i class="fas fa-star me-1"></i>
+                          Vagas em destaque aparecem primeiro na listagem.
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -361,6 +468,21 @@ input:checked + .slider:before {
                       <div class="form-text">
                         <i class="fas fa-info-circle me-1"></i>
                         Essas observações são visíveis para candidatos e na interface externa da empresa.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Atribuições -->
+                  <div class="col-12 mb-3">
+                    <div class="form-group">
+                      <label>Atribuições do Cargo</label>
+                      <textarea class="form-control" 
+                                name="atribuicoes" 
+                                rows="4" 
+                                placeholder="Descreva as principais atividades e responsabilidades do cargo...">{{ vaga.atribuicoes }}</textarea>
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Detalhe as principais funções que o candidato exercerá no cargo.
                       </div>
                     </div>
                   </div>

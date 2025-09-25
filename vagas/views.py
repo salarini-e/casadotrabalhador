@@ -29,7 +29,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from urllib.parse import quote
 
-from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa
+from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa, Cargo, Escolaridade
 from django.http import HttpResponseForbidden, HttpResponse
 
 from autenticacao.models import Pessoa
@@ -2488,18 +2488,34 @@ def editar_vaga(request, vaga_id):
     if request.method == 'POST':
         try:
             # Atualizar dados da vaga
-            vaga.quantidadeVagas = int(request.POST.get('quantidade_vagas', vaga.quantidadeVagas))
+            vaga.quantidadeVagas = int(request.POST.get('quantidadeVagas', vaga.quantidadeVagas))
             vaga.observacao = request.POST.get('observacao', vaga.observacao)
+            vaga.atribuicoes = request.POST.get('atribuicoes', vaga.atribuicoes)
+            vaga.salario = request.POST.get('salario', vaga.salario)
+            vaga.carga_horaria = request.POST.get('carga_horaria', vaga.carga_horaria)
+            vaga.regime = request.POST.get('regime', vaga.regime)
+            vaga.experiencia = request.POST.get('experiencia', vaga.experiencia)
+            vaga.tipo_de_vaga = request.POST.get('tipo_de_vaga', vaga.tipo_de_vaga)
+            vaga.email = request.POST.get('email', vaga.email)
             vaga.ativo = request.POST.get('ativo') == 'on'
+            vaga.destaque = request.POST.get('destaque') == 'on'
             
             # Atualizar cargo se fornecido
             cargo_id = request.POST.get('cargo_id')
             if cargo_id:
                 try:
-                    from curriculo.models import Cargo
                     cargo = Cargo.objects.get(pk=cargo_id)
                     vaga.cargo = cargo
                 except Cargo.DoesNotExist:
+                    pass
+            
+            # Atualizar escolaridade se fornecido
+            escolaridade_id = request.POST.get('escolaridade')
+            if escolaridade_id:
+                try:
+                    escolaridade = Escolaridade.objects.get(pk=escolaridade_id)
+                    vaga.escolaridade = escolaridade
+                except Escolaridade.DoesNotExist:
                     pass
             
             vaga.dt_atualizacao = timezone.now()
@@ -2511,18 +2527,19 @@ def editar_vaga(request, vaga_id):
         except Exception as e:
             messages.error(request, f'Erro ao atualizar vaga: {str(e)}')
     
-    # Buscar todos os cargos para o dropdown
-    from curriculo.models import Cargo
+    # Buscar todos os cargos e escolaridades para os dropdowns
     cargos = Cargo.objects.all().order_by('nome')
+    escolaridades = Escolaridade.objects.all().order_by('nome')
     
     # Estatísticas da vaga para o contexto
     candidatos = Candidato.objects.filter(vaga=vaga)
     total_candidatos = candidatos.count()
     candidatos_contratados = candidatos.filter(conseguiu_vaga=True).count()
-    
+
     context = {
         'vaga': vaga,
         'cargos': cargos,
+        'escolaridades': escolaridades,
         'total_candidatos': total_candidatos,
         'candidatos_contratados': candidatos_contratados,
     }

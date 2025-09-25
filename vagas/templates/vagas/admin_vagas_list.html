@@ -201,10 +201,19 @@
                         <span class="badge bg-light text-dark">#{{ vaga.id }}</span>
                       </td>
                       <td>
-                        <div class="fw-bold">{{ vaga.cargo.nome }}</div>
-                        {% if vaga.observacao %}
-                          <small class="text-muted">{{ vaga.observacao|truncatewords:10 }}</small>
-                        {% endif %}
+                        <div class="d-flex align-items-center justify-content-between">
+                          <div>
+                            <div class="fw-bold">{{ vaga.cargo.nome }}</div>
+                            {% if vaga.observacao %}
+                              <small class="text-muted">{{ vaga.observacao|truncatewords:10 }}</small>
+                            {% endif %}
+                          </div>
+                          <a href="{% url 'vagas:editar_vaga' vaga.pk %}" 
+                             class="btn btn-sm btn-outline-primary ms-2" 
+                             title="Editar vaga">
+                            <i class="fas fa-edit"></i>
+                          </a>
+                        </div>
                       </td>
                       <td>
                         <div class="fw-bold">{{ vaga.empresa.nome }}

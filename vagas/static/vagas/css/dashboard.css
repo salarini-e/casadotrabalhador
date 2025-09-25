@@ -1092,7 +1092,7 @@
   
   .stats-grid {
     padding: 1rem;
-    grid-template-columns: 1fr;
+    /* grid-template-columns: 1fr; */
   }
   
   .stat-card {
