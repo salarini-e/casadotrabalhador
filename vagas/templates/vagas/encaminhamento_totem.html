@@ -73,7 +73,7 @@
             {% if vaga.empresa.contato_email %}
             <p style="margin: 0 30px;">                
             Por email, com seu currículo em anexo,  ao endereço: <br>
-            <span style="text-decoration: underline; margin: 0px 30px;">{{vaga.empresa.email}}</span></p>
+            <span style="text-decoration: underline; margin: 0px 30px;">{% if vaga.email %}{{vaga.email}}{% else %}{{vaga.empresa.email}}{% endif %}</span></p>
             {% endif %}
             {% if vaga.empresa.contato_link %}
             <p style="margin: 0 30px;">                

@@ -176,7 +176,7 @@
                                 <label for="escolaridade" class="form-label fw-bold">Escolaridade Mínima *</label>
                                 <select class="form-select" id="escolaridade" name="escolaridade_id" required>
                                     {% for escolaridade in escolaridades %}
-                                        <option value="{{ escolaridade.id }}">{{ escolaridade.escolaridade }}</option>
+                                        <option value="{{ escolaridade.id }}">{{ escolaridade.nome }}</option>
                                     {% endfor %}
                                 </select>
                             </div>

@@ -4,6 +4,25 @@
 {{block.super}}
 {% load static %}
 <link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">
+<style>
+    #cpf-status {
+        min-height: 20px;
+    }
+    
+    .input-group .btn {
+        border-left: 0;
+    }
+    
+    .form-field-autocomplete {
+        background-color: #e8f5e8 !important;
+        transition: background-color 1.5s ease;
+    }
+    
+    .autocomplete-info {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
 {% endblock%}
 {% block main %}
 {% load widget_tweaks %}   
@@ -68,8 +87,50 @@
                     </div>
                     
                     <div class="form-fields candidate-form-fields">
+                        <!-- CPF Field - First -->
+                        <div class="form-field-group">
+                            <label class="form-label" for="{{ form.cpf.id_for_label }}">
+                                {{ form.cpf.label }}
+                                {% if form.cpf.field.required %}
+                                <span class="required-asterisk">*</span>
+                                {% endif %}
+                                {% if request.user.is_staff %}
+                                <small class="text-muted ms-2">
+                                    <i class="fas fa-magic me-1"></i>Digite o CPF para autocompletar dados
+                                </small>
+                                {% endif %}
+                            </label>
+                            <div class="input-group">
+                                <input type="text" 
+                                       name="{{ form.cpf.name }}" 
+                                       id="{{ form.cpf.id_for_label }}"
+                                       class="form-control {% if form.cpf.errors %}is-invalid{% endif %}"
+                                       value="{{ form.cpf.value|default:'' }}"
+                                       onkeydown="mascara(this, icpf)"
+                                       placeholder="000.000.000-00"
+                                       maxlength="14"
+                                       required>
+                                {% if request.user.is_staff %}
+                                <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cpf" disabled>
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% if request.user.is_staff %}
+                            <div id="cpf-status" class="mt-1"></div>
+                            {% endif %}
+                            {% if form.cpf.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.cpf.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Other Fields -->
                         {% for field in form %}
-                            {% if field.name not in "vaga,candidato_online" %}
+                            {% if field.name not in "vaga,candidato_online,cpf" %}
                             <div class="form-field-group">
                                 <label class="form-label" for="{{ field.id_for_label }}">
                                     {{ field.label }}
@@ -83,20 +144,9 @@
                                        name="{{ field.name }}" 
                                        id="{{ field.id_for_label }}"
                                        class="form-control {% if field.errors %}is-invalid{% endif %}"
-                                       value="{{ pessoa.nome  }}"
+                                       value="{{ field.value|default:pessoa.nome }}"
                                        onkeydown="mascara(this, inome)"
                                        placeholder="Digite seu nome completo"
-                                       required>
-                                       
-                                {% elif field.name == 'cpf' %}
-                                <input type="text" 
-                                       name="{{ field.name }}" 
-                                       id="{{ field.id_for_label }}"
-                                       class="form-control {% if field.errors %}is-invalid{% endif %}"
-                                       value="{{ field.value|default:'' }}"
-                                       onkeydown="mascara(this, icpf)"
-                                       placeholder="000.000.000-00"
-                                       maxlength="14"
                                        required>
                                        
                                 {% elif field.name == 'data_nascimento' %}
@@ -170,7 +220,12 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            {% else %}
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Hidden fields -->
+                        {% for field in form %}
+                            {% if field.name in "vaga,candidato_online" %}
                             {{ field }}
                             {% endif %}
                         {% endfor %}
@@ -330,6 +385,112 @@
         
         return true;
     }
+
+    {% if request.user.is_staff %}
+    // Funcionalidade de autocomplete para staff
+    function initCPFAutocomplete() {
+        const cpfInput = document.getElementById('id_cpf');
+        const btnBuscar = document.getElementById('btn-buscar-cpf');
+        const cpfStatus = document.getElementById('cpf-status');
+        
+        if (!cpfInput || !btnBuscar || !cpfStatus) return;
+        
+        let searchTimeout;
+        
+        // Função para verificar se CPF está completo
+        function checkCPFComplete() {
+            const cpf = cpfInput.value.replace(/\D/g, '');
+            const isComplete = cpf.length === 11;
+            
+            btnBuscar.disabled = !isComplete;
+            
+            if (isComplete) {
+                cpfStatus.innerHTML = '<small class="text-info"><i class="fas fa-info-circle me-1"></i>CPF válido - Clique em buscar para autocompletar</small>';
+                
+                // Auto-buscar após 1 segundo de pausa na digitação
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    buscarCandidatoPorCPF();
+                }, 1000);
+            } else {
+                cpfStatus.innerHTML = '';
+            }
+        }
+        
+        // Buscar candidato por CPF
+        function buscarCandidatoPorCPF() {
+            const cpf = cpfInput.value.replace(/\D/g, '');
+            
+            if (cpf.length !== 11) {
+                cpfStatus.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>CPF incompleto</small>';
+                return;
+            }
+            
+            // Mostrar loading
+            cpfStatus.innerHTML = '<small class="text-primary"><i class="fas fa-spinner fa-spin me-1"></i>Buscando dados...</small>';
+            btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btnBuscar.disabled = true;
+            
+            // Fazer requisição AJAX
+            fetch(`{% url 'vagas:buscar_candidato_cpf' %}?cpf=${cpf}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.candidato) {
+                        // Preencher campos com dados encontrados
+                        preencherCampos(data.candidato);
+                        cpfStatus.innerHTML = '<small class="text-success"><i class="fas fa-check-circle me-1"></i>Dados encontrados e preenchidos automaticamente</small>';
+                    } else {
+                        cpfStatus.innerHTML = '<small class="text-warning"><i class="fas fa-info-circle me-1"></i>Nenhum registro anterior encontrado para este CPF</small>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    cpfStatus.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Erro ao buscar dados</small>';
+                })
+                .finally(() => {
+                    btnBuscar.innerHTML = '<i class="fas fa-search"></i>';
+                    btnBuscar.disabled = false;
+                });
+        }
+        
+        // Preencher campos do formulário
+        function preencherCampos(candidato) {
+            const campos = {
+                'id_nome': candidato.nome,
+                'id_data_nascimento': candidato.data_nascimento,
+                'id_sexo': candidato.sexo,
+                'id_email': candidato.email,
+                'id_celular': candidato.celular,
+                'id_bairro': candidato.bairro,
+                'id_escolaridade': candidato.escolaridade
+            };
+            
+            Object.entries(campos).forEach(([fieldId, value]) => {
+                const field = document.getElementById(fieldId);
+                if (field && value) {
+                    field.value = value;
+                    field.classList.remove('is-invalid');
+                    
+                    // Efeito visual de preenchimento
+                    field.style.backgroundColor = '#e8f5e8';
+                    setTimeout(() => {
+                        field.style.backgroundColor = '';
+                    }, 1500);
+                }
+            });
+        }
+        
+        // Event listeners
+        cpfInput.addEventListener('input', checkCPFComplete);
+        cpfInput.addEventListener('blur', checkCPFComplete);
+        btnBuscar.addEventListener('click', buscarCandidatoPorCPF);
+    }
+    
+    // Inicializar autocomplete quando página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        initCPFAutocomplete();
+    });
+    {% endif %}
 </script>
 
 {% endblock %}

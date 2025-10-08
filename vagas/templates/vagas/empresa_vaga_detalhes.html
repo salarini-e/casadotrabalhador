@@ -272,7 +272,7 @@
             <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-1"></i>Voltar para Vagas
             </a>
-            {% if vaga.ativo %}
+            {% if vaga.ativo and formulario %}
             <a class="btn btn-warning" href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">
                 <i class="fas fa-pause me-1"></i>Desativar Vaga
             </a>            
@@ -332,7 +332,7 @@
                         <div class="detail-label">
                             <i class="fas fa-graduation-cap"></i>Escolaridade
                         </div>
-                        <div class="detail-value">{{ vaga.escolaridade.escolaridade }}</div>
+                        <div class="detail-value">{{ vaga.escolaridade.nome }}</div>
                     </div>
                     {% endif %}
                     

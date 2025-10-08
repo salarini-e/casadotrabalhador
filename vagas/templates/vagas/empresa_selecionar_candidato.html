@@ -207,8 +207,18 @@
                         </div>
                         
                         <div class="info-item">
-                            <span class="info-label">Vagas Disponíveis:</span>
+                            <span class="info-label">Vagas Totais:</span>
                             <span class="info-value">{{ vaga.quantidadeVagas }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Candidatos Contratados:</span>
+                            <span class="info-value text-success">{{ candidatos_contratados }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Vagas Restantes:</span>
+                            <span class="info-value text-primary fw-bold">{{ vagas_restantes }}</span>
                         </div>
                     </div>
                 </div>
@@ -294,10 +304,12 @@
                             <h6 class="mb-1">Atenção - Seleção de Candidato</h6>
                             <p class="mb-0">
                                 Ao confirmar, este candidato será marcado como <strong>contratado</strong> para esta vaga. 
-                                {% if vaga.quantidadeVagas == 1 %}
-                                    Como esta vaga possui apenas 1 posição, ela será automaticamente <strong>inativada</strong> após a seleção.
+                                {% if vagas_restantes == 1 %}
+                                    Como esta será a última vaga preenchida, ela será automaticamente <strong>inativada</strong> após a seleção.
+                                {% elif vagas_restantes > 1 %}
+                                    Após esta seleção, restarão <strong>{{ vagas_restantes|add:"-1" }} vaga{{ vagas_restantes|add:"-1"|pluralize }}</strong> disponívei{{ vagas_restantes|add:"-1"|pluralize }}.
                                 {% else %}
-                                    Esta ação reduzirá o número de vagas disponíveis.
+                                    Esta vaga já possui todos os candidatos necessários contratados.
                                 {% endif %}
                             </p>
                         </div>

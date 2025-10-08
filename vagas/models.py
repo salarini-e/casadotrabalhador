@@ -151,6 +151,11 @@ class Vaga_Emprego(models.Model):
     
     def __str__(self):
         return '%s - %s' % (self.empresa, self.cargo)
+    
+    def get_email_encaminhamento(self):
+        """Retorna email para encaminhamento: prioriza email da vaga, depois da empresa"""
+        return self.email if self.email else self.empresa.email
+    
     def save(self, *args, **kwargs):
         if self.dt_inclusao:
             self.dt_atualizacao = timezone.now()

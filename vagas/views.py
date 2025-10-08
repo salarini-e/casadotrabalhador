@@ -29,7 +29,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from urllib.parse import quote
 
-from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa, Cargo, Escolaridade
+from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa, Cargo, Escolaridade, Empresa, Candidato
 from django.http import HttpResponseForbidden, HttpResponse
 
 from autenticacao.models import Pessoa
@@ -102,7 +102,9 @@ def exportar_vagas_excel(request):
 
     # Preencher os dados
     for vaga in vagas_ativas:
-        ws.append([vaga.id, vaga.empresa.nome, vaga.cargo.nome, vaga.quantidadeVagas, str(vaga.dt_inclusao), vaga.empresa.telefone, vaga.empresa.whatsapp, vaga.empresa.email])
+        # Usar email da vaga se existir, senão usar da empresa
+        email_encaminhamento = vaga.email if vaga.email else vaga.empresa.email
+        ws.append([vaga.id, vaga.empresa.nome, vaga.cargo.nome, vaga.quantidadeVagas, str(vaga.dt_inclusao), vaga.empresa.telefone, vaga.empresa.whatsapp, email_encaminhamento])
 
     # Criar uma resposta HTTP
     response = HttpResponse(content_type='application/ms-excel')
@@ -115,54 +117,22 @@ def exportar_vagas_excel(request):
 
 
 def visualizar_vaga(request, id):
-    if request.method == 'POST':
-        if request.user.is_staff:
-            gambiarra = {}
-            for item in request.POST:
-                if item == 'vaga':
-                    gambiarra[item] = Cargo.objects.get(nome=request.POST[item]).id
-                elif item == 'empresa':
-                    gambiarra[item] = Empresa.objects.get(
-                        nome=request.POST[item]).id
-                else:
-                    gambiarra[item] = request.POST[item]
-            form = CadastroVagasForm(gambiarra)
-            vaga = Vaga_Emprego.objects.get(id=id)
-            if form.is_valid():
+    vaga = Vaga_Emprego.objects.get(id=id)
+    
+    # Contar candidatos
+    total_candidatos = Candidato.objects.filter(vaga=vaga).count()
+    
+    import datetime
+    data_atual = datetime.datetime.now()        
+    context = {
+        'vaga': vaga,
+        'total_candidatos': total_candidatos,
+        'mes': data_atual.month,
+        'ano': data_atual.year,
+        'id': id,
+    }
 
-                form = CadastroVagasForm(gambiarra, instance=vaga)
-                form.save()
-                return redirect('vagas:vagas')
-    else:
-        vaga = Vaga_Emprego.objects.get(id=id)
-        form = CadastroVagasForm(instance=vaga)
-
-    if request.user.is_staff:
-        import datetime
-        data_atual = datetime.datetime.now()        
-        context = {
-            'visualizar': True,
-            'mes': data_atual.month,
-            'ano': data_atual.year,
-            'id': id,
-            'tipo_cadastro': '',
-            'form': form,
-            'hidden': ['user', 'ativo', 'destaque', 'dt_atualizacao'],
-            'cargo': vaga.cargo.nome,
-            'empresa': vaga.empresa.nome
-        }
-    else:
-        context = {
-            'visualizar': True,
-            'id': id,
-            'tipo_cadastro': '',
-            'form': form,
-            'hidden': ['user', 'ativo', 'destaque', 'empresa', 'dt_atualizacao'],
-            'cargo': vaga.cargo.nome,
-            'empresa': vaga.empresa.nome
-        }
-
-    return render(request, 'vagas/cadastrar_vagaOfertada.html', context)
+    return render(request, 'vagas/visualizar_vaga.html', context)
 
 # def vagas(request):    
 #     vagas = Vaga_Emprego.objects.filter(ativo=True)
@@ -642,12 +612,17 @@ def encaminhamento(request, id, user_id=0):
 
     from datetime import date
     today = date.today()
+    
+    # Determinar email de encaminhamento prioritário
+    email_encaminhamento = candidato.vaga.email if candidato.vaga.email else candidato.vaga.empresa.email
+    
     context = {
         'vaga': candidato.vaga,
         'date': today,
         'candidato': candidato,
         'sistema': True,
-        'user': user
+        'user': user,
+        'email_encaminhamento': email_encaminhamento
     }
     if request.user.is_staff:
         return render(request, 'vagas/encaminhar.html', context)
@@ -675,6 +650,9 @@ def gera_encaminhamento_to_pdf(request, id, user_id=0):
 
 
 def candidatarse(request, id):
+    # Inicializar pessoa com valor padrão para evitar UnboundLocalError
+    pessoa = {'nome': '', 'cpf': '', 'email': '', 'celular': ''}
+    
     if request.user.is_staff:
         form = Form_Candidato(initial={'vaga': id, 'candidato_online': False})
         pessoa = {'nome': '', 'cpf': '', 'email': '', 'celular': ''}
@@ -682,10 +660,22 @@ def candidatarse(request, id):
     else:
         print('usuário normal')
         if request.user.is_authenticated:
-            pessoa = Pessoa.objects.get(user=request.user)
-            form = Form_Candidato(initial={'vaga': id, 'candidato_online': True, 'nome': pessoa.nome, 'cpf': pessoa.cpf, 'email': pessoa.email, 'celular': pessoa.telefone})
+            try:
+                pessoa_obj = Pessoa.objects.get(user=request.user)
+                pessoa = {
+                    'nome': pessoa_obj.nome or '',
+                    'cpf': pessoa_obj.cpf or '',
+                    'email': pessoa_obj.email or '',
+                    'celular': pessoa_obj.telefone or ''
+                }
+                form = Form_Candidato(initial={'vaga': id, 'candidato_online': True, 'nome': pessoa_obj.nome, 'cpf': pessoa_obj.cpf, 'email': pessoa_obj.email, 'celular': pessoa_obj.telefone})
+            except Pessoa.DoesNotExist:
+                # Se pessoa não existe, usar valores padrão
+                pessoa = {'nome': '', 'cpf': '', 'email': '', 'celular': ''}
+                form = Form_Candidato(initial={'vaga': id, 'candidato_online': True})
         elif request.user.is_anonymous:
             form = Form_Candidato(initial={'vaga': id, 'candidato_online': True})
+            pessoa = {'nome': '', 'cpf': '', 'email': '', 'celular': ''}
 
     if request.method == 'POST':
         form = Form_Candidato(request.POST)
@@ -1756,6 +1746,79 @@ def admin_vagas_list(request):
     }
     
     return render(request, 'vagas/admin_vagas_list.html', context)
+
+
+@staff_required
+def admin_criar_vaga(request):
+    """Criar nova vaga no painel administrativo"""
+    
+    if request.method == 'POST':
+        try:
+            # Criar nova vaga
+            vaga = Vaga_Emprego()
+            
+            # Buscar empresa pelo nome (autocomplete)
+            empresa_nome = request.POST.get('empresa_id', '').strip()
+            if empresa_nome:
+                try:
+                    empresa = Empresa.objects.get(nome=empresa_nome)
+                    vaga.empresa = empresa
+                except Empresa.DoesNotExist:
+                    messages.error(request, f'Empresa "{empresa_nome}" não encontrada.')
+                    raise ValueError('Empresa não encontrada')
+            else:
+                messages.error(request, 'Empresa é obrigatória.')
+                raise ValueError('Empresa não informada')
+            
+            # Buscar cargo pelo nome (autocomplete)
+            cargo_nome = request.POST.get('cargo_id', '').strip()
+            if cargo_nome:
+                try:
+                    cargo = Cargo.objects.get(nome=cargo_nome)
+                    vaga.cargo = cargo
+                except Cargo.DoesNotExist:
+                    messages.error(request, f'Cargo "{cargo_nome}" não encontrado.')
+                    raise ValueError('Cargo não encontrado')
+            else:
+                messages.error(request, 'Cargo é obrigatório.')
+                raise ValueError('Cargo não informado')
+            
+            # Campos obrigatórios
+            vaga.escolaridade_id = request.POST.get('escolaridade')
+            vaga.quantidadeVagas = request.POST.get('quantidadeVagas')
+            vaga.experiencia = request.POST.get('experiencia')
+            vaga.user = request.user
+            
+            # Campos opcionais
+            vaga.email = request.POST.get('email', '')
+            vaga.tipo_de_vaga = request.POST.get('tipo_de_vaga', 'NML')
+            vaga.salario = request.POST.get('salario', '')
+            vaga.carga_horaria = request.POST.get('carga_horaria', '')
+            vaga.regime = request.POST.get('regime', '')
+            vaga.observacao = request.POST.get('observacao', '')
+            vaga.atribuicoes = request.POST.get('atribuicoes', '')
+            vaga.destaque = request.POST.get('destaque') == 'on'
+            
+            vaga.save()
+            
+            messages.success(request, f'Vaga criada com sucesso! REF: #{vaga.id}')
+            return redirect('vagas:admin_vagas_list')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao criar vaga: {str(e)}')
+    
+    # Buscar dados para os dropdowns
+    empresas = Empresa.objects.filter(ocultar=False).order_by('nome')
+    cargos = Cargo.objects.all().order_by('nome')
+    escolaridades = Escolaridade.objects.all().order_by('nome')
+    
+    context = {
+        'empresas': empresas,
+        'cargos': cargos,
+        'escolaridades': escolaridades,
+    }
+    
+    return render(request, 'vagas/admin_criar_vaga.html', context)
 
 
 @login_required
@@ -3356,13 +3419,20 @@ def empresa_selecionar_candidato(request, vaga_id, candidato_id):
             # Atualizar vaga como inativa se necessário
             candidatos_contratados = Candidato.objects.filter(vaga=vaga, conseguiu_vaga=True).count()
             vagas_restantes = vaga.quantidadeVagas - candidatos_contratados
+            
             if vagas_restantes <= 0:
                 vaga.ativo = False
                 vaga.dt_desativacao = timezone.now()
                 vaga.save()
-            
-            messages.success(request, f'Candidato {candidato.nome} selecionado com sucesso!')
+                messages.success(request, f'Candidato {candidato.nome} selecionado com sucesso! A vaga foi inativada pois todas as posições foram preenchidas.')
+            else:
+                vaga.save()
+                messages.success(request, f'Candidato {candidato.nome} selecionado com sucesso! Restam {vagas_restantes} vaga{"s" if vagas_restantes > 1 else ""} disponíve{"is" if vagas_restantes > 1 else "l"}.')
             return redirect('vagas:empresa_vaga_detalhes', vaga_id=vaga.id)
+        
+        # Calcular informações das vagas
+        candidatos_contratados = Candidato.objects.filter(vaga=vaga, conseguiu_vaga=True).count()
+        vagas_restantes = vaga.quantidadeVagas - candidatos_contratados
         
         context = {
             'responsavel': responsavel,
@@ -3370,6 +3440,8 @@ def empresa_selecionar_candidato(request, vaga_id, candidato_id):
             'empresas_disponiveis': empresas_disponiveis,
             'vaga': vaga,
             'candidato': candidato,
+            'candidatos_contratados': candidatos_contratados,
+            'vagas_restantes': vagas_restantes,
         }
         
         return render(request, 'vagas/empresa_selecionar_candidato.html', context)
@@ -4030,3 +4102,50 @@ def install_demo(request):
     return redirect('vagas:painel_administrativo')
 
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def buscar_candidato_por_cpf(request):
+    """API para buscar dados do último candidato por CPF (apenas para staff)"""
+    if request.method == 'GET':
+        cpf = request.GET.get('cpf', '').strip()
+        
+        if not cpf:
+            return JsonResponse({'success': False, 'message': 'CPF não fornecido'})
+        
+        # Limpar CPF (remover pontos, traços, etc.)
+        cpf_limpo = ''.join(filter(str.isdigit, cpf))
+        
+        if len(cpf_limpo) != 11:
+            return JsonResponse({'success': False, 'message': 'CPF inválido'})
+        
+        try:
+            # Buscar o último candidato com este CPF
+            candidato = Candidato.objects.filter(
+                cpf__icontains=cpf_limpo
+            ).order_by('-dt_inclusao').first()
+            
+            if candidato:
+                # Formatar data de nascimento
+                data_nascimento = candidato.data_nascimento.strftime('%Y-%m-%d') if candidato.data_nascimento else ''
+                
+                data = {
+                    'success': True,
+                    'candidato': {
+                        'nome': candidato.nome,
+                        'cpf': candidato.cpf,
+                        'data_nascimento': data_nascimento,
+                        'sexo': candidato.sexo,
+                        'email': candidato.email,
+                        'celular': candidato.celular,
+                        'bairro': candidato.bairro,
+                        'escolaridade': candidato.escolaridade.id if candidato.escolaridade else ''
+                    }
+                }
+                return JsonResponse(data)
+            else:
+                return JsonResponse({'success': False, 'message': 'Nenhum candidato encontrado com este CPF'})
+                
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Erro interno: {str(e)}'})
+    
+    return JsonResponse({'success': False, 'message': 'Método não permitido'})

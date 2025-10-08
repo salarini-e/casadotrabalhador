@@ -272,7 +272,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-0">{{ formulario.observacao|linebreaks }}</p>
+                        <p class="mb-0 text-dark">{{ formulario.observacao|linebreaks }}</p>
                     </div>
                 </div>
                 {% elif usar_dados_vaga and vaga_vinculada.observacao %}
@@ -282,8 +282,8 @@
                             <i class="fas fa-file-text me-2"></i>Descrição do Cargo
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-0">{{ vaga_vinculada.observacao|linebreaks }}</p>
+                    <div class="card-body" style="color: #212529 !important;">
+                        <p class="mb-0" style="color: #212529 !important;">{{ vaga_vinculada.observacao|linebreaks }}</p>
                     </div>
                 </div>
                 {% elif formulario.descricao_cargo %}
@@ -293,8 +293,8 @@
                             <i class="fas fa-file-text me-2"></i>Descrição do Cargo
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <p class="mb-0">{{ formulario.descricao_cargo|linebreaks }}</p>
+                    <div class="card-body" style="color: #212529 !important;">
+                        <p class="mb-0" style="color: #212529 !important;">{{ formulario.descricao_cargo|linebreaks }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -307,7 +307,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-0">{{ vaga_vinculada.requisitos|linebreaks }}</p>
+                        <p class="mb-0 text-dark">{{ vaga_vinculada.requisitos|linebreaks }}</p>
                     </div>
                 </div>
                 {% elif formulario.status_requisicao != 'PE' and formulario.requisitos %}
@@ -318,7 +318,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-0">{{ formulario.requisitos|linebreaks }}</p>
+                        <p class="mb-0 text-dark">{{ formulario.requisitos|linebreaks }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -340,7 +340,7 @@
                                 <li><i class="fas fa-check-circle text-success me-2"></i> Vale Alimentação</li>
                                 {% endif %}
                                 {% if formulario.outros_beneficios %}
-                                <li class="mt-2">{{ formulario.outros_beneficios|linebreaks }}</li>
+                                <li class="mt-2 text-dark">{{ formulario.outros_beneficios|linebreaks }}</li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -354,7 +354,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-0">{{ vaga_vinculada.beneficios|linebreaks }}</p>
+                        <p class="mb-0 text-dark">{{ vaga_vinculada.beneficios|linebreaks }}</p>
                     </div>
                 </div>
                 {% elif formulario.beneficios %}
@@ -365,7 +365,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p class="mb-0">{{ formulario.beneficios|linebreaks }}</p>
+                        <p class="mb-0 text-dark">{{ formulario.beneficios|linebreaks }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -382,7 +382,13 @@
                     <div class="card-body">
                         <div class="detail-item">
                             <span class="detail-label">Empresa:</span>
-                            <span class="detail-value">{{ empresa.nome_fantasia }}</span>
+                            <span class="detail-value">
+                                {% if usar_dados_vaga and vaga_vinculada %}
+                                    {{ vaga_vinculada.empresa.nome|default:formulario.nome_da_empresa }}
+                                {% else %}
+                                    {{ formulario.nome_da_empresa|default:empresa.nome_fantasia }}
+                                {% endif %}
+                            </span>
                         </div>
                         
                         <div class="detail-item">

@@ -124,7 +124,6 @@
                 </h5>
               </div>
               <div class="col-auto d-flex align-items-center">                
-                <!-- Toggle Button for Active/Archived Vacancies -->
                 <div class="me-3">
                   <a href="{% url 'vagas:admin_vagas_list' %}{% if mostrar_inativas %}{% else %}?inativas=true{% endif %}" 
                      class="btn {% if mostrar_inativas %}btn-outline-success{% else %}btn-outline-secondary{% endif %}">
@@ -151,6 +150,11 @@
                       </a>
                     </li>                    
                   </ul>
+                </div>
+                <div class="me-3">
+                  <a href="{% url 'vagas:admin_criar_vaga' %}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Nova Vaga
+                  </a>
                 </div>
                 <div class="input-group" style="width: 300px;">
                   <input type="text" class="form-control" id="searchInput" placeholder="Buscar por REF, cargo ou empresa...">

@@ -50,7 +50,7 @@
                     <b><i class="fas fa-envelope me-2"></i>POR EMAIL</b>
                     <p style="margin: 0 30px;">                
                     O candidato deverá enviar uma mensagem com seu currículo em anexo,  para o endereço: <br>
-                    <h1 class="titulo text-dark text-center" style="font-size: 14pt;">{{vaga.empresa.email}}</h1>
+                    <h1 class="titulo text-dark text-center" style="font-size: 14pt;">{% if vaga.email %}{{vaga.email}}{% else %}{{vaga.empresa.email}}{% endif %}</h1>
                     {% endif %} 
                     {% if vaga.empresa.contato_link %}
                     <hr>

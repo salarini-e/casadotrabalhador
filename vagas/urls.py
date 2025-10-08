@@ -64,6 +64,7 @@ urlpatterns = [
 
     # URLs para sistema de formulários
     path('admin/vagas/', views.admin_vagas_list, name='admin_vagas_list'),
+    path('admin/vagas/criar/', views.admin_criar_vaga, name='admin_criar_vaga'),
     path('admin/formularios/', views.admin_formularios_list, name='admin_formularios_list'),
     path('admin/formularios/criar/', views.admin_formularios_create, name='admin_formularios_create'),
     path('admin/formularios/<int:id>/', views.admin_formularios_detail, name='admin_formularios_detail'),
@@ -100,4 +101,7 @@ urlpatterns = [
     
     # Demo installer
     path('install-demo/', views.install_demo, name='install_demo'),
+    
+    # API para buscar candidato por CPF (apenas staff)
+    path('api/buscar-candidato-cpf/', views.buscar_candidato_por_cpf, name='buscar_candidato_cpf'),
 ]

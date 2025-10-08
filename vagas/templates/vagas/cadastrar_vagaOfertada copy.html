@@ -1,0 +1,318 @@
+{% extends 'template_new.html' %}
+{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% block css %}
+{{block.super}}
+{% load static %}
+<link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">
+<style>
+    .form-control:disabled{
+        color:  #000 !important;
+    }
+</style>
+{% endblock%}
+{% block main %}
+{% load widget_tweaks %}   
+{% load bootstrap5 %}  
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
+
+<div class="job-form-container" style="margin-top: 120px;">
+    <div class="container-fluid px-4">
+        <!-- Success Message -->
+        {% if success.0 %}
+        <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <div>{{success.1}}</div>
+        </div>
+        {% endif %}
+        
+        <!-- Header Section -->
+        <div class="job-form-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <h1 class="job-form-title">
+                    <i class="fas fa-briefcase me-3"></i>
+                    Detalhes da vaga
+                </h1>
+                
+                <div class="job-form-actions">
+                    {% if request.user.is_staff %}
+                        {% if tipo_cadastro == 'Alterar' %}
+                        <a class="btn btn-danger" href="{% url 'vagas:remover_vaga' id%}">
+                            <i class="fas fa-trash me-1"></i>Remover
+                        </a>
+                        {% endif %}      
+                        {% if tipo_cadastro == '' %}
+                        <a class="btn btn-primary" href="{% url 'vagas:listar_candidatos' id mes ano%}">
+                            <i class="fas fa-users me-1"></i>Candidatos
+                        </a>      
+                        {% endif %}
+                    {% endif %}
+
+                    <a class="btn btn-primary" href="{% url 'vagas:vagas' %}">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar para vagas
+                    </a>
+                    
+                    {% if request.user.is_staff %}
+                        {% if tipo_cadastro == '' %}
+                        <a class="btn btn-warning" href="{% url 'vagas:alterar_vaga' id %}">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        {% endif %}
+                        {% if tipo_cadastro == 'alterar' %}
+                        <a class="btn btn-secondary" href="{% url 'vagas:visualizar_vaga' id %}">
+                            <i class="fas fa-eye me-1"></i>Visualizar
+                        </a>
+                        {% endif %}
+                    {% endif %}      
+                </div>
+            </div>
+        </div>        
+        <!-- Job Form Card -->
+         <div class="row">
+            <div class="col">
+                <div class="job-form-card {% if tipo_cadastro == '' %}visualize-mode{% endif %}">
+            <form id="form_cadastro_vaga" {% if tipo_cadastro != '' %}method="post"{% endif %} class="job-form">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <h3 class="form-section-title {% if tipo_cadastro == '' %}black{% endif %}">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Detalhes da Vaga
+                        </h3>
+                    </div>
+                    
+                    <div class="form-fields">
+                        {% for f in form %}                
+                        {% if not f.name in hidden %}
+                        <div class="form-field-group">
+                            <label class="form-label" for="id_{{f.name}}">
+                                {{f.label}}
+                                {% if f.field.required %}
+                                <span class="required-asterisk">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            {% if f.name == 'cargo' %}
+                            <div class="autocomplete-wrapper">
+                                <input name="cargo" 
+                                       {% if tipo_cadastro == '' %}disabled{% endif %} 
+                                       autocomplete="off" 
+                                       id="id_cargo" 
+                                       onkeyup="searchCargo(this)" 
+                                       type="text" 
+                                       class="form-control {% if f.errors %}is-invalid{% endif %}" 
+                                       value="{{cargo}}"
+                                       placeholder="Digite o cargo desejado...">
+                                <div class="autocomplete-results" id="search_cargo_result"></div>
+                            </div>
+                            
+                            {% elif f.name == 'empresa' %}
+                            {% if request.user.is_authenticated %}
+                            <div class="autocomplete-wrapper">
+                                <input name="empresa" 
+                                       {% if tipo_cadastro == '' %}disabled{% endif %} 
+                                       autocomplete="off" 
+                                       id="id_empresa" 
+                                       onkeyup="searchEmpresa(this)" 
+                                       type="text" 
+                                       class="form-control {% if f.errors %}is-invalid{% endif %}" 
+                                       value="{{empresa}}"
+                                       placeholder="Digite o nome da empresa...">
+                                <div class="autocomplete-results" id="search_empresa_result"></div>
+                            </div>
+                            {% endif %}                           
+                            {% elif f.name == 'destaque' %}
+                            
+                            {% if tipo_cadastro != '' %}
+                            <div class="form-switch-wrapper">
+                                <div class="form-check form-switch">
+                                    {{f|add_class:'form-check-input'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                                    <label class="form-check-label" for="{{f.id_for_label}}">
+                                        <span id="span_destaque">{% if f.value %}Sim, destacar esta vaga{% else %}Não destacar{% endif %}</span>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% else %}
+                            {% if tipo_cadastro == '' %}
+                            {{f|add_class:'form-control'|attr:'disabled'}}
+                            {% else %}
+                            {{f|add_class:'form-control'}}
+                            {% endif %}
+                            {% endif %}
+                            
+                            {% if f.errors %}
+                            <div class="invalid-feedback">
+                                {{f.errors}}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    {% if tipo_cadastro == '' %}
+                    <a href="{% url 'vagas:candidatarse' id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>
+                        CANDIDATAR-SE
+                    </a>
+                    {% endif %}
+                    
+                    {% if tipo_cadastro != '' %}
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save me-2"></i>
+                        {{tipo_cadastro}}
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+            </div>
+            <div class="col">
+<div class="contact-info-card">
+            <div class="contact-info-header">
+                <h4 class="contact-info-title">
+                    <i class="fas fa-phone me-2"></i>
+                    Informações de Contato
+                </h4>
+            </div>
+            <div class="contact-info-content">
+                <div class="contact-item">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>(22) 99793-5451</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>(22) 2525-9205</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Av. Alberto Braune - 223 (Antiga rodoviária)</span>
+                </div>
+            </div>
+        </div>
+            </div>
+         </div>
+    </div>
+</div><script>
+    function destacar(){
+        const span_destaque = document.getElementById('span_destaque');
+        if (span_destaque.innerText === 'Sim, destacar esta vaga'){
+            span_destaque.innerText = 'Não destacar';
+        } else {
+            span_destaque.innerText = 'Sim, destacar esta vaga';
+        }
+    }
+
+    // Search functions
+    function searchCargo(e) {        
+        if (String(e.value).length >= 3) {
+            getCargo(e.value);
+        } else {
+            document.getElementById('search_cargo_result').innerHTML = '';
+        }
+    }    
+    
+    function searchEmpresa(e) {        
+        if (String(e.value).length >= 3) {
+            getEmpresa(e.value);
+        } else {
+            document.getElementById('search_empresa_result').innerHTML = '';
+        }
+    }    
+    
+    function getEmpresa(value) {
+        const resultDiv = document.getElementById('search_empresa_result');
+        
+        const url = '/get_empresa/';  
+        $.ajax({ 
+            url: url,
+            data: {
+                'empresa': value,
+            },
+            success: function(data) {                               
+                $(resultDiv).html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching empresa:', error);
+                $(resultDiv).html('<div class="autocomplete-item text-danger">Erro ao buscar empresas</div>');
+            }
+        });                
+    }
+    
+    function getCargo(value) {
+        const resultDiv = document.getElementById('search_cargo_result');
+        
+        const url = '/get_vaga/';         
+        $.ajax({ 
+            url: url,
+            data: {
+                'vaga': value,
+            },
+            success: function(data) {                               
+                $(resultDiv).html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching cargo:', error);
+                $(resultDiv).html('<div class="autocomplete-item text-danger">Erro ao buscar cargos</div>');
+            }
+        });                
+    }
+    
+    function selectThisCargo(e) {
+        document.getElementById('id_cargo').value = e.getAttribute('data-value');
+        document.getElementById('search_cargo_result').innerHTML = '';
+    }
+    
+    function selectThisEmpresa(e) {
+        document.getElementById('id_empresa').value = e.getAttribute('data-value');
+        document.getElementById('search_empresa_result').innerHTML = '';
+    }
+
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        // Test if functions are working
+        console.log('DOM loaded, testing functions...');
+        
+        const cargoInput = document.getElementById('id_cargo');
+        if (cargoInput) {
+            console.log('Cargo input found');
+            // Add manual event listener as backup
+            cargoInput.addEventListener('input', function(e) {
+                console.log('Cargo input changed:', e.target.value);
+                if (e.target.value.length >= 3) {
+                    getCargo(e.target.value);
+                } else {
+                    document.getElementById('search_cargo_result').innerHTML = '';
+                }
+            });
+        } else {
+            console.log('Cargo input NOT found');
+        }
+        
+        // Form submission enhancement
+        const form = document.getElementById('form_cadastro_vaga');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+                }
+            });
+        }
+
+        // Add smooth scrolling to form errors
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        if (invalidFields.length > 0) {
+            invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            invalidFields[0].focus();
+        }
+    });
+</script>
+
+{% endblock %}
