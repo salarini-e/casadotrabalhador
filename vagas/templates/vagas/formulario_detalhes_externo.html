@@ -60,9 +60,17 @@
                                     </a>
                                 {% endif %}
                                 {% if vaga_vinculada and requisicao.status_requisicao == 'AP' %}
-                                    <button type="button" class="btn btn-warning" onclick="solicitarEncerramentoVaga()">
-                                        <i class="fas fa-stop-circle me-2"></i>Solicitar Encerramento da Vaga
-                                    </button>
+                                    {% with solicitacao_pendente=solicitacoes_desativacao|first %}
+                                        {% if solicitacao_pendente and solicitacao_pendente.status == 'pendente' %}
+                                            <button type="button" class="btn btn-outline-warning" disabled>
+                                                <i class="fas fa-hourglass-half me-2"></i>Encerramento Solicitado
+                                            </button>
+                                        {% else %}
+                                            <button type="button" class="btn btn-warning" onclick="solicitarEncerramentoVaga()">
+                                                <i class="fas fa-stop-circle me-2"></i>Solicitar Encerramento da Vaga
+                                            </button>
+                                        {% endif %}
+                                    {% endwith %}
                                 {% elif requisicao.status_requisicao == 'AE' %}
                                     <button type="button" class="btn btn-outline-warning" disabled>
                                         <i class="fas fa-hourglass-half me-2"></i>Encerramento Solicitado
@@ -87,25 +95,59 @@
             
 
             <!-- Status Especiais: Aguardando Encerramento ou Encerrada -->
-            {% if requisicao.status_requisicao == 'AE' %}
-                <div class="alert alert-warning border-warning mb-4">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-hourglass-half fa-2x text-warning"></i>
-                        </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h5 class="alert-heading mb-2">
-                                <i class="fas fa-clock me-2"></i>Aguardando Encerramento da Vaga
-                            </h5>
-                            <p class="mb-2">Sua solicitação de encerramento da vaga foi registrada e está sendo analisada pela equipe administrativa.</p>
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Você receberá uma confirmação quando o processo for concluído.
-                            </small>
+            {% with solicitacao_pendente=solicitacoes_desativacao|first %}
+                {% if solicitacao_pendente and solicitacao_pendente.status == 'pendente' %}
+                    <div class="alert alert-warning border-warning mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="alert-heading mb-2">
+                                    <i class="fas fa-clock me-2"></i>Aguardando Encerramento da Vaga
+                                </h5>
+                                <p class="mb-2">Sua solicitação de encerramento da vaga foi registrada e está sendo analisada pela equipe administrativa.</p>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Solicitado em: {{ solicitacao_pendente.dt_criacao|date:"d/m/Y às H:i" }}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        <i class="fas fa-tag me-1"></i>
+                                        Motivo: {{ solicitacao_pendente.get_motivo_display }}
+                                    </small>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Você receberá uma confirmação quando o processo for concluído.
+                                </small>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% elif requisicao.status_requisicao == 'EN' %}
+                {% endif %}
+            {% endwith %}
+            
+            {% if requisicao.status_requisicao == 'AE' %}
+                    <div class="alert alert-warning border-warning mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="alert-heading mb-2">
+                                    <i class="fas fa-clock me-2"></i>Aguardando Encerramento da Vaga
+                                </h5>
+                                <p class="mb-2">Sua solicitação de encerramento da vaga foi registrada e está sendo analisada pela equipe administrativa.</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Você receberá uma confirmação quando o processo for concluído.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+            {% endif %}
+            
+            {% if requisicao.status_requisicao == 'EN' %}
                 <div class="alert alert-secondary border-secondary mb-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
@@ -261,8 +303,9 @@
                                 </h5>
                             </div>
                             <div class="card-body" style="max-height: 600px; overflow-y: auto;">
-                                {% if requisicao.historico.all %}
+                                {% if requisicao.historico.all or solicitacoes_desativacao %}
                                     <div class="timeline">
+                                        <!-- Histórico de mudanças do formulário -->
                                         {% for item in requisicao.historico.all %}
                                             <div class="timeline-item">
                                                 <div class="timeline-marker">
@@ -314,6 +357,78 @@
                                                     {% endif %}
                                                 </div>
                                             </div>
+                                        {% endfor %}
+
+                                        <!-- Solicitações de desativação -->
+                                        {% for solicitacao in solicitacoes_desativacao %}
+                                            <!-- Entrada para criação da solicitação -->
+                                            <div class="timeline-item">
+                                                <div class="timeline-marker">
+                                                    <i class="fas fa-ban text-warning"></i>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-header">
+                                                        <h6 class="mb-1">
+                                                            Solicitação de Encerramento
+                                                            <span class="badge bg-warning small">{{ solicitacao.get_motivo_display }}</span>
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            {{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}
+                                                            {% if solicitacao.empresa_responsavel %}
+                                                                por {{ solicitacao.empresa_responsavel.nome }}
+                                                            {% else %}
+                                                                pela empresa
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+                                                    {% if solicitacao.observacoes %}
+                                                        <div class="timeline-body mt-2">
+                                                            <p class="mb-0 small">{{ solicitacao.observacoes }}</p>
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if solicitacao.status == 'pendente' %}
+                                                        <div class="timeline-body mt-2">
+                                                            <span class="badge bg-info small">
+                                                                <i class="fas fa-clock me-1"></i>Aguardando análise
+                                                            </span>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <!-- Se foi processada, adicionar entrada do processamento -->
+                                            {% if solicitacao.status != 'pendente' and solicitacao.dt_processamento %}
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker">
+                                                        {% if solicitacao.status == 'aprovada' %}
+                                                            <i class="fas fa-check-circle text-success"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-times-circle text-danger"></i>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="timeline-content">
+                                                        <div class="timeline-header">
+                                                            <h6 class="mb-1">
+                                                                Solicitação {{ solicitacao.get_status_display }}
+                                                                <span class="badge bg-{% if solicitacao.status == 'aprovada' %}success{% else %}danger{% endif %} small">
+                                                                    {{ solicitacao.get_status_display|capfirst }}
+                                                                </span>
+                                                            </h6>
+                                                            <small class="text-muted">
+                                                                {{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}
+                                                                {% if solicitacao.processado_por %}
+                                                                    por {{ solicitacao.processado_por.get_full_name|default:solicitacao.processado_por.username }}
+                                                                {% endif %}
+                                                            </small>
+                                                        </div>
+                                                        {% if solicitacao.observacoes_admin %}
+                                                            <div class="timeline-body mt-2">
+                                                                <p class="mb-0 small">{{ solicitacao.observacoes_admin }}</p>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
                                         {% endfor %}
                                     </div>
                                 {% else %}

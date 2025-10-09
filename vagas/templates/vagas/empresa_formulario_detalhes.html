@@ -48,6 +48,11 @@
                 <p class="mb-0 opacity-75">{{ empresa.nome_fantasia }} - Formulário #{{ formulario.id }}</p>
             </div>
             <div>
+                {% if formulario.status_requisicao == 'PE' or formulario.status_requisicao == 'AG' %}
+                    <a href="{% url 'vagas:empresa_formulario_editar' formulario.id %}" class="btn btn-warning me-2">
+                        <i class="fas fa-edit me-2"></i>Editar Formulário
+                    </a>
+                {% endif %}
                 <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left me-2"></i>Voltar para Formulários
                 </a>
@@ -74,9 +79,15 @@
                                     <i class="fas fa-clock me-2"></i>Pendente
                                 </span>
                             {% elif formulario.status_requisicao == 'AP' %}
-                                <span class="status-badge status-aprovado">
-                                    <i class="fas fa-check-circle me-2"></i>Aprovado
-                                </span>
+                                {% if vaga_vinculada and not vaga_vinculada.ativo %}
+                                    <span class="status-badge status-vaga-inativa">
+                                        <i class="fas fa-times-circle me-2"></i>Ecerrada
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-aprovado">
+                                        <i class="fas fa-check-circle me-2"></i>Aprovado
+                                    </span>
+                                {% endif %}
                             {% elif formulario.status_requisicao == 'RE' %}
                                 <span class="status-badge status-rejeitado">
                                     <i class="fas fa-times-circle me-2"></i>Rejeitado
@@ -429,7 +440,7 @@
                         <div class="timeline">
                             <div class="timeline-item">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <strong>Formulário Criado</strong>
+                                    <strong style="color: #212529;">Formulário Criado</strong>
                                     <small class="text-muted">{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</small>
                                 </div>
                                 <p class="text-muted small mb-0">Solicitação de vaga enviada</p>
@@ -476,9 +487,14 @@
                         </div>
                         
                         <div class="text-center mt-3">
-                            <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-arrow-left me-2"></i>Voltar para Meus Formulários
-                            </a>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'vagas:empresa_formulario_editar' formulario.id %}" class="btn btn-primary">
+                                    <i class="fas fa-edit me-2"></i>Editar Formulário
+                                </a>
+                                <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-arrow-left me-2"></i>Voltar para Meus Formulários
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -555,11 +571,20 @@
                             <i class="fas fa-briefcase me-2"></i>Ver Todas as Vagas do Cargo
                         </a>
                         
-                        {% if vaga_vinculada and vaga_vinculada.ativo %}
-                        <!-- Botão para solicitar desativação da vaga -->
-                        <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#modalDesativarVaga">
-                            <i class="fas fa-ban me-2"></i>Solicitar Desativação da Vaga
-                        </button>
+                        {% if vaga_vinculada %}
+                            {% if vaga_vinculada.ativo %}
+                                <!-- Botão para solicitar desativação da vaga -->
+                                <a href="{% url 'vagas:empresa_solicitar_desativacao_formulario' formulario.id %}" 
+                                   class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-ban me-2"></i>Solicitar Desativação da Vaga
+                                </a>
+                            {% else %}
+                                <!-- Vaga já desativada -->
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Esta vaga foi desativada
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -569,50 +594,6 @@
     </div>
 </div>
 {% endblock %}
-
-<!-- Modal para Solicitar Desativação da Vaga -->
-<div class="modal fade" id="modalDesativarVaga" tabindex="-1" aria-labelledby="modalDesativarVagaLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalDesativarVagaLabel">Solicitar Desativação da Vaga</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'vagas:empresa_solicitar_desativacao' %}">
-                {% csrf_token %}
-                <input type="hidden" name="vaga_id" value="{{ vaga_vinculada.id }}">
-                <input type="hidden" name="formulario_id" value="{{ formulario.id }}">
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Atenção!</strong> Esta ação enviará uma solicitação para a Casa do Trabalhador para desativar a vaga. A vaga permanecerá ativa até que a solicitação seja aprovada.
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="motivo_desativacao" class="form-label">Motivo da solicitação de desativação *</label>
-                        <select class="form-select" id="motivo_desativacao" name="motivo_desativacao" required>
-                            <option value="">Selecione um motivo...</option>
-                            <option value="vaga_preenchida">Vaga já preenchida</option>
-                            <option value="sem_candidatos">Não recebemos candidatos adequados</option>
-                            <option value="vaga_suspensa">Vaga temporariamente suspensa</option>
-                            <option value="vaga_cancelada">Vaga cancelada</option>
-                            <option value="outro">Outro motivo</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="observacoes_desativacao" class="form-label">Observações adicionais</label>
-                        <textarea class="form-control" id="observacoes_desativacao" name="observacoes_desativacao" rows="3" placeholder="Forneça mais detalhes sobre o motivo da solicitação..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Enviar Solicitação</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 {% block extra_js %}
 <script>

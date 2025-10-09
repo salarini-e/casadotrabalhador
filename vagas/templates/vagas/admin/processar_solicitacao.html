@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Processar Solicitação de Desativação #{{ solicitacao.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Detalhes da Vaga</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">Cargo:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.vaga.cargo.nome }}</dd>
+
+                            <dt class="col-sm-3">Empresa:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.vaga.empresa.nome }}</dd>
+
+                            <dt class="col-sm-3">Solicitado por:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.empresa_responsavel.nome }}</dd>
+
+                            <dt class="col-sm-3">Motivo:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.get_motivo_display }}</dd>
+
+                            {% if solicitacao.observacoes %}
+                            <dt class="col-sm-3">Observações:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.observacoes }}</dd>
+                            {% endif %}
+
+                            <dt class="col-sm-3">Data da solicitação:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</dd>
+
+                            <dt class="col-sm-3">Tempo pendente:</dt>
+                            <dd class="col-sm-9">{{ solicitacao.get_tempo_pendente }}</dd>
+                        </dl>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            Por favor, corrija os erros abaixo.
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.status.label }}</label>
+                            {% for radio in form.status %}
+                            <div class="form-check">
+                                {{ radio.tag }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                    {{ radio.choice_label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.status.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.observacoes.label }}</label>
+                            {{ form.observacoes }}
+                            <div class="form-text">{{ form.observacoes.help_text }}</div>
+                            {% if form.observacoes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.observacoes.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            {% if solicitacao.formulario %}
+                                <a href="{% url 'vagas:admin_formularios_detail' solicitacao.formulario.pk %}" class="btn btn-secondary">
+                                    Voltar ao Formulário
+                                </a>
+                            {% else %}
+                                <a href="{% url 'vagas:admin_vagas_list' %}" class="btn btn-secondary">
+                                    Voltar às Vagas
+                                </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                Processar Solicitação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

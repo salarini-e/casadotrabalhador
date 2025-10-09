@@ -1,0 +1,266 @@
+{% extends 'template.html' %}
+{% load static %}
+
+{% block title %}Formulário Processado{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/formulario.css' %}" rel="stylesheet">
+<style>
+    .status-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .status-card.aprovado {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border: 2px solid #28a745;
+    }
+    
+    .status-card.rejeitado {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        border: 2px solid #dc3545;
+    }
+    
+    .status-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .status-icon.aprovado {
+        color: #28a745;
+    }
+    
+    .status-icon.rejeitado {
+        color: #dc3545;
+    }
+    
+    .status-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .status-description {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .form-info {
+        background: rgba(255,255,255,0.8);
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .info-value {
+        color: #212529;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    @media (max-width: 768px) {
+        .status-card {
+            margin: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            {% if requisicao.status_requisicao == 'AP' %}
+                <div class="status-card aprovado">
+                    <div class="status-icon aprovado">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2 class="status-title">Formulário Aprovado!</h2>
+                    <p class="status-description">
+                        Sua solicitação de vaga foi aprovada com sucesso. A vaga já está ativa no sistema e disponível para candidaturas.
+                    </p>
+                    
+                    <div class="form-info">
+                        <div class="info-row">
+                            <span class="info-label">Cargo:</span>
+                            <span class="info-value">{{ requisicao.cargo_ofertado }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Empresa:</span>
+                            <span class="info-value">{{ requisicao.nome_da_empresa }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Quantidade de vagas:</span>
+                            <span class="info-value">{{ requisicao.quantidade_de_vagas }}</span>
+                        </div>
+                        {% if requisicao.dt_aprovacao %}
+                        <div class="info-row">
+                            <span class="info-label">Data de aprovação:</span>
+                            <span class="info-value">{{ requisicao.dt_aprovacao|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if requisicao.observacoes_aprovacao %}
+                        <div class="info-row">
+                            <span class="info-label">Observações:</span>
+                            <span class="info-value">{{ requisicao.observacoes_aprovacao }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="{% url 'vagas:buscar_vagas' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-search me-2"></i>Ver Vagas Disponíveis
+                        </a>
+                        <a href="{% url 'vagas:home' %}" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-home me-2"></i>Página Inicial
+                        </a>
+                    </div>
+                </div>
+                
+            {% elif requisicao.status_requisicao == 'RE' %}
+                <div class="status-card rejeitado">
+                    <div class="status-icon rejeitado">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <h2 class="status-title">Formulário Rejeitado</h2>
+                    <p class="status-description">
+                        Sua solicitação de vaga foi rejeitada. Verifique as observações abaixo e entre em contato conosco se tiver dúvidas.
+                    </p>
+                    
+                    <div class="form-info">
+                        <div class="info-row">
+                            <span class="info-label">Cargo:</span>
+                            <span class="info-value">{{ requisicao.cargo_ofertado }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Empresa:</span>
+                            <span class="info-value">{{ requisicao.nome_da_empresa }}</span>
+                        </div>
+                        {% if requisicao.dt_rejeicao %}
+                        <div class="info-row">
+                            <span class="info-label">Data de rejeição:</span>
+                            <span class="info-value">{{ requisicao.dt_rejeicao|date:"d/m/Y H:i" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if requisicao.motivo_rejeicao %}
+                        <div class="info-row">
+                            <span class="info-label">Motivo da rejeição:</span>
+                            <span class="info-value">{{ requisicao.motivo_rejeicao }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="tel:(11)3333-3333" class="btn btn-danger btn-lg">
+                            <i class="fas fa-phone me-2"></i>Entrar em Contato
+                        </a>
+                        <a href="{% url 'vagas:home' %}" class="btn btn-outline-danger btn-lg">
+                            <i class="fas fa-home me-2"></i>Página Inicial
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Informações de Contato -->
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Precisa de Ajuda?
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="mb-3">
+                        Entre em contato conosco através dos canais abaixo:
+                    </p>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="contact-item">
+                                <i class="fas fa-phone fa-2x text-primary mb-2"></i>
+                                <p class="mb-1"><strong>Telefone</strong></p>
+                                <p class="text-muted">(11) 3333-3333</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="contact-item">
+                                <i class="fas fa-envelope fa-2x text-primary mb-2"></i>
+                                <p class="mb-1"><strong>Email</strong></p>
+                                <p class="text-muted">contato@casadotrabalhador.com</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="contact-item">
+                                <i class="fas fa-map-marker-alt fa-2x text-primary mb-2"></i>
+                                <p class="mb-1"><strong>Endereço</strong></p>
+                                <p class="text-muted">Casa do Trabalhador</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animação de entrada
+    const statusCard = document.querySelector('.status-card');
+    if (statusCard) {
+        statusCard.style.opacity = '0';
+        statusCard.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            statusCard.style.transition = 'all 0.6s ease';
+            statusCard.style.opacity = '1';
+            statusCard.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

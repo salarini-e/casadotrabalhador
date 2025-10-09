@@ -195,6 +195,7 @@
                       <th class="text-center sortable" data-column="dt_atualizacao">
                         Atualizada em <i class="fas fa-sort ms-1"></i>
                       </th>
+                      <th class="text-center">Solicitações</th>
                       <th class="text-center">Ações</th>
                     </tr>
                   </thead>
@@ -264,10 +265,25 @@
                         {% endif %}
                       </td>
                       <td class="text-center">
+                        {% with solicitacao=vaga.solicitacoes_desativacao.first %}
+                          {% if solicitacao and solicitacao.status == 'pendente' %}
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#solicitacao-{{ vaga.id }}">
+                              <i class="fas fa-exclamation-triangle"></i> Pendente
+                            </button>
+                          {% elif solicitacao %}
+                            <span class="badge bg-{% if solicitacao.status == 'aprovada' %}success{% else %}danger{% endif %}">
+                              {{ solicitacao.get_status_display }}
+                            </span>
+                          {% else %}
+                            <span class="text-muted">-</span>
+                          {% endif %}
+                        {% endwith %}
+                      </td>
+                      <td class="text-center">
                         <a href="{% url 'vagas:candidatos_vaga' vaga.pk %}?origem=vagas" 
                            class="btn btn-sm btn-outline-primary"
-                           title="Ver candidatos">
-                          <i class="fas fa-users"></i>
+                           title="Ver detalhes e candidatos">
+                          <i class="fas fa-eye"></i>
                         </a>
                       </td>
                     </tr>
@@ -295,6 +311,73 @@
     </div>
   </div>
 </div>
+
+<!-- Modals para Processar Solicitações -->
+{% for vaga in vagas %}
+  {% with solicitacao=vaga.solicitacoes_desativacao.first %}
+    {% if solicitacao and solicitacao.status == 'pendente' %}
+      <div class="modal fade" id="solicitacao-{{ vaga.id }}" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form method="post" action="{% url 'vagas:admin_processar_solicitacao_desativacao' solicitacao.id %}">
+              {% csrf_token %}
+              <div class="modal-header">
+                <h5 class="modal-title">Processar Solicitação de Desativação</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <h6>Vaga:</h6>
+                  <p><strong>{{ vaga.cargo.nome }}</strong> - {{ vaga.empresa.nome }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <h6>Motivo:</h6>
+                  <p>{{ solicitacao.get_motivo_display }}</p>
+                  {% if solicitacao.observacoes %}
+                    <small class="text-muted">{{ solicitacao.observacoes }}</small>
+                  {% endif %}
+                </div>
+
+                <div class="mb-3">
+                  <h6>Solicitante:</h6>
+                  <p>{{ solicitacao.empresa_responsavel.nome }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label for="status-{{ vaga.id }}" class="form-label">Decisão</label>
+                  <div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="status" value="aprovada" id="aprovar-{{ vaga.id }}" required>
+                      <label class="form-check-label" for="aprovar-{{ vaga.id }}">
+                        Aprovar solicitação
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="status" value="rejeitada" id="rejeitar-{{ vaga.id }}" required>
+                      <label class="form-check-label" for="rejeitar-{{ vaga.id }}">
+                        Rejeitar solicitação
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="observacoes-{{ vaga.id }}" class="form-label">Observações</label>
+                  <textarea class="form-control" id="observacoes-{{ vaga.id }}" name="observacoes" rows="3" placeholder="Se necessário, adicione observações sobre a sua decisão"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Confirmar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endwith %}
+{% endfor %}
 
 {% endblock %}
 

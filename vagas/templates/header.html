@@ -1,9 +1,24 @@
 <header class="row border">
         <div class="col d-flex">
             <img id="main-logo" src="/static/images/logo.jpg" alt="">
-            <div class="w-100 d-flex  justify-content-end pe-5">
+            <div class="w-100 d-flex justify-content-end pe-5">
                 <div class="my-auto d-flex">
                     {% if request.user.is_authenticated %}
+                    {% load solicitacao_desativacao_tags %}
+                    {% if request.user.responsavel %}
+                    <div class="me-4">
+                        <a href="{% url 'vagas:empresa_solicitacoes_desativacao' %}" class="btn btn-warning position-relative">
+                            <i class="fas fa-bell"></i>
+                            {% get_company_pending_deactivation_requests request.user.responsavel as company_pending_count %}
+                            {% if company_pending_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ company_pending_count }}
+                                <span class="visually-hidden">solicitações pendentes</span>
+                            </span>
+                            {% endif %}
+                        </a>
+                    </div>
+                    {% endif %}
                     <h6 class="text-bold my-auto me-4">Olá,<b> {{ user.first_name }}</b>!</h6>
                     <a class="btn border tablet_hidden" href="{% url 'autenticacao:logout' %}"><i class="fas fa-sign-out-alt me-2"></i></i>Logout</a>
                     {% else %}

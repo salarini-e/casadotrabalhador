@@ -56,6 +56,11 @@ class Empresa(models.Model):
     user=models.ForeignKey(User, on_delete=models.PROTECT)                    
     dt_inclusao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Inclusão')
     
+    @property
+    def nome_fantasia(self):
+        """Alias para o campo nome para compatibilidade com templates"""
+        return self.nome
+    
     def __str__(self):
         return '%s' % (self.nome)
 
@@ -374,6 +379,30 @@ class RequisicaoVaga(models.Model):
 
     def get_vaga(self):
         return Vaga_Emprego.objects.filter(requisicao_vaga=self).last()
+    
+    @property
+    def is_vaga_encerrada(self):
+        """Retorna True se a vaga vinculada estiver encerrada (inativa)"""
+        vaga = self.get_vaga()
+        return vaga and not vaga.ativo
+    
+    @property
+    def status_display_class(self):
+        """Retorna a classe CSS apropriada baseada no status da requisição e vaga"""
+        if self.status_requisicao == 'EN' or self.is_vaga_encerrada:
+            return 'encerrada'
+        elif self.status_requisicao == 'AP' and self.get_vaga() and self.get_vaga().ativo:
+            return 'ativa'
+        elif self.status_requisicao == 'PE':
+            return 'pendente'
+        elif self.status_requisicao == 'AG':
+            return 'aguardando'
+        elif self.status_requisicao == 'RE':
+            return 'rejeitada'
+        elif self.status_requisicao == 'AE':
+            return 'aguardando-encerramento'
+        else:
+            return 'inativa'
 
 class HistoricoRequisicao(models.Model):
     """
@@ -536,3 +565,123 @@ class ResponsavelEmpresa(models.Model):
                 pass
             
         return False
+
+
+class SolicitacaoDesativacao(models.Model):
+    """Modelo para solicitações de desativação de vagas pelas empresas"""
+    
+    MOTIVO_CHOICES = [
+        ('vaga_preenchida', 'Vaga já preenchida'),
+        ('sem_candidatos', 'Não recebemos candidatos adequados'),
+        ('vaga_suspensa', 'Vaga temporariamente suspensa'),
+        ('vaga_cancelada', 'Vaga cancelada'),
+        ('outro', 'Outro motivo'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('aprovada', 'Vaga Encerrada'),
+        ('rejeitada', 'Rejeitada'),
+    ]
+    
+    vaga = models.ForeignKey(Vaga_Emprego, on_delete=models.CASCADE, related_name='solicitacoes_desativacao')
+    formulario = models.ForeignKey(RequisicaoVaga, on_delete=models.CASCADE, null=True, blank=True, related_name='solicitacoes_desativacao')
+    empresa_responsavel = models.ForeignKey(ResponsavelEmpresa, on_delete=models.CASCADE, null=True, blank=True, related_name='solicitacoes_desativacao')
+    
+    motivo = models.CharField(max_length=50, choices=MOTIVO_CHOICES, verbose_name='Motivo')
+    observacoes = models.TextField(blank=True, verbose_name='Observações')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente', verbose_name='Status')
+    
+    # Dados do admin que processou a solicitação
+    processado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitacoes_processadas')
+    dt_processamento = models.DateTimeField(null=True, blank=True, verbose_name='Data de Processamento')
+    observacoes_admin = models.TextField(blank=True, verbose_name='Observações do Administrador')
+    
+    dt_criacao = models.DateTimeField(auto_now_add=True, verbose_name='Data de Criação')
+    dt_atualizacao = models.DateTimeField(auto_now=True, verbose_name='Data de Atualização')
+    
+    class Meta:
+        verbose_name = 'Solicitação de Desativação'
+        verbose_name_plural = 'Solicitações de Desativação'
+        ordering = ['dt_atualizacao']
+        
+    def __str__(self):
+        empresa_nome = self.empresa_responsavel.nome if self.empresa_responsavel else self.vaga.empresa.nome
+        return f"Solicitação #{self.id} - {self.vaga.cargo.nome} ({self.get_status_display()}) - {empresa_nome}"
+        
+    def get_motivo_display_completo(self):
+        """Retorna o motivo com as observações se houver"""
+        motivo = self.get_motivo_display()
+        if self.observacoes:
+            return f"{motivo}: {self.observacoes}"
+        return motivo
+        
+    def pode_ser_processada(self):
+        """Verifica se a solicitação pode ser processada"""
+        return self.status == 'pendente' and self.vaga.ativo
+        
+    def processar(self, user, status, observacoes_admin=""):
+        """Processa a solicitação (aprova ou rejeita)"""
+        if not self.pode_ser_processada():
+            raise ValueError("Solicitação não pode ser processada")
+            
+        self.status = status
+        self.processado_por = user
+        self.dt_processamento = timezone.now()
+        self.observacoes_admin = observacoes_admin
+        
+        # Registrar o processamento no histórico
+        if self.formulario:
+            HistoricoRequisicao.objects.create(
+                requisicao=self.formulario,
+                acao='OB',  # Observação/Ação
+                observacao=f'Solicitação de desativação {self.get_status_display().lower()} - {self.get_motivo_display()}' + 
+                          (f': {observacoes_admin}' if observacoes_admin else ''),
+                usuario=user
+            )
+        
+        # Se aprovada, desativa a vaga
+        if status == 'aprovada':
+            self.vaga.ativo = False
+            self.vaga.dt_desativacao = timezone.now()
+            self.vaga.save()
+            
+            # Alterar o status do formulário para "Encerrada" quando a desativação for aprovada
+            if self.formulario and self.formulario.status_requisicao == 'AE':
+                self.formulario.status_requisicao = 'EN'
+                self.formulario.save()
+                
+                # Adicionar entrada no histórico do formulário
+                HistoricoRequisicao.objects.create(
+                    requisicao=self.formulario,
+                    acao='ST',  # Status change
+                    status_anterior='AE',
+                    status_novo='EN',
+                    observacao=f'Vaga encerrada após aprovação da solicitação de desativação',
+                    usuario=user
+                )
+        elif status == 'rejeitada':
+            # Se rejeitada, volta o formulário para status "Aprovada"
+            if self.formulario and self.formulario.status_requisicao == 'AE':
+                self.formulario.status_requisicao = 'AP'
+                self.formulario.save()
+                
+                # Adicionar entrada no histórico do formulário
+                HistoricoRequisicao.objects.create(
+                    requisicao=self.formulario,
+                    acao='ST',  # Status change
+                    status_anterior='AE',
+                    status_novo='AP',
+                    observacao=f'Status revertido após rejeição da solicitação de desativação',
+                    usuario=user
+                )
+            
+        self.save()
+        
+    def get_tempo_pendente(self):
+        """Retorna há quanto tempo a solicitação está pendente"""
+        if self.status != 'pendente':
+            return None
+            
+        from django.utils.timesince import timesince
+        return timesince(self.dt_criacao)

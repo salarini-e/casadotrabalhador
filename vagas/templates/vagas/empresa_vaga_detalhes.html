@@ -272,9 +272,9 @@
             <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-1"></i>Voltar para Vagas
             </a>
-            {% if vaga.ativo and formulario %}
-            <a class="btn btn-warning" href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">
-                <i class="fas fa-pause me-1"></i>Desativar Vaga
+            {% if vaga.ativo %}
+            <a class="btn btn-warning" href="{% url 'vagas:empresa_solicitar_desativacao_vaga' vaga.id %}">
+                <i class="fas fa-ban me-1"></i>Solicitar Desativação
             </a>            
             {% endif %}
         </div>
@@ -316,6 +316,39 @@
                     <div class="stat-label">Candidatos Contratados</div>
                 </div>
             </div>
+            
+            <!-- Solicitações de Desativação -->
+            {% with solicitacoes=vaga.solicitacoes_desativacao.all %}
+              {% if solicitacoes %}
+                <div class="alert border-warning mb-4">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Solicitações de Desativação
+                  </h6>
+                  {% for solicitacao in solicitacoes %}
+                    <div class="d-flex justify-content-between align-items-center {% if not forloop.last %}mb-2 pb-2 border-bottom{% endif %}">
+                      <div>
+                        <span class="badge bg-{% if solicitacao.status == 'pendente' %}warning{% elif solicitacao.status == 'aprovada' %}success{% else %}danger{% endif %} me-2">
+                          {{ solicitacao.get_status_display }}
+                        </span>
+                        <strong>{{ solicitacao.get_motivo_display }}</strong>
+                        {% if solicitacao.observacoes %}
+                          <br><small class="text-muted">{{ solicitacao.observacoes }}</small>
+                        {% endif %}
+                        {% if solicitacao.observacoes_admin %}
+                          <br><small class="text-info">Admin: {{ solicitacao.observacoes_admin }}</small>
+                        {% endif %}
+                      </div>
+                      <div class="text-end">
+                        <small class="text-muted">{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</small>
+                        {% if solicitacao.dt_processamento %}
+                          <br><small class="text-muted">Processado: {{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}</small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
             
             <!-- Detalhes da Vaga -->
             <div class="vaga-details">

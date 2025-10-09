@@ -1,0 +1,62 @@
+{% extends "vagas/base.html" %}
+{% load static %}
+
+{% block title %}Minhas Solicitações de Desativação{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Minhas Solicitações de Desativação</h2>
+        </div>
+        <div class="card-body">
+            {% if solicitacoes %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Vaga/Formulário</th>
+                                <th>Motivo</th>
+                                <th>Status</th>
+                                <th>Observações Admin</th>
+                                <th>Data Processamento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitacao in solicitacoes %}
+                            <tr>
+                                <td>{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if solicitacao.vaga %}
+                                        {{ solicitacao.vaga.cargo.nome }}
+                                    {% else %}
+                                        {{ solicitacao.formulario.cargo_ofertado }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ solicitacao.get_motivo_display }}</td>
+                                <td>
+                                    {% if solicitacao.status == 'pendente' %}
+                                        <span class="badge bg-warning">Pendente</span>
+                                    {% elif solicitacao.status == 'aprovada' %}
+                                        <span class="badge bg-success">Aprovada</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Rejeitada</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ solicitacao.observacoes_admin|default:"-" }}</td>
+                                <td>{{ solicitacao.dt_processamento|date:"d/m/Y H:i"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Você ainda não possui nenhuma solicitação de desativação.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

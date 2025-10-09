@@ -418,7 +418,7 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     overflow: hidden;
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border-top: 3px solid transparent;
+    border-top: 4px solid transparent;
     display: flex;
     flex-direction: column;
     opacity: 0;
@@ -433,13 +433,15 @@
 }
 
 .vaga-card.ativa {
-    border-top-color:  #10b981;;
+    border-top-color: #10b981;
+    border-top-width: 4px;
     display: flex; /* Garantir que seja exibido */
     opacity: 1;
 }
 
 .vaga-card.inativa {
     border-top-color: #6c757d;
+    border-top-width: 4px;
     opacity: 0.85;
 }
 
@@ -484,6 +486,33 @@
 .status-inativa {
     background: #f3f4f6;
     color: #6c757d;
+}
+
+.status-pendente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-aguardando {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-rejeitada {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-aguardando-encerramento {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-encerrada {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #dc3545;
+    font-weight: 700;
 }
 
 .vaga-body {
@@ -700,11 +729,6 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-}
-
-.status-pendente {
-    background: #fff3cd;
-    color: #856404;
 }
 
 .status-aprovado {

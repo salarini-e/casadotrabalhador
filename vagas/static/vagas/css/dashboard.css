@@ -2457,3 +2457,293 @@
     display: none;
   }
 }
+
+/* ========== PRINCIPAIS BAIRROS SECTION ========== */
+
+.bairros-section {
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.bairros-section .section-title {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.bairros-section .section-title h2 {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.bairros-section .section-title p {
+  color: #6c757d;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.bairros-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.bairros-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.bairros-stats-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+}
+
+.bairros-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #f8f9fa;
+  padding-bottom: 1rem;
+}
+
+.bairros-header h3 {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.bairros-total {
+  font-size: 0.9rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #dee2e6;
+}
+
+.bairros-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.bairro-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f3f4;
+  transition: all 0.2s ease;
+}
+
+.bairro-item:hover {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.bairro-item:last-child {
+  border-bottom: none;
+}
+
+.bairro-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bairro-position {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.bairro-name {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.bairro-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bairro-count {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.bairro-percentage {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 45px;
+  text-align: center;
+}
+
+.bairros-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.bairro-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.bairro-stat .stat-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.bairro-stat .stat-content {
+  flex: 1;
+}
+
+.bairro-stat .stat-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+}
+
+.bairro-stat .stat-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.2rem;
+}
+
+.mini-chart-container {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Responsive para bairros */
+@media (max-width: 992px) {
+  .bairros-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .bairros-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .bairro-stat {
+    padding: 0.75rem;
+  }
+  
+  .bairro-stat .stat-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+  
+  .bairro-stat .stat-number {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .bairros-section {
+    padding: 0 0.5rem;
+  }
+  
+  .bairros-card,
+  .bairros-stats-card {
+    padding: 1rem;
+  }
+  
+  .bairros-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .bairros-total {
+    font-size: 0.8rem;
+  }
+  
+  .bairro-item {
+    padding: 0.5rem 0;
+  }
+  
+  .bairro-position {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  
+  .bairro-name {
+    font-size: 0.9rem;
+  }
+  
+  .bairro-count {
+    font-size: 1rem;
+  }
+  
+  .bairro-percentage {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+}

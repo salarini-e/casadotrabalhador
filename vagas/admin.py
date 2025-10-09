@@ -16,7 +16,8 @@ class VagaEmpregoAdmin(admin.ModelAdmin):
         'experiencia',
         'ativo',
         'destaque',
-
+        'dt_inclusao',
+        'dt_atualizacao',
     )
     list_filter = (
         'empresa',
@@ -26,6 +27,8 @@ class VagaEmpregoAdmin(admin.ModelAdmin):
         'experiencia',
         'ativo',
         'destaque',
+        'dt_inclusao',
+        'dt_atualizacao',
     )
     search_fields = (
         'empresa__nome',
@@ -36,6 +39,9 @@ class VagaEmpregoAdmin(admin.ModelAdmin):
     )
 
     list_editable = ('ativo', 'destaque')
+    
+    # Ordenação padrão: mais recentemente atualizadas primeiro, depois por data de inclusão
+    ordering = ('-dt_atualizacao', '-dt_inclusao')
     
     readonly_fields = ('dt_inclusao', 'dt_atualizacao')
 
@@ -165,14 +171,30 @@ class ResponsavelEmpresaAdmin(admin.ModelAdmin):
 
 admin.site.register(Escolaridade)
 admin.site.register(Cargo)
-admin.site.register(Candidato)
+
+@admin.register(Candidato)
+class CandidatoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cpf', 'vaga', 'escolaridade', 'candidato_online', 'dt_inclusao', 'dt_atualizacao')
+    list_filter = ('candidato_online', 'escolaridade', 'vaga__cargo', 'dt_inclusao', 'dt_atualizacao')
+    search_fields = ('nome', 'cpf', 'email', 'celular', 'vaga__cargo__nome', 'vaga__empresa__nome')
+    date_hierarchy = 'dt_inclusao'
+    
+    # Ordenação padrão: mais recentemente atualizados primeiro
+    ordering = ('-dt_atualizacao', '-dt_inclusao')
+    
+    readonly_fields = ('dt_inclusao', 'dt_atualizacao')
+
 admin.site.register(Slide)
 @admin.register(RequisicaoVaga)
 class RequisicaoVagaAdmin(admin.ModelAdmin):
-    list_display = ('cargo_ofertado', 'nome_da_empresa', 'cnpj_da_empresa', 'quantidade_de_vagas', 'status_requisicao', 'dt_inclusao')
-    list_filter = ('status_requisicao', 'escolaridade', 'tipo_de_vaga', 'dt_inclusao')
+    list_display = ('cargo_ofertado', 'nome_da_empresa', 'cnpj_da_empresa', 'quantidade_de_vagas', 'status_requisicao', 'dt_inclusao', 'dt_atualizacao')
+    list_filter = ('status_requisicao', 'escolaridade', 'tipo_de_vaga', 'dt_inclusao', 'dt_atualizacao')
     search_fields = ('cargo_ofertado', 'nome_da_empresa', 'cnpj_da_empresa', 'nome_do_responsavel_pela_divulgacao_da_vaga')
     date_hierarchy = 'dt_inclusao'
+    
+    # Ordenação padrão: mais recentemente atualizadas primeiro, depois por data de inclusão
+    ordering = ('-dt_atualizacao', '-dt_inclusao')
+    
     readonly_fields = ('hash_id', 'chave_de_acesso', 'auth_hash_temp', 'dt_inclusao', 'dt_atualizacao')
     
     fieldsets = (
@@ -276,9 +298,15 @@ class RequisicaoVagaAdmin(admin.ModelAdmin):
 
 @admin.register(CandidatoSelecionado)
 class CandidatoSelecionadoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'cpf', 'requisicao_vaga', 'status_selecao', 'dt_selecao')
-    list_filter = ('status_selecao', 'escolaridade', 'dt_selecao')
+    list_display = ('nome', 'cpf', 'requisicao_vaga', 'status_selecao', 'dt_selecao', 'dt_atualizacao')
+    list_filter = ('status_selecao', 'escolaridade', 'dt_selecao', 'dt_atualizacao')
     search_fields = ('nome', 'cpf', 'email', 'celular', 'requisicao_vaga__cargo_ofertado')
+    date_hierarchy = 'dt_selecao'
+    
+    # Ordenação padrão: mais recentemente atualizados primeiro
+    ordering = ('-dt_atualizacao', '-dt_selecao')
+    
+    readonly_fields = ('dt_selecao', 'dt_atualizacao')
     
     fieldsets = (
         ('Vínculo', {
@@ -314,12 +342,15 @@ class CandidatoSelecionadoAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
-    
-    readonly_fields = ('dt_selecao', 'dt_atualizacao')
 
 @admin.register(HistoricoRequisicao)
 class HistoricoRequisicaoAdmin(admin.ModelAdmin):
     list_display = ('requisicao', 'get_acao_display', 'status_anterior', 'status_novo', 'usuario', 'dt_criacao')
-    list_filter = ('acao', 'dt_criacao')
+    list_filter = ('acao', 'dt_criacao', 'usuario')
     search_fields = ('requisicao__cargo_ofertado', 'requisicao__nome_da_empresa', 'observacao')
+    date_hierarchy = 'dt_criacao'
+    
+    # Ordenação padrão: mais recentes primeiro
+    ordering = ('-dt_criacao',)
+    
     readonly_fields = ('dt_criacao',)

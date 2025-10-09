@@ -167,13 +167,13 @@
         {% if formularios %}
         <div class="vagas-grid">
             {% for formulario in formularios %}
-            <div id="formulario-{{ formulario.id }}" class="vaga-card {% if formulario.status_requisicao == 'AP' %}ativa{% else %}inativa{% endif %}">
+            <div id="formulario-{{ formulario.id }}" class="vaga-card {{ formulario.status_display_class }}">
                 <div class="vaga-header">
                     <div class="d-flex justify-content-between align-items-start w-100">
                         <h6 class="vaga-title">                            
                             {{ formulario.cargo_ofertado }}
                         </h6>
-                        <span class="vaga-status {% if formulario.status_requisicao == 'AP' %}status-ativa{% elif formulario.status_requisicao == 'PE' %}status-pendente{% else %}status-inativa{% endif %}">
+                        <span class="vaga-status status-{{ formulario.status_display_class }}">
                             #{{ formulario.id }}
                         </span>
                     </div>
@@ -232,7 +232,11 @@
                                 {% elif formulario.status_requisicao == 'PE' %}
                                     <span class="badge bg-warning text-dark">Pendente</span>
                                 {% elif formulario.status_requisicao == 'AP' %}
-                                    <span class="badge bg-success">Aprovada</span>
+                                    {% if formulario.is_vaga_encerrada %}
+                                        <span class="badge bg-danger">Encerrada</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Aprovada</span>
+                                    {% endif %}
                                 {% elif formulario.status_requisicao == 'RE' %}
                                     <span class="badge bg-danger">Rejeitada</span>
                                 {% elif formulario.status_requisicao == 'AE' %}
@@ -251,22 +255,7 @@
                     </div>
                     {% endif %}
                     
-                    <!-- Informações sobre Vaga Criada -->
-                    {% if formulario.status_requisicao == 'AP' %}
-                    <div class="candidatos-info">
-                        <div class="candidatos-count">
-                            <i class="fas fa-check-circle me-1 text-success"></i>
-                            Requisição aprovada
-                        </div>
-                        <div class="candidatos-label">
-                            {% if formulario.get_vaga %}
-                                Vaga #{{ formulario.get_vaga.id }} criada com sucesso
-                            {% else %}
-                                Aguardando criação da vaga
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    <!-- Informações sobre Vaga Criada -->                    
                     
                     <!-- Ações -->
                     <div class="vaga-actions w-100 d-flex flex-column">

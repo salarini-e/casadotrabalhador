@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Solicitações de Desativação</h2>
+                    
+                    <div class="mb-3">
+                        <div class="btn-group">
+                            <a href="?status=pendente" class="btn btn-sm {% if status_atual == 'pendente' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Pendentes
+                            </a>
+                            <a href="?status=aprovada" class="btn btn-sm {% if status_atual == 'aprovada' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Aprovadas
+                            </a>
+                            <a href="?status=rejeitada" class="btn btn-sm {% if status_atual == 'rejeitada' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Rejeitadas
+                            </a>
+                            <a href="?" class="btn btn-sm {% if not status_atual %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Todas
+                            </a>
+                        </div>
+                    </div>
+
+                    {% if solicitacoes %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Vaga</th>
+                                    <th>Motivo</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Detalhes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitacao in solicitacoes %}
+                                <tr>
+                                    <td>#{{ solicitacao.id }}</td>
+                                    <td>
+                                        {% if solicitacao.formulario %}
+                                            <span class="badge bg-info">Formulário</span>
+                                        {% endif %}
+                                        {{ solicitacao.vaga.cargo.nome }}
+                                    </td>
+                                    <td>{{ solicitacao.get_motivo_display }}</td>
+                                    <td>{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if solicitacao.status == 'pendente' %}
+                                            <span class="badge bg-warning text-dark">Pendente</span>
+                                        {% elif solicitacao.status == 'aprovada' %}
+                                            <span class="badge bg-success">Aprovada</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rejeitada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#detailsModal{{ solicitacao.id }}">
+                                            Ver Detalhes
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal de Detalhes -->
+                                <div class="modal fade" id="detailsModal{{ solicitacao.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Detalhes da Solicitação #{{ solicitacao.id }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <dl class="row">
+                                                    <dt class="col-sm-4">Status:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.get_status_display }}</dd>
+
+                                                    <dt class="col-sm-4">Motivo:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.get_motivo_display }}</dd>
+
+                                                    {% if solicitacao.observacoes %}
+                                                    <dt class="col-sm-4">Suas observações:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.observacoes }}</dd>
+                                                    {% endif %}
+
+                                                    {% if solicitacao.status != 'pendente' %}
+                                                    <dt class="col-sm-4">Processado por:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.processado_por.get_full_name }}</dd>
+
+                                                    <dt class="col-sm-4">Data do processamento:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}</dd>
+
+                                                    {% if solicitacao.observacoes_admin %}
+                                                    <dt class="col-sm-4">Observações do administrador:</dt>
+                                                    <dd class="col-sm-8">{{ solicitacao.observacoes_admin }}</dd>
+                                                    {% endif %}
+                                                    {% endif %}
+                                                </dl>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        Nenhuma solicitação encontrada com os filtros atuais.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,17 @@
+# Import company views
+from .company_views.solicitation import (
+    empresa_solicitar_desativacao_vaga,
+    empresa_solicitar_desativacao_formulario,
+    empresa_solicitacoes_desativacao,
+    solicitacao_desativacao_sucesso
+)
+
+# Import admin views
+from .admin_views.solicitation import (
+    admin_solicitacoes_desativacao,
+    admin_processar_solicitacao_desativacao
+)
+
 # PARA AS VIEWS
 import calendar
 import json
@@ -29,7 +43,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from urllib.parse import quote
 
-from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa, Cargo, Escolaridade, Empresa, Candidato
+from .models import Slide, Vaga_Emprego, CandidatoSelecionado, ResponsavelEmpresa, Cargo, Escolaridade, Empresa, Candidato, RequisicaoVaga, HistoricoRequisicao
 from django.http import HttpResponseForbidden, HttpResponse
 
 from autenticacao.models import Pessoa
@@ -1234,11 +1248,50 @@ def painel_administrativo(request):
         ciclo_vida_medio = total_dias / vagas_desativadas.count() if vagas_desativadas.count() > 0 else 0
     
     # 5. MAPA DE CALOR GEOGRÁFICO (por bairros)
-    candidatos_por_bairro = Candidato.objects.exclude(
+    candidatos_por_bairro_qs = Candidato.objects.exclude(
         Q(bairro__isnull=True) | Q(bairro__exact='')
     ).values('bairro').annotate(
         total=Count('id')
-    ).order_by('-total')[:20]  # Top 20 bairros
+    ).order_by('-total')  # Removido limite de 15 - mostrar todos os bairros
+
+    # Construir lista com percentual em relação ao total de candidatos
+    total_candidatos = total_candidatos
+    candidatos_por_bairro = []
+    for item in candidatos_por_bairro_qs:
+        pct = 0
+        try:
+            pct = round((item['total'] / total_candidatos) * 100, 1) if total_candidatos > 0 else 0
+        except Exception:
+            pct = 0
+        candidatos_por_bairro.append({
+            'bairro': item['bairro'],
+            'total': item['total'],
+            'percentual': pct,
+        })
+    
+    # Bairros por vagas (empresas que mais oferecem vagas por bairro) - Incluindo todas as vagas
+    bairros_por_vaga_qs = Empresa.objects.exclude(
+        Q(bairro__isnull=True) | Q(bairro__exact='')
+    ).values('bairro').annotate(
+        total_vagas=Sum('vaga_emprego__quantidadeVagas'),  # Removido filtro de ativo=True
+        total_empresas=Count('id', distinct=True)
+    ).filter(total_vagas__gt=0).order_by('-total_vagas')  # Removido limite de 15
+    
+    # Construir lista de bairros por vagas com percentual - incluindo todas as vagas
+    total_vagas_sistema = Vaga_Emprego.objects.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+    bairros_por_vaga = []
+    for item in bairros_por_vaga_qs:
+        pct = 0
+        try:
+            pct = round((item['total_vagas'] / total_vagas_sistema) * 100, 1) if total_vagas_sistema > 0 else 0
+        except Exception:
+            pct = 0
+        bairros_por_vaga.append({
+            'bairro': item['bairro'],
+            'total_vagas': item['total_vagas'] or 0,
+            'total_empresas': item['total_empresas'],
+            'percentual': pct,
+        })
     
     # Estatísticas dos últimos 31 dias
     vagas_ativas_31_dias = Vaga_Emprego.objects.filter(ativo=True, dt_inclusao__gte=ultimos_31_dias).count()
@@ -1372,6 +1425,8 @@ def painel_administrativo(request):
         
         # Mapa de calor geográfico
         'candidatos_por_bairro': candidatos_por_bairro,
+        'bairros_por_vaga': bairros_por_vaga,
+        'total_vagas_sistema': total_vagas_sistema,
         
         # Estatísticas de formulários
         'total_formularios': RequisicaoVaga.objects.count(),
@@ -1720,10 +1775,10 @@ def admin_vagas_list(request):
     mostrar_inativas = request.GET.get('inativas', 'false').lower() == 'true'
     
     if mostrar_inativas:
-        vagas = Vaga_Emprego.objects.filter(ativo=False).select_related('empresa', 'cargo').order_by('-dt_inclusao')
+        vagas = Vaga_Emprego.objects.filter(ativo=False).select_related('empresa', 'cargo').prefetch_related('solicitacoes_desativacao').order_by('-dt_inclusao')
         page_title = "Vagas Inativas"
     else:
-        vagas = Vaga_Emprego.objects.filter(ativo=True).select_related('empresa', 'cargo').order_by('-dt_inclusao')
+        vagas = Vaga_Emprego.objects.filter(ativo=True).select_related('empresa', 'cargo').prefetch_related('solicitacoes_desativacao').order_by('-dt_inclusao')
         page_title = "Vagas Ativas"
     
     # Adicionar contagem de candidatos e calcular totais
@@ -1928,6 +1983,11 @@ def admin_formularios_detail(request, id):
     candidatos_da_vaga = []
     
     if vaga_vinculada:
+        # Buscar candidatos e solicicitações de desativação com prefetch
+        vaga_vinculada = Vaga_Emprego.objects.select_related('empresa', 'cargo').prefetch_related(
+            'solicitacoes_desativacao__empresa_responsavel',
+            'solicitacoes_desativacao__processado_por'
+        ).get(pk=vaga_vinculada.pk)
         candidatos_da_vaga = Candidato.objects.filter(vaga=vaga_vinculada).order_by('-dt_inclusao')
     
     context = {
@@ -2149,10 +2209,17 @@ def formulario_detalhes_externo(request, hash_id):
     candidatos_selecionados = []
     candidatos_selecionados_cpfs = []
     candidatos_da_vaga = []
+    solicitacoes_desativacao = []
     
     if vaga_vinculada:
         candidatos_selecionados = CandidatoSelecionado.objects.filter(requisicao_vaga=requisicao)
         candidatos_selecionados_cpfs = list(candidatos_selecionados.values_list('cpf', flat=True))
+        
+        # Buscar solicitações de desativação da vaga
+        from .models import SolicitacaoDesativacao
+        solicitacoes_desativacao = SolicitacaoDesativacao.objects.filter(
+            vaga=vaga_vinculada, formulario=requisicao
+        ).order_by('-dt_criacao')
         
         # Buscar pessoas que se candidataram a esta vaga
         # Primeiro, buscar os candidatos do modelo Candidato
@@ -2169,6 +2236,7 @@ def formulario_detalhes_externo(request, hash_id):
         'candidatos_selecionados': candidatos_selecionados,
         'candidatos_selecionados_cpfs': candidatos_selecionados_cpfs,
         'candidatos_da_vaga': candidatos_da_vaga,
+        'solicitacoes_desativacao': solicitacoes_desativacao,
         'escolaridades': Escolaridade.objects.all(),
     }
     return render(request, 'vagas/formulario_detalhes_externo.html', context)
@@ -2276,8 +2344,8 @@ def cadastrar_vaga_aprovada(request, id):
     
     # Buscar empresas e cargos similares no sistema
     empresas_similares = Empresa.objects.filter(
-        models.Q(nome__icontains=requisicao.nome_da_empresa) |
-        models.Q(cnpj=requisicao.cnpj_da_empresa)
+        Q(nome__icontains=requisicao.nome_da_empresa) |
+        Q(cnpj=requisicao.cnpj_da_empresa)
     ).distinct()[:5]
     
     cargos_similares = Cargo.objects.filter(
@@ -2507,33 +2575,61 @@ def solicitar_encerramento_vaga(request, hash_id):
     except Vaga_Emprego.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Vaga não encontrada'})
     
+    # Verificar se já existe uma solicitação de desativação pendente
+    from .models import SolicitacaoDesativacao
+    solicitacao_existente = SolicitacaoDesativacao.objects.filter(
+        vaga=vaga_vinculada,
+        status='pendente'
+    ).exists()
+    
+    if solicitacao_existente:
+        return JsonResponse({'success': False, 'message': 'Já existe uma solicitação de desativação pendente para esta vaga.'})
+    
     import json
+    from django.utils import timezone
     data = json.loads(request.body)
-    motivo = data.get('motivo', 'Solicitação de encerramento via interface externa')
+    motivo = data.get('motivo', 'outro')
+    observacoes = data.get('observacoes', 'Solicitação via interface externa')
     
     try:
-        # Mudar status para "Aguardando Encerramento"
-        status_anterior = requisicao.status_requisicao
-        requisicao.status_requisicao = 'AE'
+        # Buscar ou criar um ResponsavelEmpresa para a empresa da vaga
+        # Se não existir, vamos criar um temporário ou usar informações da requisição
+        from .models import ResponsavelEmpresa
+        try:
+            responsavel = ResponsavelEmpresa.objects.filter(
+                empresa=vaga_vinculada.empresa,
+                ativo=True
+            ).first()
+            
+            if not responsavel:
+                # Se não há responsável, criar uma entrada temporária ou usar o sistema existente
+                # Por enquanto, vamos usar None e ajustar o modelo para aceitar isso
+                responsavel = None
+        except:
+            responsavel = None
         
-        # Criar entrada no histórico
-        from .models import HistoricoRequisicao
-        HistoricoRequisicao.objects.create(
-            requisicao=requisicao,
-            acao='ST',  # Status
-            status_anterior=status_anterior,
-            status_novo='AE',
-            observacao=f'SOLICITAÇÃO DE ENCERRAMENTO: {motivo}',
-            usuario=None  # Empresa externa
+        # Criar a solicitação de desativação
+        solicitacao = SolicitacaoDesativacao.objects.create(
+            vaga=vaga_vinculada,
+            formulario=requisicao,
+            empresa_responsavel=responsavel,
+            motivo=motivo,
+            observacoes=observacoes
         )
         
-        # Adicionar observação interna na requisição
-        observacao_atual = requisicao.observacao_interna or ''
-        nova_observacao = f'{observacao_atual}\n\n[{timezone.now().strftime("%d/%m/%Y %H:%M")}] EMPRESA SOLICITOU ENCERRAMENTO: {motivo}'
-        requisicao.observacao_interna = nova_observacao.strip()
-        requisicao.save()
+        # Registrar no histórico
+        HistoricoRequisicao.objects.create(
+            requisicao=requisicao,
+            acao='OB',  # Observação/Ação
+            observacao=f'Solicitação de desativação criada - {solicitacao.get_motivo_display()}' + 
+                      (f': {observacoes}' if observacoes else ''),
+            usuario=request.user if request.user.is_authenticated else None
+        )
         
-        return JsonResponse({'success': True, 'message': 'Solicitação de encerramento registrada com sucesso'})
+        return JsonResponse({
+            'success': True, 
+            'message': 'Solicitação de desativação enviada com sucesso! O administrador irá analisar a solicitação.'
+        })
         
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Erro ao registrar solicitação: {str(e)}'})
@@ -3138,6 +3234,114 @@ def empresa_formulario_detalhes(request, formulario_id):
     except Exception as e:
         messages.error(request, f'Erro ao carregar detalhes do formulário: {str(e)}')
         return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_formulario_editar(request, formulario_id):
+    """Editar formulário de requisição pelo painel da empresa"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        # Buscar o formulário específico
+        formulario = get_object_or_404(
+            RequisicaoVaga, 
+            id=formulario_id,
+            cnpj_da_empresa=empresa.cnpj
+        )
+        
+        # Verificar se o formulário pode ser editado
+        if formulario.status_requisicao not in ['PE', 'AG']:
+            messages.error(request, 'Este formulário não pode ser editado no status atual.')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario_id)
+        
+        # Buscar escolaridades para o formulário
+        escolaridades = Escolaridade.objects.all().order_by('id')
+        
+        if request.method == 'POST':
+            # Dados da vaga
+            cargo_ofertado = request.POST.get('cargo_ofertado', '').strip()
+            quantidade_de_vagas = request.POST.get('quantidade_de_vagas', 1)
+            salario = request.POST.get('salario', 0)
+            escolaridade_id = request.POST.get('escolaridade_id', 1)
+            turno = request.POST.get('turno', 'IN')
+            regime = request.POST.get('regime', 'CLT')
+            tipo_vaga = request.POST.get('tipo_vaga', 'NML')
+            experiencia = request.POST.get('experiencia', 'Des')
+            local_de_trabalho = request.POST.get('local_de_trabalho', '').strip()
+            descricao_cargo = request.POST.get('descricao_cargo', '').strip()
+            beneficios = request.POST.get('beneficios', '').strip()
+            
+            # Verificações básicas
+            if not cargo_ofertado or not descricao_cargo:
+                messages.error(request, 'Por favor, preencha todos os campos obrigatórios.')
+                return redirect('vagas:empresa_formulario_editar', formulario_id=formulario_id)
+            
+            # Atualizar a requisição
+            formulario.cargo_ofertado = cargo_ofertado
+            formulario.quantidade_de_vagas = quantidade_de_vagas
+            formulario.valor_salario = salario
+            formulario.escolaridade_id = escolaridade_id
+            formulario.turno = turno
+            formulario.regime = regime
+            formulario.tipo_de_vaga = tipo_vaga
+            formulario.experiencia = experiencia
+            formulario.local_de_trabalho = local_de_trabalho
+            formulario.observacao = descricao_cargo
+            formulario.outros_beneficios = beneficios
+            
+            # Benefícios
+            formulario.vale_transporte = 'vale_transporte' in request.POST
+            formulario.vale_alimentacao = 'vale_alimentacao' in request.POST
+            
+            # Se o formulário estava "Aguardando" (AG), muda para "Pendente" (PE) após edição
+            status_anterior = formulario.status_requisicao
+            if formulario.status_requisicao == 'AG':
+                formulario.status_requisicao = 'PE'
+            
+            formulario.save()
+            
+            # Registrar no histórico
+            HistoricoRequisicao.objects.create(
+                requisicao=formulario,
+                acao='ED',  # Edição
+                observacao=f'Formulário editado pela empresa: {cargo_ofertado}',
+                usuario=request.user
+            )
+            
+            # Se houve mudança de status, registrar também
+            if status_anterior == 'AG' and formulario.status_requisicao == 'PE':
+                HistoricoRequisicao.objects.create(
+                    requisicao=formulario,
+                    acao='ST',  # Status change
+                    status_anterior='AG',
+                    status_novo='PE',
+                    observacao='Status alterado para "Pendente" após edição do formulário - requer nova análise',
+                    usuario=request.user
+                )
+            
+            if status_anterior == 'AG' and formulario.status_requisicao == 'PE':
+                messages.success(request, 'Formulário atualizado com sucesso! O status foi alterado para "Pendente" e aguarda nova análise.')
+            else:
+                messages.success(request, 'Formulário atualizado com sucesso!')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario.pk)
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'escolaridades': escolaridades,
+            'formulario': formulario,
+        }
+        
+        return render(request, 'vagas/empresa_formulario_editar.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao editar formulário: {str(e)}')
+        return redirect('vagas:empresa_formularios')
 
 
 @empresa_user_required
@@ -4147,5 +4351,297 @@ def buscar_candidato_por_cpf(request):
                 
         except Exception as e:
             return JsonResponse({'success': False, 'message': f'Erro interno: {str(e)}'})
+
+
+# ============================
+# SOLICITAÇÕES DE DESATIVAÇÃO
+# ============================
+
+@empresa_user_required
+def empresa_solicitar_desativacao_vaga(request, vaga_id):
+    """Solicitar desativação de uma vaga específica"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        vaga = get_object_or_404(Vaga_Emprego, id=vaga_id, empresa=empresa)
+        
+        # Verificar se a vaga está ativa
+        if not vaga.ativo:
+            messages.warning(request, 'Esta vaga já está inativa.')
+            return redirect('vagas:empresa_vaga_detalhes', vaga_id=vaga.id)
+        
+        # Verificar se já existe uma solicitação pendente
+        from .models import SolicitacaoDesativacao
+        solicitacao_existente = SolicitacaoDesativacao.objects.filter(
+            vaga=vaga, 
+            status='pendente'
+        ).first()
+        
+        if solicitacao_existente:
+            messages.warning(request, 'Já existe uma solicitação de desativação pendente para esta vaga.')
+            return redirect('vagas:empresa_vaga_detalhes', vaga_id=vaga.id)
+        
+        if request.method == 'POST':
+            motivo = request.POST.get('motivo')
+            observacoes = request.POST.get('observacoes', '')
+            
+            if not motivo:
+                messages.error(request, 'Por favor, selecione um motivo para a solicitação.')
+                return render(request, 'vagas/empresa_solicitar_desativacao.html', {
+                    'responsavel': responsavel,
+                    'empresa': empresa,
+                    'empresas_disponiveis': empresas_disponiveis,
+                    'vaga': vaga,
+                    'tipo': 'vaga'
+                })
+            
+            # Criar a solicitação
+            solicitacao = SolicitacaoDesativacao.objects.create(
+                vaga=vaga,
+                empresa_responsavel=responsavel,
+                motivo=motivo,
+                observacoes=observacoes
+            )
+            
+            messages.success(request, 'Solicitação de desativação enviada com sucesso!')
+            return redirect('vagas:solicitacao_desativacao_sucesso')
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vaga': vaga,
+            'tipo': 'vaga'
+        }
+        
+        return render(request, 'vagas/empresa_solicitar_desativacao.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao processar solicitação: {str(e)}')
+        return redirect('vagas:home')
+
+
+@empresa_user_required
+def empresa_solicitar_desativacao_formulario(request, formulario_id):
+    """Solicitar desativação via formulário"""
+    try:
+        responsavel, empresa, empresas_disponiveis = get_empresa_selecionada(request)
+        
+        if not responsavel:
+            messages.error(request, 'Você não é responsável por nenhuma empresa.')
+            return redirect('vagas:home')
+        
+        formulario = get_object_or_404(
+            RequisicaoVaga, 
+            id=formulario_id,
+            cnpj_da_empresa=empresa.cnpj
+        )
+        
+        # Verificar se existe vaga vinculada
+        vaga_vinculada = formulario.get_vaga()
+        if not vaga_vinculada:
+            messages.error(request, 'Não há vaga vinculada a este formulário.')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario.id)
+        
+        # Verificar se a vaga está ativa
+        if not vaga_vinculada.ativo:
+            messages.warning(request, 'A vaga vinculada a este formulário já está inativa.')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario.id)
+        
+        # Verificar se já existe uma solicitação pendente
+        from .models import SolicitacaoDesativacao
+        solicitacao_existente = SolicitacaoDesativacao.objects.filter(
+            vaga=vaga_vinculada, 
+            status='pendente'
+        ).first()
+     
+        if solicitacao_existente:
+            messages.warning(request, 'Já existe uma solicitação de desativação pendente para esta vaga.')
+            return redirect('vagas:empresa_formulario_detalhes', formulario_id=formulario.id)
+        
+        if request.method == 'POST':
+            motivo = request.POST.get('motivo')
+            observacoes = request.POST.get('observacoes', '')
+            
+            if not motivo:
+                messages.error(request, 'Por favor, selecione um motivo para a solicitação.')
+                return render(request, 'vagas/empresa_solicitar_desativacao.html', {
+                    'responsavel': responsavel,
+                    'empresa': empresa,
+                    'empresas_disponiveis': empresas_disponiveis,
+                    'vaga': vaga_vinculada,
+                    'formulario': formulario,
+                    'tipo': 'formulario'
+                })
+            
+            # Criar a solicitação
+            solicitacao = SolicitacaoDesativacao.objects.create(
+                vaga=vaga_vinculada,
+                formulario=formulario,
+                empresa_responsavel=responsavel,
+                motivo=motivo,
+                observacoes=observacoes
+            )
+            
+            # Registrar no histórico
+            HistoricoRequisicao.objects.create(
+                requisicao=formulario,
+                acao='OB',  # Observação/Ação
+                observacao=f'Solicitação de desativação criada - {solicitacao.get_motivo_display()}' + 
+                          (f': {observacoes}' if observacoes else ''),
+                usuario=request.user
+            )
+            
+            try:
+                vaga_vinculada.status_requisicao = 'AE'            
+                vaga_vinculada.save()
+            
+                formulario.status_requisicao = 'AE'
+                formulario.save()
+                
+                # Registrar mudança de status no histórico
+                HistoricoRequisicao.objects.create(
+                    requisicao=formulario,
+                    acao='ST',  # Status change
+                    status_anterior='AP',
+                    status_novo='AE',
+                    observacao='Status alterado para "Aguardando Encerramento" devido à solicitação de desativação',
+                    usuario=request.user
+                )
+
+            except:
+                pass
+     
+            messages.success(request, 'Solicitação de desativação enviada com sucesso!')
+            return redirect('vagas:solicitacao_desativacao_sucesso')
+        
+        context = {
+            'responsavel': responsavel,
+            'empresa': empresa,
+            'empresas_disponiveis': empresas_disponiveis,
+            'vaga': vaga_vinculada,
+            'formulario': formulario,
+            'tipo': 'formulario'
+        }
+        
+        return render(request, 'vagas/empresa_solicitar_desativacao.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao processar solicitação: {str(e)}')
+        return redirect('vagas:home')
+
+
+def solicitacao_desativacao_sucesso(request):
+    """Página de sucesso após solicitar desativação"""
+    return render(request, 'vagas/solicitacao_desativacao_sucesso.html')
+
+
+@login_required
+def admin_solicitacoes_desativacao(request):
+    """Lista todas as solicitações de desativação para o admin"""
+    if not request.user.is_staff:
+        messages.error(request, 'Acesso negado.')
+        return redirect('vagas:home')
+    
+    from .models import SolicitacaoDesativacao
+    
+    # Filtros
+    status_filter = request.GET.get('status', 'pendente')
+    
+    solicitacoes = SolicitacaoDesativacao.objects.select_related(
+        'vaga', 'vaga__cargo', 'vaga__empresa', 'empresa_responsavel', 'formulario'
+    ).order_by('-dt_criacao')
+    
+    if status_filter and status_filter != 'todas':
+        solicitacoes = solicitacoes.filter(status=status_filter)
+    
+    # Estatísticas
+    stats = {
+        'total': SolicitacaoDesativacao.objects.count(),
+        'pendentes': SolicitacaoDesativacao.objects.filter(status='pendente').count(),
+        'aprovadas': SolicitacaoDesativacao.objects.filter(status='aprovada').count(),
+        'rejeitadas': SolicitacaoDesativacao.objects.filter(status='rejeitada').count(),
+    }
+    
+    context = {
+        'solicitacoes': solicitacoes,
+        'status_filter': status_filter,
+        'stats': stats,
+    }
+    
+    return render(request, 'vagas/admin_solicitacoes_desativacao.html', context)
+
+
+@login_required
+def admin_processar_solicitacao_desativacao(request, solicitacao_id):
+    """Processar uma solicitação de desativação específica"""
+    if not request.user.is_staff:
+        messages.error(request, 'Acesso negado.')
+        return redirect('vagas:home')
+    
+    from .models import SolicitacaoDesativacao
+    
+    solicitacao = get_object_or_404(SolicitacaoDesativacao, id=solicitacao_id)
+    
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        observacoes_admin = request.POST.get('observacoes_admin', '')
+        
+        if acao in ['aprovada', 'rejeitada']:
+            try:
+                solicitacao.processar(request.user, acao, observacoes_admin)
+                
+                if acao == 'aprovada':                    
+                    messages.success(request, f'Solicitação aprovada! A vaga "{solicitacao.vaga.cargo.nome}" foi desativada.')
+                else:
+                    messages.success(request, f'Solicitação rejeitada.')
+                
+                # Redirecionar para a página do formulário se existir, senão para lista de vagas
+                if solicitacao.formulario:
+                    return redirect('vagas:admin_formularios_detail', id=solicitacao.formulario.pk)
+                else:
+                    return redirect('vagas:admin_vagas_list')
+                
+            except ValueError as e:
+                messages.error(request, str(e))
+        else:
+            messages.error(request, 'Ação inválida.')
+    
+    context = {
+        'solicitacao': solicitacao,
+    }
+    
+    return render(request, 'vagas/admin_processar_solicitacao_desativacao.html', context)
     
     return JsonResponse({'success': False, 'message': 'Método não permitido'})
+
+
+@login_required
+def admin_toggle_vaga_status(request, vaga_id):
+    """Toggle do status ativo/inativo de uma vaga pelo admin"""
+    if not request.user.is_staff:
+        messages.error(request, 'Acesso negado.')
+        return redirect('vagas:home')
+    
+    if request.method != 'POST':
+        messages.error(request, 'Método não permitido.')
+        return redirect('vagas:candidatos_vaga', vaga_id=vaga_id)
+    
+    vaga = get_object_or_404(Vaga_Emprego, id=vaga_id)
+    
+    # Alternar o status
+    vaga.ativo = not vaga.ativo
+    vaga.save()
+    
+    # Mensagem de sucesso
+    if vaga.ativo:
+        messages.success(request, f'Vaga "{vaga.cargo.nome}" foi reativada com sucesso.')
+    else:
+        messages.success(request, f'Vaga "{vaga.cargo.nome}" foi desativada com sucesso.')
+    
+    # Redirecionar de volta para a página de candidatos
+    return redirect('vagas:candidatos_vaga', vaga_id) + '?origem=vagas'

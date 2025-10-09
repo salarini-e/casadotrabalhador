@@ -122,6 +122,26 @@
       </div>
       <div class="topbar-right">
         <div class="quick-actions">
+          <!-- Botão para alternar status da vaga -->
+          {% if request.user.is_staff %}
+            <form method="post" action="{% url 'vagas:admin_toggle_vaga_status' vaga.id %}" class="d-inline me-2">
+              {% csrf_token %}
+              {% if vaga.ativo %}
+                <button type="submit" class="btn btn-warning" 
+                        title="Desativar vaga"
+                        onclick="return confirm('Tem certeza que deseja desativar esta vaga?')">
+                  <i class="fas fa-pause me-2"></i>Desativar Vaga
+                </button>
+              {% else %}
+                <button type="submit" class="btn btn-success" 
+                        title="Reativar vaga"
+                        onclick="return confirm('Tem certeza que deseja reativar esta vaga?')">
+                  <i class="fas fa-play me-2"></i>Reativar Vaga
+                </button>
+              {% endif %}
+            </form>
+          {% endif %}
+          
           {% if origem == 'empresa' and empresa_id %}
             <a href="{% url 'vagas:empresa_profile' empresa_id %}" class="btn btn-outline-secondary">
               <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil da Empresa

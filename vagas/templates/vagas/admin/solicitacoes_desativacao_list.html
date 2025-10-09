@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h2>Solicitações de Desativação de Vagas</h2>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>Total de solicitações pendentes:</strong> {{ total_pendentes }}
+                        </div>
+                        <div class="btn-group">
+                            <a href="?status=pendente" class="btn btn-sm {% if status_atual == 'pendente' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Pendentes
+                            </a>
+                            <a href="?status=aprovada" class="btn btn-sm {% if status_atual == 'aprovada' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Aprovadas
+                            </a>
+                            <a href="?status=rejeitada" class="btn btn-sm {% if status_atual == 'rejeitada' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Rejeitadas
+                            </a>
+                            <a href="?" class="btn btn-sm {% if not status_atual %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                                Todas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if solicitacoes %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vaga</th>
+                            <th>Empresa</th>
+                            <th>Motivo</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitacao in solicitacoes %}
+                        <tr>
+                            <td>#{{ solicitacao.id }}</td>
+                            <td>
+                                {% if solicitacao.formulario %}
+                                    <span class="badge bg-info">Formulário</span>
+                                {% endif %}
+                                {{ solicitacao.vaga.cargo.nome }}
+                            </td>
+                            <td>{{ solicitacao.vaga.empresa.nome }}</td>
+                            <td>{{ solicitacao.get_motivo_display_completo }}</td>
+                            <td>{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if solicitacao.status == 'pendente' %}
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                {% elif solicitacao.status == 'aprovada' %}
+                                    <span class="badge bg-success">Aprovada</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejeitada</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if solicitacao.status == 'pendente' %}
+                                    <a href="{% url 'vagas:admin_processar_solicitacao_desativacao' solicitacao.id %}" 
+                                       class="btn btn-sm btn-primary">
+                                        Processar
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal{{ solicitacao.id }}">
+                                        Detalhes
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                        <!-- Modal de Detalhes -->
+                        <div class="modal fade" id="detailsModal{{ solicitacao.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Detalhes da Solicitação #{{ solicitacao.id }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>Processado por:</strong> {{ solicitacao.processado_por.get_full_name }}</p>
+                                        <p><strong>Data de processamento:</strong> {{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}</p>
+                                        {% if solicitacao.observacoes_admin %}
+                                        <p><strong>Observações do administrador:</strong></p>
+                                        <p>{{ solicitacao.observacoes_admin }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Nenhuma solicitação encontrada com os filtros atuais.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

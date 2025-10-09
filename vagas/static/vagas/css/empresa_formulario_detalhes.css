@@ -146,6 +146,16 @@
     color: #721c24;
 }
 
+.status-vaga-ativa {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-vaga-inativa {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
 /* Item de detalhe com layout flexível */
 .detail-item {
     display: flex;

@@ -65,6 +65,7 @@ urlpatterns = [
     # URLs para sistema de formulários
     path('admin/vagas/', views.admin_vagas_list, name='admin_vagas_list'),
     path('admin/vagas/criar/', views.admin_criar_vaga, name='admin_criar_vaga'),
+    path('admin/vagas/<int:vaga_id>/toggle-status/', views.admin_toggle_vaga_status, name='admin_toggle_vaga_status'),
     path('admin/formularios/', views.admin_formularios_list, name='admin_formularios_list'),
     path('admin/formularios/criar/', views.admin_formularios_create, name='admin_formularios_create'),
     path('admin/formularios/<int:id>/', views.admin_formularios_detail, name='admin_formularios_detail'),
@@ -86,6 +87,7 @@ urlpatterns = [
     path('painel-empresarial/formularios/', views.empresa_formularios, name='empresa_formularios'),
     path('painel-empresarial/formularios/criar/', views.empresa_formulario_criar, name='empresa_formulario_criar'),
     path('painel-empresarial/formulario/<int:formulario_id>/', views.empresa_formulario_detalhes, name='empresa_formulario_detalhes'),
+    path('painel-empresarial/formulario/<int:formulario_id>/editar/', views.empresa_formulario_editar, name='empresa_formulario_editar'),
     path('painel-empresarial/vagas/', views.empresa_vagas, name='empresa_vagas'),
     path('painel-empresarial/candidatos/', views.empresa_candidatos, name='empresa_candidatos'),
     path('painel-empresarial/vaga/<int:vaga_id>/', views.empresa_vaga_detalhes, name='empresa_vaga_detalhes'),
@@ -97,7 +99,14 @@ urlpatterns = [
     path('painel-empresarial/auxiliar/adicionar/', views.empresa_add_auxiliar, name='empresa_add_auxiliar'),
     path('painel-empresarial/auxiliar/desativar/', views.empresa_desativar_auxiliar, name='empresa_desativar_auxiliar'),
     path('painel-empresarial/auxiliar/reativar/', views.empresa_reativar_auxiliar, name='empresa_reativar_auxiliar'),
-    path('painel-empresarial/vaga/solicitar-desativacao/', views.empresa_solicitar_desativacao, name='empresa_solicitar_desativacao'),
+    
+    # Solicitações de desativação de vagas
+    path('painel-empresarial/vaga/<int:vaga_id>/solicitar-desativacao/', views.empresa_solicitar_desativacao_vaga, name='empresa_solicitar_desativacao_vaga'),
+    path('painel-empresarial/formulario/<int:formulario_id>/solicitar-desativacao/', views.empresa_solicitar_desativacao_formulario, name='empresa_solicitar_desativacao_formulario'),
+    path('painel-empresarial/solicitacao-desativacao/sucesso/', views.solicitacao_desativacao_sucesso, name='solicitacao_desativacao_sucesso'),
+    
+    # URL do Admin para processar solicitações individuais
+    path('admin/solicitacao-desativacao/<int:solicitacao_id>/', views.admin_processar_solicitacao_desativacao, name='admin_processar_solicitacao_desativacao'),
     
     # Demo installer
     path('install-demo/', views.install_demo, name='install_demo'),

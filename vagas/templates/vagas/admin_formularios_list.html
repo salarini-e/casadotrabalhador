@@ -112,13 +112,17 @@
                         {% elif formulario.status_requisicao == 'PE' %}
                           <span class="badge bg-info">Pendente</span>
                         {% elif formulario.status_requisicao == 'AP' %}
-                          <span class="badge bg-success">Aprovada</span>
+                          {% if formulario.get_vaga and not formulario.get_vaga.ativo %}
+                            <span class="badge bg-danger">Encerrada</span>
+                          {% else %}
+                            <span class="badge bg-success">Aprovada</span>
+                          {% endif %}
                         {% elif formulario.status_requisicao == 'RE' %}
                           <span class="badge bg-danger">Rejeitada</span>
                         {% elif formulario.status_requisicao == 'AE' %}
                           <span class="badge bg-warning">Aguard. Encerramento</span>
                         {% elif formulario.status_requisicao == 'EN' %}
-                          <span class="badge bg-secondary">Encerrada</span>
+                          <span class="badge bg-danger">Encerrada</span>
                         {% endif %}
                       </td>
                       <td>

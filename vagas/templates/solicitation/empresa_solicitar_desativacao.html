@@ -1,0 +1,63 @@
+{% extends "vagas/base.html" %}
+{% load static %}
+
+{% block title %}Solicitar Desativação{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">Solicitar Desativação</h2>
+                </div>
+                <div class="card-body">
+                    {% if is_vaga %}
+                        <h5 class="mb-3">Vaga: {{ objeto.cargo.nome }} - {{ objeto.empresa.nome }}</h5>
+                    {% else %}
+                        <h5 class="mb-3">Formulário: {{ objeto.cargo_ofertado }} - {{ objeto.nome_da_empresa }}</h5>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.motivo.label_tag }}
+                            {{ form.motivo }}
+                            {% if form.motivo.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.motivo.errors }}
+                            </div>
+                            {% endif %}
+                            {% if form.motivo.help_text %}
+                            <small class="form-text text-muted">{{ form.motivo.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.observacoes.label_tag }}
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                            <div class="alert alert-danger mt-2">
+                                {{ form.observacoes.errors }}
+                            </div>
+                            {% endif %}
+                            {% if form.observacoes.help_text %}
+                            <small class="form-text text-muted">{{ form.observacoes.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong>Atenção!</strong> Esta solicitação será analisada pela equipe administrativa antes de ser efetivada.
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <a href="{{ voltar_url }}" class="btn btn-secondary">Voltar</a>
+                            <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
