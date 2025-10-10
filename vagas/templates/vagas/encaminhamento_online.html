@@ -18,11 +18,11 @@
             </div>
         </div>
         <div id="printDiv" style="background-color: white; padding: 30px 40px; border-radius: 25px;">
-            <h1 class="titulo text-center"><span class="mobile_hidden">ENCAMINHAMENTO</h1>
+            <h1 class="titulo text-center"><span class="mobile_hidden">CADASTRO ONLINE</h1>
                 <div class="w-100 text-start text-justify">
                     <p style="margin-top: 50px;margin-bottom: 15px;">Prezado(a),</p>
-                    <p style="text-indent: 30px;">A CASA DO TRABALHADOR, no exercício de suas atribuições legais e regimentais, encaminha o candidato, interessado na vaga de <b>{{vaga.cargo.nome}}</b>{% if not vaga.empresa.ocultar %},
-                        à empresa <b>{{vaga.empresa.nome}}</b> de CNPJ <b id="cnpj">{{vaga.empresa.cnpj}}</b>{% endif %}, a realizar contato por uma das seguintes opções:</p>
+                    <p style="text-indent: 30px;">A CASA DO TRABALHADOR, no exercício de suas atribuições legais e regimentais, informa que seu cadastro foi concluído com sucesso, na vaga de <b>{{vaga.cargo.nome}}</b>{% if not vaga.empresa.ocultar %},
+                        à empresa <b>{{vaga.empresa.nome}}</b> de CNPJ <b id="cnpj">{{vaga.empresa.cnpj}}</b>{% endif %}. VOCÊ deve realizar contato com empresa por uma das seguintes opções:</p>
                     {% if vaga.empresa.contato_presencial %}
                     <hr>
                     <b><i class="fas fa-home me-2"></i>DE FORMA PRESENCIAL</b>
