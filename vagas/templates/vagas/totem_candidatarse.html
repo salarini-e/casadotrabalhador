@@ -1022,7 +1022,7 @@
         </div>
         <div class="help-instruction">
             <i class="fas fa-times"></i>
-            <span>ESC para voltar</span>
+            <span>CTRL para voltar</span>
         </div>
 
     <!-- Scripts -->
@@ -1150,12 +1150,13 @@
                 }
 
                 // Prevent default behavior for navigation keys
-                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Tab', 'Escape'].includes(e.code)) {
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Tab', 'ControlLeft', 'ControlRight'].includes(e.code)) {
                     
                     const currentField = this.formFields[this.currentFieldIndex];
                     
                     switch(e.code) {
-                        case 'Escape':
+                        case 'ControlLeft':
+                        case 'ControlRight':
                             e.preventDefault();
                             this.goBack();
                             break;
@@ -1655,7 +1656,8 @@
                         }
                         break;
                         
-                    case 'Escape':
+                    case 'ControlLeft':
+                    case 'ControlRight':
                         this.closeSelectModal();
                         break;
                 }

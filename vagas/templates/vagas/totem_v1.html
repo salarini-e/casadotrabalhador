@@ -953,7 +953,7 @@
                                 Pesquisar
                             </span>
                             <span style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
-                                <kbd style="background: var(--totem-danger); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">ESC</kbd>
+                                <kbd style="background: var(--totem-danger); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">CTRL</kbd>
                                 Cancelar
                             </span>
                         </div>
@@ -1401,7 +1401,8 @@
                         e.preventDefault();
                         this.goToSlide(this.totalSlides - 1);
                         break;
-                    case 'Escape':
+                    case 'ControlLeft':
+                    case 'ControlRight':
                         e.preventDefault();
                         // Se houver filtro, limpar o filtro
                         if (this.filteredSlides) {
@@ -1777,8 +1778,8 @@
             document.addEventListener('keydown', (e) => {
               
                 
-                // Close modal with Escape
-                if (e.key === 'Escape') {
+                // Close modal with Ctrl
+                if (e.key === 'Control') {
                     e.preventDefault();
                     searchModal.style.display = 'none';
                     // Limpar completamente a pesquisa
@@ -1888,7 +1889,7 @@
                     gap: 8px;
                 ">
                     <i class="fas fa-search" style="font-size: 0.8rem;"></i>
-                    <span>Pesquisa: "${termo}" (${numResultados} ${numResultados === 1 ? 'resultado' : 'resultados'}) <span style="opacity: 0.8; font-size: 0.75rem; margin-left: 4px;">Pressione ESC para limpar</span></span>
+                    <span>Pesquisa: "${termo}" (${numResultados} ${numResultados === 1 ? 'resultado' : 'resultados'}) <span style="opacity: 0.8; font-size: 0.75rem; margin-left: 4px;">Pressione CTRL para limpar</span></span>
                     <button onclick="limparFiltroPesquisa()" style="
                         background: rgba(255,255,255,0.2);
                         border: none;
