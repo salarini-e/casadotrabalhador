@@ -59,6 +59,22 @@
   
   .pagination .page-link {
     color: #4e73df;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 0.375rem;
+  }
+  
+  .pagination .page-link:hover {
+    color: #fff;
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
   }
   
   .no-data-container {
@@ -87,6 +103,12 @@
         <div>
           <h2 class="mb-1">Detalhes de Encaminhamentos</h2>
           <p class="text-muted">Visualização de todos os candidatos encaminhados pelo atendente</p>
+          {% if filtro_aplicado %}
+            <div class="alert alert-info py-2 px-3 mt-2" style="border-left: 4px solid #17a2b8;">
+              <i class="fas fa-filter me-2"></i>
+              <strong>Filtro aplicado:</strong> Período {{ periodo_descricao }}
+            </div>
+          {% endif %}
         </div>
         <div>
           <a href="{% url 'vagas:candidatosporfuncionario' %}" class="btn btn-outline-secondary">
@@ -114,48 +136,16 @@
                 <h5>{{ funcionario }}</h5>
                 <div class="row mt-3">
                   <div class="col-md-3">
-                    <div class="small text-muted">Total de Encaminhamentos</div>
+                    <div class="small text-muted">
+                      {% if filtro_aplicado %}
+                        Encaminhamentos no Período
+                      {% else %}
+                        Total de Encaminhamentos
+                      {% endif %}
+                    </div>
                     <div class="h5">{{ object_list.paginator.count }}</div>
                   </div>
-                  <!-- <div class="col-md-3">
-                    <div class="small text-muted">Em Processo</div>
-                    <div class="h5">
-                      {% with em_processo=0 %}
-                        {% for candidato in todos_candidatos %}
-                          {% if candidato.status == 'em_processo' %}
-                            {% with em_processo=em_processo|add:1 %}{% endwith %}
-                          {% endif %}
-                        {% endfor %}
-                        {{ em_processo }}
-                      {% endwith %}
-                    </div>
-                  </div> -->
-                  <!-- <div class="col-md-3">
-                    <div class="small text-muted">Contratados</div>
-                    <div class="h5">
-                      {% with contratados=0 %}
-                        {% for candidato in todos_candidatos %}
-                          {% if candidato.status == 'contratado' %}
-                            {% with contratados=contratados|add:1 %}{% endwith %}
-                          {% endif %}
-                        {% endfor %}
-                        {{ contratados }}
-                      {% endwith %}
-                    </div>
-                  </div> -->
-                  <!-- <div class="col-md-3">
-                    <div class="small text-muted">Rejeitados</div>
-                    <div class="h5">
-                      {% with rejeitados=0 %}
-                        {% for candidato in todos_candidatos %}
-                          {% if candidato.status == 'rejeitado' %}
-                            {% with rejeitados=rejeitados|add:1 %}{% endwith %}
-                          {% endif %}
-                        {% endfor %}
-                        {{ rejeitados }}
-                      {% endwith %}
-                    </div>
-                  </div> -->
+                  
                 </div>
               </div>
             </div>
@@ -171,6 +161,14 @@
           </h5>
           <div class="d-flex">
             <form method="get" class="d-flex">
+              <!-- Campos ocultos para preservar os filtros de período -->
+              {% if request.GET.mes %}
+                <input type="hidden" name="mes" value="{{ request.GET.mes }}">
+              {% endif %}
+              {% if request.GET.ano %}
+                <input type="hidden" name="ano" value="{{ request.GET.ano }}">
+              {% endif %}
+              
               <!-- <div class="me-2">
                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                   <option value="">Todos os status</option>
@@ -234,18 +232,30 @@
             </table>
           </div>
           
+          <!-- Informações de Paginação -->
+          {% if is_paginated %}
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <div class="text-muted small">
+              Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+            </div>
+            <div class="text-muted small">
+              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </div>
+          </div>
+          {% endif %}
+          
           <!-- Pagination -->
           {% if is_paginated %}
           <div class="pagination-container">
             <ul class="pagination">
               {% if page_obj.has_previous %}
                 <li class="page-item">
-                  <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="First">
+                  <a class="page-link" href="?page=1{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="First">
                     <span aria-hidden="true">&laquo;&laquo;</span>
                   </a>
                 </li>
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Previous">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                   </a>
                 </li>
@@ -256,19 +266,19 @@
                   <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
                 {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                   <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
                   </li>
                 {% endif %}
               {% endfor %}
               
               {% if page_obj.has_next %}
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Next">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                   </a>
                 </li>
                 <li class="page-item">
-                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Last">
+                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Last">
                     <span aria-hidden="true">&raquo;&raquo;</span>
                   </a>
                 </li>
@@ -285,7 +295,7 @@
             <h5>Nenhum encaminhamento encontrado</h5>
             <p class="text-muted">Não existem encaminhamentos feitos por este atendente com os filtros selecionados.</p>
             {% if request.GET.search or request.GET.status %}
-              <a href="{% url 'vagas:funcionarios_encaminhados' funcionario_id %}" class="btn btn-outline-primary mt-3">
+              <a href="{% url 'vagas:funcionarios_encaminhados' funcionario_id %}{% if request.GET.mes and request.GET.ano %}?mes={{ request.GET.mes }}&ano={{ request.GET.ano }}{% endif %}" class="btn btn-outline-primary mt-3">
                 <i class="fas fa-times me-2"></i>Limpar filtros
               </a>
             {% endif %}

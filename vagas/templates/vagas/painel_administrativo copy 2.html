@@ -422,11 +422,11 @@
       
       <div class="charts-grid d-flex flex-wrap">
         <!-- Top Cargos Charts - Side by Side (ocupam uma linha) -->
-        <div class="chart-card top15cargos">
+        <div class="chart-card top5cargos">
           <div class="chart-header">
             <div class="chart-title">
               <i class="fas fa-chart-bar"></i>
-              Top 15 Cargos 
+              Top 5 Cargos 
             </div>
             <div class="chart-actions">
               <button class="btn-chart-action" title="Exportar">
@@ -440,6 +440,28 @@
           <div class="chart-body">
             <div class="chart-container-fluid">
               <canvas id="topCargosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card top5cargos">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-bar"></i>
+              Top 5 Cargos
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="topCargos31DiasChart"></canvas>
             </div>
           </div>
         </div>
@@ -505,35 +527,6 @@
           </div>
         </div>
 
-        <!-- Novo: Mapa de Calor Geográfico -->
-        <div class="chart-card chart-wide">
-          <div class="chart-header">
-            <div class="chart-title">
-              <i class="fas fa-map"></i>
-              Mapa de Calor - Candidatos por Bairro
-            </div>
-            <div class="chart-actions">
-              <button class="btn-chart-action" title="Exportar">
-                <i class="fas fa-download"></i>
-              </button>
-              <button class="btn-chart-action" title="Expandir">
-                <i class="fas fa-expand"></i>
-              </button>
-            </div>
-          </div>
-          <div class="chart-body">
-            <div class="chart-container-fluid">
-              <canvas id="bairrosChart"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- Seção de Dados Históricos Gerais -->
-        <div class="section-title mt-4">
-          <h2><i class="fas fa-history me-2"></i>Dados Históricos</h2>
-          <p>Informações completas do sistema sem aplicação de filtros de período</p>
-        </div>
-
         <!-- Candidatos por Mês Chart - Full Width -->
         <div class="chart-card chart-wide">
           <div class="chart-header">
@@ -553,6 +546,29 @@
           <div class="chart-body">
             <div class="chart-container-fluid">
               <canvas id="candidatosMesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Mapa de Calor Geográfico -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-map"></i>
+              Mapa de Calor - Candidatos por Bairro
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="bairrosChart"></canvas>
             </div>
           </div>
         </div>
@@ -782,8 +798,8 @@
   height: 100% !important;
   max-height: none !important;
 }
-.top15cargos {
-  width: 100%;
+.top5cargos {
+  width: 48%;
 }
 .chart-empresas {
   width: 68%;
@@ -1116,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', function() {
         info: '#17a2b8'
     };
 
-    // 1. Top 15 Cargos Chart - Total
+    // 1. Top Cargos Chart - Total
     const topCargosCtx = document.getElementById('topCargosChart').getContext('2d');
     new Chart(topCargosCtx, {
         type: 'bar',
@@ -1135,6 +1151,82 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 backgroundColor: colors.primary,
                 borderColor: colors.primary,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: '#e9ecef'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 5,
+                    right: 5,
+                    top: 5,
+                    bottom: 5
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+    // 2. Top Cargos Chart - 31 Dias
+    const topCargos31DiasCtx = document.getElementById('topCargos31DiasChart').getContext('2d');
+    new Chart(topCargos31DiasCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for cargo in top_cargos_31_dias %}
+                '{{ cargo.vaga__cargo__nome|truncatechars:20 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos (31 dias)',
+                data: [
+                    {% for cargo in top_cargos_31_dias %}
+                    {{ cargo.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: colors.warning,
+                borderColor: colors.warning,
                 borderWidth: 1,
                 borderRadius: 4
             }]

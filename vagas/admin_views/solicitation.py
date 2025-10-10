@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from vagas.models import SolicitacaoDesativacao
-from vagas.forms.solicitation import ProcessarSolicitacaoForm
+from vagas.forms_backup.solicitation import ProcessarSolicitacaoForm
 
 @login_required
 def admin_solicitacoes_desativacao(request):

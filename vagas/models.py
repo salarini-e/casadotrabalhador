@@ -588,7 +588,7 @@ class SolicitacaoDesativacao(models.Model):
     formulario = models.ForeignKey(RequisicaoVaga, on_delete=models.CASCADE, null=True, blank=True, related_name='solicitacoes_desativacao')
     empresa_responsavel = models.ForeignKey(ResponsavelEmpresa, on_delete=models.CASCADE, null=True, blank=True, related_name='solicitacoes_desativacao')
     
-    motivo = models.CharField(max_length=50, choices=MOTIVO_CHOICES, verbose_name='Motivo')
+    motivo = models.CharField(max_length=150, choices=MOTIVO_CHOICES, verbose_name='Motivo')
     observacoes = models.TextField(blank=True, verbose_name='Observações')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pendente', verbose_name='Status')
     

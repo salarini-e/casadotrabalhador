@@ -25,6 +25,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.utils.timezone import make_aware
 # MODELS E FORMS
 from .forms import *
+from .validations import validate_CPF
 from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import date, timedelta
@@ -1029,12 +1030,26 @@ def candidatosporfuncionario(request):
     lista = []
     month = ''
     year = ''
+    filtro_aplicado = False
     
+    # Verificar se há ação de limpar filtros
+    if request.GET.get('limpar_filtros'):
+        if 'filtro_funcionario' in request.session:
+            del request.session['filtro_funcionario']
+        return redirect('vagas:candidatosporfuncionario')
+    
+    # Processar POST (aplicar filtro)
     if request.method == 'POST':
-
-        month=request.POST['mes']
-        year=request.POST['ano']
-
+        month = request.POST['mes']
+        year = request.POST['ano']
+        
+        # Salvar na sessão
+        request.session['filtro_funcionario'] = {
+            'mes': month,
+            'ano': year
+        }
+        filtro_aplicado = True
+        
         date = datetime(int(year), int(month), 1)
 
         if date.month == 12:
@@ -1045,7 +1060,29 @@ def candidatosporfuncionario(request):
             end_date = date + timedelta(days=last_day)
 
         candidatos_interval = Candidato.objects.filter(dt_inclusao__range=(date, end_date))
+    
+    # Verificar se há filtro salvo na sessão
+    elif 'filtro_funcionario' in request.session:
+        try:
+            filtro_session = request.session['filtro_funcionario']
+            month = filtro_session['mes']
+            year = filtro_session['ano']
+            filtro_aplicado = True
+            
+            date = datetime(int(year), int(month), 1)
 
+            if date.month == 12:
+                _, last_day = calendar.monthrange(date.year + 1, 1)
+                end_date = datetime(date.year + 1, 1, 1) + timedelta(days=last_day - 1)
+            else:
+                _, last_day = calendar.monthrange(date.year, date.month + 1)
+                end_date = date + timedelta(days=last_day)
+
+            candidatos_interval = Candidato.objects.filter(dt_inclusao__range=(date, end_date))
+        except (ValueError, KeyError):
+            # Limpar filtro inválido da sessão
+            del request.session['filtro_funcionario']
+            candidatos_interval = Candidato.objects.all()
     else: 
         candidatos_interval = Candidato.objects.all()
 
@@ -1053,7 +1090,15 @@ def candidatosporfuncionario(request):
     for i in usuarios:
         encaminhamentos = len(candidatos_interval.filter(funcionario_encaminhamento=i))
         total_encaminhamentos += encaminhamentos
-        lista.append([i.first_name, encaminhamentos, i.id])
+    
+    # Agora calcular percentuais e montar a lista
+    lista = []
+    for i in usuarios:
+        encaminhamentos = len(candidatos_interval.filter(funcionario_encaminhamento=i))
+        percentual = (encaminhamentos / total_encaminhamentos * 100) if total_encaminhamentos > 0 else 0
+        # Garantir que o percentual não exceda 100%
+        percentual = min(round(percentual, 1), 100.0)
+        lista.append([i.first_name, encaminhamentos, i.id, percentual])
     
     # Calculate the average
     media_por_atendente = 0
@@ -1065,7 +1110,9 @@ def candidatosporfuncionario(request):
         'mes': month,
         'ano': year,
         'total_encaminhamentos': total_encaminhamentos,
-        'media_por_atendente': media_por_atendente
+        'media_por_atendente': media_por_atendente,
+        'filtro_aplicado': filtro_aplicado,
+        'periodo_descricao': f"{month}/{year}" if filtro_aplicado and month and year else ''
     }
 
     # Use the new admin template
@@ -1075,8 +1122,58 @@ def candidatosporfuncionario(request):
 @login_required
 @staff_required
 def funcionario_encaminhados(request, id):
+    import calendar
+    from datetime import datetime, timedelta
+    
     funcionario = User.objects.get(id=id)
     candidatos = Candidato.objects.filter(funcionario_encaminhamento=id)
+    
+    # Aplicar filtro de período se fornecido na URL ou sessão
+    filtro_aplicado = False
+    periodo_descricao = ''
+    
+    # Verificar parâmetros da URL primeiro
+    mes_param = request.GET.get('mes')
+    ano_param = request.GET.get('ano')
+    
+    if mes_param and ano_param:
+        try:
+            date = datetime(int(ano_param), int(mes_param), 1)
+            
+            if date.month == 12:
+                _, last_day = calendar.monthrange(date.year + 1, 1)
+                end_date = datetime(date.year + 1, 1, 1) + timedelta(days=last_day - 1)
+            else:
+                _, last_day = calendar.monthrange(date.year, date.month + 1)
+                end_date = date + timedelta(days=last_day)
+            
+            candidatos = candidatos.filter(dt_inclusao__range=(date, end_date))
+            filtro_aplicado = True
+            periodo_descricao = f"{mes_param}/{ano_param}"
+        except ValueError:
+            pass
+    
+    # Se não há parâmetros na URL, verificar sessão
+    elif 'filtro_funcionario' in request.session:
+        try:
+            filtro_session = request.session['filtro_funcionario']
+            mes = filtro_session['mes']
+            ano = filtro_session['ano']
+            
+            date = datetime(int(ano), int(mes), 1)
+            
+            if date.month == 12:
+                _, last_day = calendar.monthrange(date.year + 1, 1)
+                end_date = datetime(date.year + 1, 1, 1) + timedelta(days=last_day - 1)
+            else:
+                _, last_day = calendar.monthrange(date.year, date.month + 1)
+                end_date = date + timedelta(days=last_day)
+            
+            candidatos = candidatos.filter(dt_inclusao__range=(date, end_date))
+            filtro_aplicado = True
+            periodo_descricao = f"{mes}/{ano}"
+        except (ValueError, KeyError):
+            pass
     
     # Apply search and status filters if provided
     status_filter = request.GET.get('status', '')
@@ -1095,16 +1192,20 @@ def funcionario_encaminhados(request, id):
     # Get all candidatos for statistics before pagination
     todos_candidatos = candidatos
     
-    paginator = Paginator(candidatos, 25)
+    paginator = Paginator(candidatos, 250)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     page_obj.page_range = paginator.page_range
 
     context = {
         'object_list': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
         'todos_candidatos': todos_candidatos,
         'funcionario': funcionario.first_name,
-        'funcionario_id': id
+        'funcionario_id': id,
+        'filtro_aplicado': filtro_aplicado,
+        'periodo_descricao': periodo_descricao
     }
 
     return render(request, 'vagas/admin_candidatos_por_funcionario_detalhe.html', context)
@@ -1127,19 +1228,74 @@ def painel_administrativo(request):
     from dateutil.relativedelta import relativedelta
     import calendar
     
-    # Estatísticas gerais
-    total_vagas_ativas = Vaga_Emprego.objects.filter(ativo=True).count()
-    total_posicoes_abertas = Vaga_Emprego.objects.filter(ativo=True).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
-    total_empresas_ativas = Empresa.objects.filter(vaga_emprego__ativo=True).distinct().count()
-    total_candidatos = Candidato.objects.count()
-    candidatos_online = Candidato.objects.filter(candidato_online=True).count()
-    candidatos_balcao = Candidato.objects.filter(candidato_online=False).count()
+    # Processamento dos filtros de período
+    filtro_aplicado = False
+    data_inicio = None
+    data_fim = None
     
-    # Estatísticas do mês atual
+    # Verificar se há ação de limpar filtros
+    if request.GET.get('limpar_filtros'):
+        if 'filtro_periodo' in request.session:
+            del request.session['filtro_periodo']
+        return redirect('vagas:painel_administrativo')
+    
+    # Processar POST (aplicar filtro)
+    if request.method == 'POST':
+        data_inicio_str = request.POST.get('data_inicio')
+        data_fim_str = request.POST.get('data_fim')
+        
+        if data_inicio_str and data_fim_str:
+            try:
+                data_inicio = datetime.strptime(data_inicio_str, '%Y-%m-%d').date()
+                data_fim = datetime.strptime(data_fim_str, '%Y-%m-%d').date()
+                
+                # Salvar na sessão
+                request.session['filtro_periodo'] = {
+                    'data_inicio': data_inicio_str,
+                    'data_fim': data_fim_str
+                }
+                filtro_aplicado = True
+            except ValueError:
+                pass
+    
+    # Verificar se há filtro salvo na sessão
+    elif 'filtro_periodo' in request.session:
+        try:
+            filtro_session = request.session['filtro_periodo']
+            data_inicio = datetime.strptime(filtro_session['data_inicio'], '%Y-%m-%d').date()
+            data_fim = datetime.strptime(filtro_session['data_fim'], '%Y-%m-%d').date()
+            filtro_aplicado = True
+        except (ValueError, KeyError):
+            # Limpar filtro inválido da sessão
+            del request.session['filtro_periodo']
+    
+    # Aplicar filtros nas queries principais
+    vagas_query = Vaga_Emprego.objects.all()
+    candidatos_query = Candidato.objects.all()
+    formularios_query = RequisicaoVaga.objects.all()
+    
+    if filtro_aplicado and data_inicio and data_fim:
+        vagas_query = vagas_query.filter(dt_inclusao__range=[data_inicio, data_fim])
+        candidatos_query = candidatos_query.filter(dt_inclusao__range=[data_inicio, data_fim])
+        formularios_query = formularios_query.filter(dt_inclusao__range=[data_inicio, data_fim])
+    
+    # Estatísticas gerais (com filtro aplicado se houver)
+    total_vagas_ativas = vagas_query.filter(ativo=True).count()
+    total_posicoes_abertas = vagas_query.filter(ativo=True).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+    total_empresas_ativas = Empresa.objects.filter(vaga_emprego__in=vagas_query.filter(ativo=True)).distinct().count()
+    total_candidatos = candidatos_query.count()
+    candidatos_online = candidatos_query.filter(candidato_online=True).count()
+    candidatos_balcao = candidatos_query.filter(candidato_online=False).count()
+    
+    # Estatísticas do mês atual (ajustadas para o filtro se aplicado)
     hoje = datetime.now()
     inicio_mes = datetime(hoje.year, hoje.month, 1)
-    candidatos_mes = Candidato.objects.filter(dt_inclusao__gte=inicio_mes).count()
-    vagas_mes = Vaga_Emprego.objects.filter(dt_inclusao__gte=inicio_mes).count()
+    if filtro_aplicado:
+        candidatos_mes = candidatos_query.count()
+        vagas_mes = vagas_query.count()
+    else:
+        candidatos_mes = Candidato.objects.filter(dt_inclusao__gte=inicio_mes).count()
+        vagas_mes = Vaga_Emprego.objects.filter(dt_inclusao__gte=inicio_mes).count()
     
     # Data para últimos 31 dias
     ultimos_31_dias = hoje - timedelta(days=31)
@@ -1147,7 +1303,7 @@ def painel_administrativo(request):
     # === NOVAS MÉTRICAS AVANÇADAS ===
     
     # 1. TEMPO MÉDIO DE APROVAÇÃO DE FORMULÁRIOS
-    formularios_aprovados = RequisicaoVaga.objects.filter(
+    formularios_aprovados = formularios_query.filter(
         status_requisicao='AP'
     ).exclude(dt_atualizacao__isnull=True)
     
@@ -1160,33 +1316,89 @@ def painel_administrativo(request):
         ])
         tempo_medio_aprovacao = total_tempo / formularios_aprovados.count() if formularios_aprovados.count() > 0 else 0
     
-    # 2. FUNIL DE CONVERSÃO: Vagas → Candidatos → Contratações
-    total_vagas_criadas = Vaga_Emprego.objects.count()
-    total_candidatos_sistema = Candidato.objects.count()
-    total_contratacoes = Candidato.objects.filter(conseguiu_vaga=True).count()
+    # 2. FUNIL DE CONVERSÃO: Vagas → Candidatos
+    total_vagas_criadas = vagas_query.count()
+    total_candidatos_sistema = candidatos_query.count()
     
     # Taxa de candidatos por vaga
     taxa_candidatos_por_vaga = total_candidatos_sistema / total_vagas_criadas if total_vagas_criadas > 0 else 0
     
-    # Taxa de contratação
-    taxa_contratacao = (total_contratacoes / total_candidatos_sistema * 100) if total_candidatos_sistema > 0 else 0
+    # === INDICADORES DE ENTRADA E SAÍDA DE VAGAS ===
     
-    # 3. QUALIDADE DOS SERVIÇOS
+    # Calcular vagas que entraram (foram criadas) no período
+    if filtro_aplicado and data_inicio and data_fim:
+        # Vagas criadas no período (número de registros Vaga_Emprego)
+        vagas_entraram_registros = Vaga_Emprego.objects.filter(
+            dt_inclusao__range=[data_inicio, data_fim]
+        ).count()
+        
+        # Quantidade total de posições abertas no período
+        vagas_entraram_posicoes = Vaga_Emprego.objects.filter(
+            dt_inclusao__range=[data_inicio, data_fim]
+        ).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        
+        # Vagas que saíram (foram desativadas) no período
+        # Para vagas com dt_desativacao, usar essa data
+        vagas_sairam_com_data = Vaga_Emprego.objects.filter(
+            dt_desativacao__range=[data_inicio, data_fim],
+            ativo=False
+        )
+        
+        # Para vagas sem dt_desativacao mas que foram desativadas (ativo=False)
+        # e que foram atualizadas no período, considerar dt_atualizacao
+        vagas_sairam_sem_data = Vaga_Emprego.objects.filter(
+            ativo=False,
+            dt_desativacao__isnull=True,
+            dt_atualizacao__range=[data_inicio, data_fim]
+        ).exclude(dt_inclusao__range=[data_inicio, data_fim])  # Excluir vagas criadas e desativadas no mesmo período
+        
+        # Contar registros que saíram
+        vagas_sairam_registros = vagas_sairam_com_data.count() + vagas_sairam_sem_data.count()
+        
+        # Contar posições que saíram
+        posicoes_sairam_com_data = vagas_sairam_com_data.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        posicoes_sairam_sem_data = vagas_sairam_sem_data.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        vagas_sairam_posicoes = posicoes_sairam_com_data + posicoes_sairam_sem_data
+        
+    else:
+        # Sem filtro, mostrar estatísticas do mês atual
+        inicio_mes_atual = datetime(hoje.year, hoje.month, 1)
+        fim_mes_atual = inicio_mes_atual + relativedelta(months=1)
+        
+        # Vagas que entraram este mês
+        vagas_entraram_registros = Vaga_Emprego.objects.filter(
+            dt_inclusao__gte=inicio_mes_atual,
+            dt_inclusao__lt=fim_mes_atual
+        ).count()
+        
+        vagas_entraram_posicoes = Vaga_Emprego.objects.filter(
+            dt_inclusao__gte=inicio_mes_atual,
+            dt_inclusao__lt=fim_mes_atual
+        ).aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        
+        # Vagas que saíram este mês
+        vagas_sairam_com_data_mes = Vaga_Emprego.objects.filter(
+            dt_desativacao__gte=inicio_mes_atual,
+            dt_desativacao__lt=fim_mes_atual,
+            ativo=False
+        )
+        
+        vagas_sairam_sem_data_mes = Vaga_Emprego.objects.filter(
+            ativo=False,
+            dt_desativacao__isnull=True,
+            dt_atualizacao__gte=inicio_mes_atual,
+            dt_atualizacao__lt=fim_mes_atual
+        ).exclude(dt_inclusao__gte=inicio_mes_atual, dt_inclusao__lt=fim_mes_atual)
+        
+        vagas_sairam_registros = vagas_sairam_com_data_mes.count() + vagas_sairam_sem_data_mes.count()
+        
+        posicoes_sairam_com_data_mes = vagas_sairam_com_data_mes.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        posicoes_sairam_sem_data_mes = vagas_sairam_sem_data_mes.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+        vagas_sairam_posicoes = posicoes_sairam_com_data_mes + posicoes_sairam_sem_data_mes
     
-    # Taxa de preenchimento de vagas (vagas que têm pelo menos 1 candidato contratado)
-    vagas_com_contratacao = Vaga_Emprego.objects.filter(candidato__conseguiu_vaga=True).distinct().count()
-    taxa_preenchimento_vagas = (vagas_com_contratacao / total_vagas_criadas * 100) if total_vagas_criadas > 0 else 0
-    
-    # Satisfação das empresas (baseado em renovações/novos formulários)
-    empresas_com_multiplos_formularios = RequisicaoVaga.objects.values('cnpj_da_empresa').annotate(
-        total_formularios=Count('id')
-    ).filter(total_formularios__gt=1).count()
-    
-    total_empresas_formularios = RequisicaoVaga.objects.values('cnpj_da_empresa').distinct().count()
-    taxa_renovacao_empresas = (empresas_com_multiplos_formularios / total_empresas_formularios * 100) if total_empresas_formularios > 0 else 0
-    
-    # Percentual de candidatos que conseguiram vaga
-    percentual_candidatos_contratados = taxa_contratacao
+    # Calcular saldo líquido (diferença entre entrada e saída)
+    saldo_vagas_registros = vagas_entraram_registros - vagas_sairam_registros
+    saldo_vagas_posicoes = vagas_entraram_posicoes - vagas_sairam_posicoes
     
     # 4. ANÁLISES TEMPORAIS
     
@@ -1247,15 +1459,14 @@ def painel_administrativo(request):
         ])
         ciclo_vida_medio = total_dias / vagas_desativadas.count() if vagas_desativadas.count() > 0 else 0
     
-    # 5. MAPA DE CALOR GEOGRÁFICO (por bairros)
-    candidatos_por_bairro_qs = Candidato.objects.exclude(
+    # 5. MAPA DE CALOR GEOGRÁFICO (por bairros) - usando query filtrada
+    candidatos_por_bairro_qs = candidatos_query.exclude(
         Q(bairro__isnull=True) | Q(bairro__exact='')
     ).values('bairro').annotate(
         total=Count('id')
-    ).order_by('-total')  # Removido limite de 15 - mostrar todos os bairros
+    ).order_by('-total')[:10]  # Limitado aos top 10 bairros
 
     # Construir lista com percentual em relação ao total de candidatos
-    total_candidatos = total_candidatos
     candidatos_por_bairro = []
     for item in candidatos_por_bairro_qs:
         pct = 0
@@ -1269,16 +1480,27 @@ def painel_administrativo(request):
             'percentual': pct,
         })
     
-    # Bairros por vagas (empresas que mais oferecem vagas por bairro) - Incluindo todas as vagas
-    bairros_por_vaga_qs = Empresa.objects.exclude(
-        Q(bairro__isnull=True) | Q(bairro__exact='')
-    ).values('bairro').annotate(
-        total_vagas=Sum('vaga_emprego__quantidadeVagas'),  # Removido filtro de ativo=True
-        total_empresas=Count('id', distinct=True)
-    ).filter(total_vagas__gt=0).order_by('-total_vagas')  # Removido limite de 15
+    # Bairros por vagas (empresas que mais oferecem vagas por bairro) - filtradas por período
+    if filtro_aplicado:
+        # Se há filtro, buscar empresas que tiveram vagas no período
+        empresas_periodo = Empresa.objects.filter(vaga_emprego__in=vagas_query).distinct()
+        bairros_por_vaga_qs = empresas_periodo.exclude(
+            Q(bairro__isnull=True) | Q(bairro__exact='')
+        ).values('bairro').annotate(
+            total_vagas=Sum('vaga_emprego__quantidadeVagas', filter=Q(vaga_emprego__in=vagas_query)),
+            total_empresas=Count('id', distinct=True)
+        ).filter(total_vagas__gt=0).order_by('-total_vagas')[:10]
+        total_vagas_sistema = vagas_query.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
+    else:
+        # Sem filtro, usar todas as vagas
+        bairros_por_vaga_qs = Empresa.objects.exclude(
+            Q(bairro__isnull=True) | Q(bairro__exact='')
+        ).values('bairro').annotate(
+            total_vagas=Sum('vaga_emprego__quantidadeVagas'),
+            total_empresas=Count('id', distinct=True)
+        ).filter(total_vagas__gt=0).order_by('-total_vagas')[:10]
+        total_vagas_sistema = Vaga_Emprego.objects.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
     
-    # Construir lista de bairros por vagas com percentual - incluindo todas as vagas
-    total_vagas_sistema = Vaga_Emprego.objects.aggregate(Sum('quantidadeVagas'))['quantidadeVagas__sum'] or 0
     bairros_por_vaga = []
     for item in bairros_por_vaga_qs:
         pct = 0
@@ -1299,20 +1521,13 @@ def painel_administrativo(request):
     empresas_ativas_31_dias = Empresa.objects.filter(vaga_emprego__ativo=True, vaga_emprego__dt_inclusao__gte=ultimos_31_dias).distinct().count()
     candidatos_31_dias = Candidato.objects.filter(dt_inclusao__gte=ultimos_31_dias).count()
     
-    # Top 5 cargos mais procurados (total)
-    top_cargos_total = Candidato.objects.values('vaga__cargo__nome').annotate(
+    # Top 15 cargos mais procurados (com filtro aplicado se houver)
+    top_cargos_total = candidatos_query.values('vaga__cargo__nome').annotate(
         total=Count('id')
-    ).order_by('-total')[:5]
+    ).order_by('-total')[:15]
     
-    # Top 5 cargos mais procurados (últimos 31 dias)
-    top_cargos_31_dias = Candidato.objects.filter(
-        dt_inclusao__gte=ultimos_31_dias
-    ).values('vaga__cargo__nome').annotate(
-        total=Count('id')
-    ).order_by('-total')[:5]
-    
-    # Top 10 empresas com mais vagas (total)
-    top_empresas_total = Vaga_Emprego.objects.filter(ativo=True).values('empresa__nome').annotate(
+    # Top 10 empresas com mais vagas (com filtro aplicado se houver)
+    top_empresas_total = vagas_query.filter(ativo=True).values('empresa__nome').annotate(
         total=Sum('quantidadeVagas')
     ).order_by('-total')[:10]
     
@@ -1338,8 +1553,8 @@ def painel_administrativo(request):
         dt_inclusao__gte=ultimos_31_dias
     ).count()
     
-    # Distribuição por escolaridade
-    escolaridade_stats = Candidato.objects.values('escolaridade__nome').annotate(
+    # Distribuição por escolaridade (com filtro aplicado se houver)
+    escolaridade_stats = candidatos_query.values('escolaridade__nome').annotate(
         total=Count('id')
     ).order_by('-total')
     
@@ -1356,17 +1571,17 @@ def painel_administrativo(request):
             mes = 12 + (data_atual.month - i)
             ano = data_atual.year - 1
             
-        data_inicio = datetime(ano, mes, 1)
+        data_inicio_mes = datetime(ano, mes, 1)
         
         # Calcula o fim do mês
         if mes == 12:
-            data_fim = datetime(ano + 1, 1, 1)
+            data_fim_mes = datetime(ano + 1, 1, 1)
         else:
-            data_fim = datetime(ano, mes + 1, 1)
+            data_fim_mes = datetime(ano, mes + 1, 1)
         
-        count = Candidato.objects.filter(dt_inclusao__gte=data_inicio, dt_inclusao__lt=data_fim).count()
+        count = Candidato.objects.filter(dt_inclusao__gte=data_inicio_mes, dt_inclusao__lt=data_fim_mes).count()
         candidatos_por_mes.append({
-            'mes': data_inicio.strftime('%m/%Y'),
+            'mes': data_inicio_mes.strftime('%m/%Y'),
             'total': count
         })
     
@@ -1384,6 +1599,12 @@ def painel_administrativo(request):
         'candidatos_mes': candidatos_mes,
         'vagas_mes': vagas_mes,
         
+        # Informações do filtro
+        'filtro_aplicado': filtro_aplicado,
+        'data_inicio': data_inicio.strftime('%Y-%m-%d') if data_inicio else '',
+        'data_fim': data_fim.strftime('%Y-%m-%d') if data_fim else '',
+        'periodo_descricao': f"{data_inicio.strftime('%d/%m/%Y')} até {data_fim.strftime('%d/%m/%Y')}" if filtro_aplicado and data_inicio and data_fim else '',
+        
         # Dados dos últimos 31 dias
         'vagas_ativas_31_dias': vagas_ativas_31_dias,
         'posicoes_abertas_31_dias': posicoes_abertas_31_dias,
@@ -1392,7 +1613,6 @@ def painel_administrativo(request):
         
         # Dados para gráficos comparativos
         'top_cargos_total': top_cargos_total,
-        'top_cargos_31_dias': top_cargos_31_dias,
         'top_empresas_total': top_empresas_total,
         'top_empresas_31_dias': top_empresas_31_dias,
         'candidatos_online_total': candidatos_online_total,
@@ -1408,15 +1628,14 @@ def painel_administrativo(request):
         # Métricas de aprovação e funil
         'tempo_medio_aprovacao': round(tempo_medio_aprovacao, 1),
         'taxa_candidatos_por_vaga': round(taxa_candidatos_por_vaga, 1),
-        'taxa_contratacao': round(taxa_contratacao, 1),
-        'total_contratacoes': total_contratacoes,
         
-        # Qualidade dos serviços
-        'taxa_preenchimento_vagas': round(taxa_preenchimento_vagas, 1),
-        'taxa_renovacao_empresas': round(taxa_renovacao_empresas, 1),
-        'percentual_candidatos_contratados': round(percentual_candidatos_contratados, 1),
-        'vagas_com_contratacao': vagas_com_contratacao,
-        'empresas_com_multiplos_formularios': empresas_com_multiplos_formularios,
+        # Indicadores de entrada e saída de vagas
+        'vagas_entraram_registros': vagas_entraram_registros,
+        'vagas_entraram_posicoes': vagas_entraram_posicoes,
+        'vagas_sairam_registros': vagas_sairam_registros,
+        'vagas_sairam_posicoes': vagas_sairam_posicoes,
+        'saldo_vagas_registros': saldo_vagas_registros,
+        'saldo_vagas_posicoes': saldo_vagas_posicoes,
         
         # Análises temporais
         'vagas_por_cargo_mes': vagas_por_cargo_mes,
@@ -1428,11 +1647,11 @@ def painel_administrativo(request):
         'bairros_por_vaga': bairros_por_vaga,
         'total_vagas_sistema': total_vagas_sistema,
         
-        # Estatísticas de formulários
-        'total_formularios': RequisicaoVaga.objects.count(),
-        'formularios_aprovados': RequisicaoVaga.objects.filter(status_requisicao='AP').count(),
-        'formularios_pendentes': RequisicaoVaga.objects.filter(status_requisicao__in=['AG', 'PE']).count(),
-        'formularios_rejeitados': RequisicaoVaga.objects.filter(status_requisicao='RE').count(),
+        # Estatísticas de formulários (usando queries filtradas)
+        'total_formularios': formularios_query.count(),
+        'formularios_aprovados': formularios_query.filter(status_requisicao='AP').count(),
+        'formularios_pendentes': formularios_query.filter(status_requisicao__in=['AG', 'PE']).count(),
+        'formularios_rejeitados': formularios_query.filter(status_requisicao='RE').count(),
     }
     
     return render(request, 'vagas/painel_administrativo.html', context)
@@ -2226,16 +2445,16 @@ def formulario_detalhes_externo(request, hash_id):
         candidatos_modelo = Candidato.objects.filter(vaga=vaga_vinculada)
         
         # Depois buscar as pessoas correspondentes no modelo Pessoa
-        from autenticacao.models import Pessoa
-        cpfs_candidatos = candidatos_modelo.values_list('cpf', flat=True)
-        candidatos_da_vaga = Pessoa.objects.filter(cpf__in=cpfs_candidatos)
+        # from autenticacao.models import Pessoa
+        # cpfs_candidatos = candidatos_modelo.values_list('cpf', flat=True)
+        # candidatos_da_vaga = Pessoa.objects.filter(cpf__in=cpfs_candidatos)
     
     context = {
         'requisicao': requisicao,
         'vaga_vinculada': vaga_vinculada,
         'candidatos_selecionados': candidatos_selecionados,
         'candidatos_selecionados_cpfs': candidatos_selecionados_cpfs,
-        'candidatos_da_vaga': candidatos_da_vaga,
+        'candidatos_da_vaga': candidatos_modelo,
         'solicitacoes_desativacao': solicitacoes_desativacao,
         'escolaridades': Escolaridade.objects.all(),
     }

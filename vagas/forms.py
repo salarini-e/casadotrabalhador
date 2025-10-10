@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm, ValidationError
 from .models import *
-from .validations import validate_CNPJ
+from .validations import validate_CNPJ, validate_CPF, validate_TELEFONE
 
 class CadastroInternoVagasForm(ModelForm):    
     class Meta:

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from vagas.models import SolicitacaoDesativacao, Vaga_Emprego, ResponsavelEmpresa, RequisicaoVaga
-from vagas.forms.solicitation import SolicitarDesativacaoForm
+from vagas.forms_backup.solicitation import SolicitarDesativacaoForm
 
 def empresa_solicitar_desativacao_vaga(request, vaga_id):
     """View for companies to request deactivation of a job posting"""
