@@ -188,12 +188,18 @@ def vagas(request):
     # Contar total de vagas
     total_vagas = sum(vaga.quantidadeVagas for vaga in vagas)
     print('Vagas em destaque:', vagas_em_destaque)
+    
+    # Buscar apenas bairros de empresas que possuem vagas ativas
+    bairros_com_vagas_ativas = Empresa.objects.filter(
+        vaga_emprego__ativo=True
+    ).order_by('bairro').values_list('bairro', flat=True).distinct()
+    
     context = {
         'vagas': vagas,
         'vagas_por_cargo': vagas_por_cargo,  
         'vagas_destaque': vagas_em_destaque,
         'destaque': bool(vagas_em_destaque),
-        'bairros': Empresa.objects.order_by('bairro').values_list('bairro', flat=True).distinct(),
+        'bairros': bairros_com_vagas_ativas,
         'escolaridades': Escolaridade.objects.all().values(),        
         'qnt_cargos': len(vagas_por_cargo),
         'qnt_vagas': total_vagas,        
@@ -256,21 +262,16 @@ def alterar_empresa(request, id):
         form = Form_Empresa(request.POST, instance=empresa)
         if form.is_valid():
             form.save()
-            context = {
-                'tipo_cadastro': 'Alterar',
-                'form': Form_Empresa(initial={'user': request.user}),
-                'hidden': ['user', 'ativo'],
-                'success': [True, 'Vaga alterada com sucesso!']
-            }
-            return redirect('vagas:empresas')
+            # Redireciona de volta para o perfil da empresa com mensagem de sucesso
+            return redirect(f'/vagas/empresa/{empresa.id}/?success=1')
     else:
-
         form = Form_Empresa(instance=empresa)
+    
     context = {
         'form': form,
         'tipo_cadastro': 'Alterar',
     }
-    return render(request, 'vagas/cadastrar_empresa.html', context)
+    return render(request, 'vagas/editar_empresa.html', context)
 
 
 @login_required

@@ -231,6 +231,7 @@
                             <tr>
                                <th class="text-center" style="width: 150px;">ID</th>
                                 <th class="text-center">Data</th>
+                                <th>Empresa</th>
                                 <th>Vaga</th>
                                 <th>Funcionário responsável</th>
                                 <th>Origem</th>
@@ -244,7 +245,8 @@
                             <tr>
                                 <td class="text-center">{{ encaminhamento.id }}</td>
                                 <td class="text-center">{{ encaminhamento.dt_inclusao|date:"d/m/Y H:i" }}</td>
-                                <td>{{ encaminhamento.vaga.cargo }}</td>
+                                <td>{{ encaminhamento.vaga.empresa }}</td>
+                                <td>{{ encaminhamento.vaga.cargo }} (Ref.: {{ encaminhamento.vaga.id }})</td>
                                 <td>
                                     {% if encaminhamento.online %}
                                     {{ encaminhamento.funcionario_encaminhamento }}

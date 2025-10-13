@@ -1,0 +1,457 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ tipo_cadastro }} Empresa{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-building me-2"></i>
+          {{ tipo_cadastro }} Empresa
+        </h1>
+        <p class="page-subtitle">
+          {% if tipo_cadastro == 'Alterar' %}
+            Editando: {{ form.instance.nome|default:"Nova Empresa" }}
+          {% else %}
+            Cadastrar nova empresa no sistema
+          {% endif %}
+        </p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          {% if tipo_cadastro == 'Alterar' and form.instance.pk %}
+            <a href="{% url 'vagas:empresa_profile' form.instance.pk %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil
+            </a>
+          {% else %}
+            <a href="{% url 'vagas:empresas' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      
+      <!-- Success Message -->
+      {% if success.0 %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          {{ success.1 }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endif %}
+
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-building me-2"></i>
+                {% if tipo_cadastro == 'Alterar' %}
+                  Editar Informações da Empresa
+                {% else %}
+                  Dados da Nova Empresa
+                {% endif %}
+              </h5>
+            </div>
+            <div class="card-body">
+              
+              <form id="form_empresa" method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                  {% for field in form %}
+                    {% if not field.is_hidden %}
+                      
+                      <!-- Nome da Empresa -->
+                      {% if field.name == 'nome' %}
+                        <div class="col-12">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-building me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- CNPJ -->
+                      {% elif field.name == 'cnpj' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-id-card me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"onkeydown:mascara(this,icnpj)"|attr:"maxlength:18"|attr:"placeholder:00.000.000/0000-00" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Email -->
+                      {% elif field.name == 'email' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-envelope me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"placeholder:empresa@exemplo.com" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Telefone -->
+                      {% elif field.name == 'telefone' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-phone me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"onkeydown:mascara(this,itel)"|attr:"placeholder:(00) 0000-0000" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- WhatsApp -->
+                      {% elif field.name == 'whatsapp' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fab fa-whatsapp me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"onkeydown:mascara(this,itel)"|attr:"placeholder:(00) 00000-0000" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Endereço -->
+                      {% elif field.name == 'endereco' %}
+                        <div class="col-12">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-map-marker-alt me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"placeholder:Rua, número, complemento" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Bairro -->
+                      {% elif field.name == 'bairro' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-building me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"placeholder:Nome do bairro" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Site -->
+                      {% elif field.name == 'site' %}
+                        <div class="col-md-6">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-globe me-1"></i>
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control"|attr:"placeholder:https://www.empresa.com.br" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Campos de contato (switches) -->
+                      {% elif field.name == 'contato_email' %}
+                        <div class="col-md-6">
+                          <label class="form-label fw-bold">
+                            <i class="fas fa-envelope me-1"></i>
+                            {{ field.label }}
+                          </label>
+                          <div class="form-check form-switch">
+                            {{ field|add_class:"form-check-input"|attr:"role:switch"|attr:"onclick:fcontato_email()" }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                              <span id="span_contato_email">{% if field.value %}Sim{% else %}Não{% endif %}</span>
+                            </label>
+                          </div>
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      {% elif field.name == 'contato_presencial' %}
+                        <div class="col-md-6">
+                          <label class="form-label fw-bold">
+                            <i class="fas fa-handshake me-1"></i>
+                            {{ field.label }}
+                          </label>
+                          <div class="form-check form-switch">
+                            {{ field|add_class:"form-check-input"|attr:"role:switch"|attr:"onclick:fcontato_presencial()" }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                              <span id="span_contato_presencial">{% if field.value %}Sim{% else %}Não{% endif %}</span>
+                            </label>
+                          </div>
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      {% elif field.name == 'contato_telefone' %}
+                        <div class="col-md-6">
+                          <label class="form-label fw-bold">
+                            <i class="fas fa-phone me-1"></i>
+                            {{ field.label }}
+                          </label>
+                          <div class="form-check form-switch">
+                            {{ field|add_class:"form-check-input"|attr:"role:switch"|attr:"onclick:fcontato_telefone()" }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                              <span id="span_contato_telefone">{% if field.value %}Sim{% else %}Não{% endif %}</span>
+                            </label>
+                          </div>
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      {% elif field.name == 'contato_whatsapp' %}
+                        <div class="col-md-6">
+                          <label class="form-label fw-bold">
+                            <i class="fab fa-whatsapp me-1"></i>
+                            {{ field.label }}
+                          </label>
+                          <div class="form-check form-switch">
+                            {{ field|add_class:"form-check-input"|attr:"role:switch"|attr:"onclick:fcontato_whatsapp()" }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                              <span id="span_contato_whatsapp">{% if field.value %}Sim{% else %}Não{% endif %}</span>
+                            </label>
+                          </div>
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      {% elif field.name == 'contato_link' %}
+                        <div class="col-md-6">
+                          <label class="form-label fw-bold">
+                            <i class="fas fa-link me-1"></i>
+                            {{ field.label }}
+                          </label>
+                          <div class="form-check form-switch">
+                            {{ field|add_class:"form-check-input"|attr:"role:switch"|attr:"onclick:fcontato_link()" }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                              <span id="span_contato_link">{% if field.value %}Sim{% else %}Não{% endif %}</span>
+                            </label>
+                          </div>
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      
+                      <!-- Outros campos -->
+                      {% else %}
+                        <div class="col-12">
+                          <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                              <span class="text-danger">*</span>
+                            {% endif %}
+                          </label>
+                          {{ field|add_class:"form-control" }}
+                          {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                              {{ field.errors.0 }}
+                            </div>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                      
+                    {% endif %}
+                  {% endfor %}
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                  <div class="row">
+                    <div class="col-md-6">
+                      {% if tipo_cadastro == 'Alterar' and form.instance.pk %}
+                        <a href="{% url 'vagas:empresa_profile' form.instance.pk %}" class="btn btn-outline-secondary">
+                          <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                      {% else %}
+                        <a href="{% url 'vagas:empresas' %}" class="btn btn-outline-secondary">
+                          <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                      {% endif %}
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-2"></i>
+                        {% if tipo_cadastro == 'Alterar' %}
+                          Salvar Alterações
+                        {% else %}
+                          Cadastrar Empresa
+                        {% endif %}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </form>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Switch functions
+function fcontato_email(){
+    const span = document.getElementById('span_contato_email');
+    span.innerText = span.innerText === 'Sim' ? 'Não' : 'Sim';
+}
+
+function fcontato_presencial(){
+    const span = document.getElementById('span_contato_presencial');
+    span.innerText = span.innerText === 'Sim' ? 'Não' : 'Sim';
+}
+
+function fcontato_telefone(){
+    const span = document.getElementById('span_contato_telefone');
+    span.innerText = span.innerText === 'Sim' ? 'Não' : 'Sim';
+}
+
+function fcontato_whatsapp(){
+    const span = document.getElementById('span_contato_whatsapp');
+    span.innerText = span.innerText === 'Sim' ? 'Não' : 'Sim';
+}
+
+function fcontato_link(){
+    const span = document.getElementById('span_contato_link');
+    span.innerText = span.innerText === 'Sim' ? 'Não' : 'Sim';
+}
+
+// Mask functions
+function icnpj(v){
+    v = v.replace(/\D/g,"");
+    v = v.replace(/(\d{2})(\d)/,"$1.$2");
+    v = v.replace(/(\d{3})(\d)/,"$1.$2");
+    v = v.replace(/(\d{3})(\d)/,"$1/$2");
+    v = v.replace(/(\d{4})(\d)/,"$1-$2");
+    return v;
+}
+
+function itel(v){
+    v = v.replace(/\D/g,"");
+    if (v.length === 11) {
+        v = v.replace(/^(\d\d)(\d)/g,"($1) $2");
+        v = v.replace(/(\d{5})(\d)/,"$1-$2");
+    } else {
+        v = v.replace(/^(\d\d)(\d)/g,"($1) $2");
+        v = v.replace(/(\d{4})(\d)/,"$1-$2");
+    }
+    return v;
+}
+
+function mascara(o, f){
+    v_obj = o;
+    v_fun = f;
+    setTimeout("execmascara()", 1);
+}
+
+function execmascara(){
+    v_obj.value = v_fun(v_obj.value);
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('form_empresa');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

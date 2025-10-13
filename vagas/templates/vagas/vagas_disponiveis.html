@@ -208,6 +208,22 @@
             </select>
           </div>
 
+          <div class="filter-group">
+            <h5 class="filter-title">Bairro</h5>
+            <select class="form-select" id="bairro">
+              <option disabled selected value="" id="defaultSelectBairro">
+                -- Selecione um bairro --
+              </option>
+              {% for bairro in bairros %}
+                {% if bairro %}
+                  <option name="bairro" id="bairro-{{bairro}}" value="{{bairro}}">
+                    {{bairro}}
+                  </option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
           <div class="filter-actions">
             <button class="btn btn-clear-filters" id="removeFilters">
               <i class="fas fa-times"></i>
@@ -1087,7 +1103,7 @@
 
         .filters-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr auto;
+          grid-template-columns: 1fr 1fr 1fr auto;
           gap: var(--spacing-lg);
           align-items: end;
         }
@@ -1149,7 +1165,7 @@
         /* Responsive Design */
         @media (max-width: 992px) {
           .filters-grid {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: var(--spacing-md);
           }
 
@@ -1160,6 +1176,15 @@
         }
 
         @media (max-width: 768px) {
+          .filters-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+          }
+
+          .filter-actions {
+            grid-column: 1 / -1;
+            justify-content: center;
+          }
           .section-title {
             font-size: 1.875rem;
           }
@@ -1323,6 +1348,7 @@
         const activeFilters = {
           tipo_de_vaga: "",
           escolaridade: "",
+          bairro: "",
           name: "",
         };
       
@@ -1333,10 +1359,32 @@
             const empresa = card.dataset.empresa.toLowerCase();
             const escolaridade = card.dataset.escolaridade.toLowerCase();
             const tipo = card.dataset.tipo.toLowerCase();
+            const bairro = card.dataset.bairro.toLowerCase();
       
             if (
               escolaridade.indexOf(activeFilters.escolaridade) >= 0 &&
               tipo.indexOf(activeFilters.tipo_de_vaga) >= 0 &&
+              bairro.indexOf(activeFilters.bairro) >= 0 &&
+              (cargo.indexOf(activeFilters.name) >= 0 || empresa.indexOf(activeFilters.name) >= 0)
+            ) {
+              card.style.display = "block";
+            } else {
+              card.style.display = "none";
+            }
+          });
+
+          // Filter featured job cards
+          document.querySelectorAll(".featured-job-card").forEach((card) => {
+            const cargo = card.dataset.cargo.toLowerCase();
+            const empresa = card.dataset.empresa.toLowerCase();
+            const escolaridade = card.dataset.escolaridade.toLowerCase();
+            const tipo = card.dataset.tipo.toLowerCase();
+            const bairro = card.dataset.bairro.toLowerCase();
+      
+            if (
+              escolaridade.indexOf(activeFilters.escolaridade) >= 0 &&
+              tipo.indexOf(activeFilters.tipo_de_vaga) >= 0 &&
+              bairro.indexOf(activeFilters.bairro) >= 0 &&
               (cargo.indexOf(activeFilters.name) >= 0 || empresa.indexOf(activeFilters.name) >= 0)
             ) {
               card.style.display = "block";
@@ -1371,10 +1419,12 @@
         window.onload = function () {
           const escolaridadeInput = document.querySelector("#escolaridade");
           const tipos_de_vagaInput = document.querySelector("#tipo_de_vaga");
+          const bairroInput = document.querySelector("#bairro");
       
           function clear() {
             activeFilters.tipo_de_vaga = "";
             activeFilters.escolaridade = "";
+            activeFilters.bairro = "";
             activeFilters.name = "";
             
             document.querySelector("#buscador").value = "";
@@ -1384,6 +1434,11 @@
             }
             if (tipos_de_vagaInput) {
               tipos_de_vagaInput.querySelector("#defaultSelect").selected = true;
+            }
+            
+            const bairroInput = document.querySelector("#bairro");
+            if (bairroInput) {
+              bairroInput.querySelector("#defaultSelectBairro").selected = true;
             }
       
             filtrar();
@@ -1418,6 +1473,13 @@
           if (tipos_de_vagaInput) {
             tipos_de_vagaInput.addEventListener("change", (e) => {
               activeFilters.tipo_de_vaga = e.target.value.toLowerCase();
+              filtrar();
+            });
+          }
+
+          if (bairroInput) {
+            bairroInput.addEventListener("change", (e) => {
+              activeFilters.bairro = e.target.value.toLowerCase();
               filtrar();
             });
           }
