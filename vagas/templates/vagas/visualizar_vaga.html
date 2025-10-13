@@ -162,7 +162,7 @@
                 </a>
               {% endif %}
               <a href="{% url 'vagas:candidatarse' vaga.pk %}" class="btn btn-success">
-                <i class="fas fa-paper-plane me-1"></i>CANDITADAR
+                <i class="fas fa-paper-plane me-1"></i>CANDIDATAR-se A VAGA
               </a>
             </div>
           </div>
@@ -300,6 +300,13 @@
                   {% endif %}
                 </td>
               </tr>
+              <tr>                
+                <td class="value-col" colspan="2">
+                  <a href="{% url 'vagas:candidatarse' vaga.pk %}" class="btn btn-success w-100">
+                    CANDIDATAR-se a vaga
+                  </a>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -338,13 +345,13 @@
       </div>
     </div>
     {% endif %}
-
+    
     <!-- Informações de Contato da Casa do Trabalhador -->
     <div class="{% if vaga.atribuicoes and vaga.observacao and request.user.is_staff %}col-lg-4{% elif vaga.atribuicoes or vaga.observacao and request.user.is_staff %}col-lg-8{% else %}col-12{% endif %} mb-4">
       <div class="card info-card h-100">
         <div class="card-header contact-info">
           <h5 class="mb-0">
-            <i class="fas fa-info-circle me-2"></i>Para mais informações
+            <i class="fas fa-info-circle me-2"></i>Para mais informações entre em contato com a Casa do Trabalhador
           </h5>
         </div>
         <div class="card-body p-0">

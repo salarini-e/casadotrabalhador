@@ -153,7 +153,10 @@
           <a href="{% url 'vagas:empresa_info' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Voltar
           </a>
-          <a href="{% url 'vagas:admin_formularios_create' %}?empresa_cnpj={{ empresa.cnpj }}&origem=empresa&empresa_id={{ empresa.pk }}" class="btn btn-primary">
+          <a href="{% url 'vagas:alterar_empresa' empresa.id %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>Editar Empresa
+          </a>
+          <a href="{% url 'vagas:admin_formularios_create' %}?empresa_cnpj={{ empresa.cnpj }}&origem=empresa&empresa_id={{ empresa.pk }}" class="btn btn-warning">
             <i class="fas fa-plus me-2"></i>Criar Formulário
           </a>
         </div>
@@ -162,6 +165,15 @@
 
     <!-- Content -->
     <div class="stats-container px-4 py-4">
+      
+      <!-- Success Message (quando vem de edição) -->
+      {% if request.GET.success %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          Empresa editada com sucesso!
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endif %}
       
       <!-- Company Info Cards -->
       <div class="row mb-4">
@@ -275,6 +287,91 @@
                 <div class="col-md-6">
                   <label class="form-label fw-bold">WhatsApp:</label>
                   <p class="mb-0">{{ empresa.whatsapp|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">E-mail:</label>
+                  <p class="mb-0">{{ empresa.email|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Link/Site:</label>
+                  <p class="mb-0">
+                    {% if empresa.link %}
+                      <a href="{{ empresa.link }}" target="_blank" class="text-primary">
+                        {{ empresa.link|truncatechars:40 }}
+                        <i class="fas fa-external-link-alt ms-1"></i>
+                      </a>
+                    {% else %}
+                      Não informado
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Informações da empresa:</label>
+                  <p class="mb-0">
+                    {% if empresa.ocultar %}
+                      <span class="badge bg-warning">
+                        <i class="fas fa-eye-slash me-1"></i>
+                        Ocultar ao encaminhar
+                      </span>
+                    {% else %}
+                      <span class="badge bg-success">
+                        <i class="fas fa-eye me-1"></i>
+                        Exibir ao encaminhar
+                      </span>
+                    {% endif %}
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Cadastrado em:</label>
+                  <p class="mb-0">{{ empresa.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Formas de contato permitidas:</label>
+                  <div class="d-flex flex-wrap gap-2">
+                    {% if empresa.contato_presencial %}
+                      <span class="badge bg-primary">
+                        <i class="fas fa-handshake me-1"></i>Presencial
+                      </span>
+                    {% endif %}
+                    {% if empresa.contato_email %}
+                      <span class="badge bg-info">
+                        <i class="fas fa-envelope me-1"></i>E-mail
+                      </span>
+                    {% endif %}
+                    {% if empresa.contato_telefone %}
+                      <span class="badge bg-success">
+                        <i class="fas fa-phone me-1"></i>Telefone
+                      </span>
+                    {% endif %}
+                    {% if empresa.contato_whatsapp %}
+                      <span class="badge bg-success">
+                        <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                      </span>
+                    {% endif %}
+                    {% if empresa.contato_link %}
+                      <span class="badge bg-warning">
+                        <i class="fas fa-link me-1"></i>Link/Site
+                      </span>
+                    {% endif %}
+                    {% if not empresa.contato_presencial and not empresa.contato_email and not empresa.contato_telefone and not empresa.contato_whatsapp and not empresa.contato_link %}
+                      <span class="text-muted">Nenhuma forma de contato habilitada</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if empresa.observacao %}
+                <div class="col-12">
+                  <label class="form-label fw-bold">Observações internas:</label>
+                  <div class="bg-light p-3 rounded">
+                    <p class="mb-0">{{ empresa.observacao|linebreaks }}</p>
+                  </div>
+                </div>
+                {% endif %}
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Cadastrado por:</label>
+                  <p class="mb-0">
+                    <i class="fas fa-user me-1"></i>
+                    {{ empresa.user.get_full_name|default:empresa.user.username }}
+                  </p>
                 </div>
               </div>
             </div>
