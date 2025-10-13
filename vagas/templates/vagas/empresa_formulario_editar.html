@@ -1,0 +1,241 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Editar Formulário #{{ formulario.id }} - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' %}
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_formularios' %}">
+                            <i class="fas fa-file-alt me-1"></i>Formulários
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}">
+                            <i class="fas fa-eye me-1"></i>Formulário #{{ formulario.id }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Editar</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-edit me-2"></i>Editar Formulário #{{ formulario.id }}
+            </h1>
+            <p>Atualize os dados do seu formulário de solicitação de vaga</p>
+        </div>
+
+        <!-- Form Container -->
+        <div class="form-container bg-white p-4 rounded shadow-sm">
+            <!-- Mensagens de feedback -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Informações da Vaga -->
+                <div class="section-header mb-4">
+                    <h5><i class="fas fa-briefcase me-2"></i>Informações da Vaga</h5>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label for="cargo_ofertado" class="form-label required">Cargo Ofertado</label>
+                        <input type="text" class="form-control" id="cargo_ofertado" name="cargo_ofertado" 
+                               value="{{ formulario.cargo_ofertado }}" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe o cargo ofertado.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="quantidade_de_vagas" class="form-label required">Quantidade de Vagas</label>
+                        <input type="number" class="form-control" id="quantidade_de_vagas" name="quantidade_de_vagas" 
+                               value="{{ formulario.quantidade_de_vagas }}" min="1" required>
+                        <div class="invalid-feedback">
+                            Por favor, informe a quantidade de vagas.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="salario" class="form-label">Salário (R$)</label>
+                        <input type="number" class="form-control" id="salario" name="salario" 
+                               value="{{ formulario.valor_salario }}" step="0.01" min="0">
+                        <small class="form-text text-muted">Deixe em branco se for "a combinar"</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="escolaridade_id" class="form-label">Escolaridade Mínima</label>
+                        <select class="form-select" id="escolaridade_id" name="escolaridade_id">
+                            {% for escolaridade in escolaridades %}
+                                <option value="{{ escolaridade.id }}" 
+                                        {% if formulario.escolaridade_id == escolaridade.id %}selected{% endif %}>
+                                    {{ escolaridade.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="turno" class="form-label">Turno</label>
+                        <select class="form-select" id="turno" name="turno">
+                            <option value="MA" {% if formulario.turno == 'MA' %}selected{% endif %}>Manhã</option>
+                            <option value="TA" {% if formulario.turno == 'TA' %}selected{% endif %}>Tarde</option>
+                            <option value="NO" {% if formulario.turno == 'NO' %}selected{% endif %}>Noite</option>
+                            <option value="IN" {% if formulario.turno == 'IN' %}selected{% endif %}>Integral</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="regime" class="form-label">Regime de Contratação</label>
+                        <select class="form-select" id="regime" name="regime">
+                            <option value="CLT" {% if formulario.regime == 'CLT' %}selected{% endif %}>CLT</option>
+                            <option value="PJ" {% if formulario.regime == 'PJ' %}selected{% endif %}>PJ</option>
+                            <option value="EST" {% if formulario.regime == 'EST' %}selected{% endif %}>Estágio</option>
+                            <option value="TEM" {% if formulario.regime == 'TEM' %}selected{% endif %}>Temporário</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="experiencia" class="form-label">Experiência</label>
+                        <select class="form-select" id="experiencia" name="experiencia">
+                            <option value="Des" {% if formulario.experiencia == 'Des' %}selected{% endif %}>Desejável</option>
+                            <option value="Obl" {% if formulario.experiencia == 'Obl' %}selected{% endif %}>Obrigatória</option>
+                            <option value="Nao" {% if formulario.experiencia == 'Nao' %}selected{% endif %}>Não necessária</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="local_de_trabalho" class="form-label">Local de Trabalho</label>
+                    <input type="text" class="form-control" id="local_de_trabalho" name="local_de_trabalho" 
+                           value="{{ formulario.local_de_trabalho }}" 
+                           placeholder="Ex: Centro, Zona Sul, Home Office, etc.">
+                </div>
+
+                <!-- Descrição do Cargo -->
+                <div class="section-header mb-4 mt-5">
+                    <h5><i class="fas fa-file-text me-2"></i>Descrição do Cargo</h5>
+                </div>
+
+                <div class="mb-3">
+                    <label for="descricao_cargo" class="form-label required">Descrição das Atividades</label>
+                    <textarea class="form-control" id="descricao_cargo" name="descricao_cargo" rows="5" required>{{ formulario.observacao }}</textarea>
+                    <div class="invalid-feedback">
+                        Por favor, descreva as principais atividades do cargo.
+                    </div>
+                </div>
+
+                <!-- Benefícios -->
+                <div class="section-header mb-4 mt-5">
+                    <h5><i class="fas fa-gift me-2"></i>Benefícios</h5>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="vale_transporte" name="vale_transporte" 
+                                   {% if formulario.vale_transporte %}checked{% endif %}>
+                            <label class="form-check-label" for="vale_transporte">
+                                Vale Transporte
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="vale_alimentacao" name="vale_alimentacao"
+                                   {% if formulario.vale_alimentacao %}checked{% endif %}>
+                            <label class="form-check-label" for="vale_alimentacao">
+                                Vale Alimentação/Refeição
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="beneficios" class="form-label">Outros Benefícios</label>
+                    <textarea class="form-control" id="beneficios" name="beneficios" rows="3" 
+                              placeholder="Ex: Plano de saúde, plano odontológico, participação nos lucros, etc.">{{ formulario.outros_beneficios }}</textarea>
+                </div>
+
+                <!-- Botões de Ação -->
+                <div class="d-flex justify-content-between mt-5">
+                    <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.required::after {
+    content: " *";
+    color: red;
+}
+
+.section-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+</style>
+
+<script>
+// Validação do formulário
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+</script>
+{% endblock %}

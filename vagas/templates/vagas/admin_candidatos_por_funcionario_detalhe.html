@@ -1,0 +1,330 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Detalhes de Encaminhamentos - Admin{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  
+  .candidate-table {
+    background-color: white;
+  }
+  
+  .candidate-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .badge-status {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+    border-radius: 30px;
+  }
+  
+  .staff-info {
+    background-color: #f8f9fa;
+    /* border-left: 4px solid #4e73df; */
+    padding: 1rem;
+    border-radius: 4px;
+  }
+  
+  .staff-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #4e73df;
+  }
+  
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .pagination .page-link {
+    color: #4e73df;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+    margin: 0 2px;
+    border-radius: 0.375rem;
+  }
+  
+  .pagination .page-link:hover {
+    color: #fff;
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+  }
+  
+  .no-data-container {
+    padding: 3rem 0;
+    text-align: center;
+  }
+  
+  .no-data-icon {
+    font-size: 3rem;
+    color: #e9ecef;
+    margin-bottom: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1">Detalhes de Encaminhamentos</h2>
+          <p class="text-muted">Visualização de todos os candidatos encaminhados pelo atendente</p>
+          {% if filtro_aplicado %}
+            <div class="alert alert-info py-2 px-3 mt-2" style="border-left: 4px solid #17a2b8;">
+              <i class="fas fa-filter me-2"></i>
+              <strong>Filtro aplicado:</strong> Período {{ periodo_descricao }}
+            </div>
+          {% endif %}
+        </div>
+        <div>
+          <a href="{% url 'vagas:candidatosporfuncionario' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar para Visão Geral
+          </a>
+        </div>
+      </div>
+      
+      <!-- Staff Info -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-user me-2"></i>Informações do Atendente
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center">
+            <!-- <div class="col-md-1 text-center">
+              <div class="staff-avatar mb-2">
+                <i class="fas fa-user"></i>
+              </div>
+            </div> -->
+            <div class="col-md-12">
+              <div class="staff-info">
+                <h5>{{ funcionario }}</h5>
+                <div class="row mt-3">
+                  <div class="col-md-3">
+                    <div class="small text-muted">
+                      {% if filtro_aplicado %}
+                        Encaminhamentos no Período
+                      {% else %}
+                        Total de Encaminhamentos
+                      {% endif %}
+                    </div>
+                    <div class="h5">{{ object_list.paginator.count }}</div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filter & Search -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center">
+          <h5 class="m-0 font-weight-bold">
+            <i class="fas fa-list me-3"></i>Lista de Encaminhamentos
+          </h5>
+          <div class="d-flex">
+            <form method="get" class="d-flex">
+              <!-- Campos ocultos para preservar os filtros de período -->
+              {% if request.GET.mes %}
+                <input type="hidden" name="mes" value="{{ request.GET.mes }}">
+              {% endif %}
+              {% if request.GET.ano %}
+                <input type="hidden" name="ano" value="{{ request.GET.ano }}">
+              {% endif %}
+              
+              <!-- <div class="me-2">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                  <option value="">Todos os status</option>
+                  <option value="encaminhado" {% if request.GET.status == 'encaminhado' %}selected{% endif %}>Encaminhado</option>
+                  <option value="em_processo" {% if request.GET.status == 'em_processo' %}selected{% endif %}>Em Processo</option>
+                  <option value="contratado" {% if request.GET.status == 'contratado' %}selected{% endif %}>Contratado</option>
+                  <option value="rejeitado" {% if request.GET.status == 'rejeitado' %}selected{% endif %}>Rejeitado</option>
+                </select>
+              </div> -->
+              <div class="me-2">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Buscar candidato..." value="{{ request.GET.search }}">
+              </div>
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-search"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="card-body">
+          {% if object_list %}
+          <div class="table-responsive">
+            <table class="table table-hover candidate-table">
+              <thead class="table-light">
+                <tr>
+                  <th>Nome do Candidato</th>
+                  <th>CPF</th>
+                  <th>Vaga</th>
+                  <th>Empresa</th>
+                  <th>Data</th>
+                  <!-- <th>Status</th> -->
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for candidato in object_list %}
+                <tr>
+                  <td>{{ candidato.nome }}</td>
+                    <td>{{ candidato.cpf }}</td>
+                  <td>{{ candidato.vaga.cargo }}</td>
+                  <td>{{ candidato.vaga.empresa}}</td>
+                  <td>{{ candidato.dt_inclusao|date:"d/m/Y" }}</td>
+                  <!-- <td>
+                    {% if candidato.status == 'encaminhado' %}
+                      <span class="badge badge-status bg-info">Encaminhado</span>
+                    {% elif candidato.status == 'em_processo' %}
+                      <span class="badge badge-status bg-warning">Em Processo</span>
+                    {% elif candidato.status == 'contratado' %}
+                      <span class="badge badge-status bg-success">Contratado</span>
+                    {% elif candidato.status == 'rejeitado' %}
+                      <span class="badge badge-status bg-danger">Rejeitado</span>
+                    {% endif %}
+                  </td> -->
+                  <td class="text-center">
+                    <a href="#" target="_blank" class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-file-alt me-1"></i>Currículo
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Informações de Paginação -->
+          {% if is_paginated %}
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+            <div class="text-muted small">
+              Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+            </div>
+            <div class="text-muted small">
+              Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </div>
+          </div>
+          {% endif %}
+          
+          <!-- Pagination -->
+          {% if is_paginated %}
+          <div class="pagination-container">
+            <ul class="pagination">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+              
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                  <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.mes %}&mes={{ request.GET.mes }}{% endif %}{% if request.GET.ano %}&ano={{ request.GET.ano }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+          {% endif %}
+          
+          {% else %}
+          <div class="no-data-container">
+            <div class="no-data-icon">
+              <i class="fas fa-search"></i>
+            </div>
+            <h5>Nenhum encaminhamento encontrado</h5>
+            <p class="text-muted">Não existem encaminhamentos feitos por este atendente com os filtros selecionados.</p>
+            {% if request.GET.search or request.GET.status %}
+              <a href="{% url 'vagas:funcionarios_encaminhados' funcionario_id %}{% if request.GET.mes and request.GET.ano %}?mes={{ request.GET.mes }}&ano={{ request.GET.ano }}{% endif %}" class="btn btn-outline-primary mt-3">
+                <i class="fas fa-times me-2"></i>Limpar filtros
+              </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to status badges
+    const badges = document.querySelectorAll('.badge-status');
+    badges.forEach(badge => {
+      badge.addEventListener('mouseover', function() {
+        this.style.transform = 'scale(1.1)';
+        this.style.transition = 'transform 0.2s';
+      });
+      
+      badge.addEventListener('mouseout', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+  });
+</script>
+{% endblock %}

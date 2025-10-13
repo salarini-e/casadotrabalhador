@@ -1,0 +1,674 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Vaga: {{ vaga.cargo.nome }} - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Estilos específicos para a página de detalhes da vaga */
+    .vaga-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.2rem;
+        margin-bottom: 1.8rem;
+    }
+    
+    .stat-box {
+        background: #f9fafc;
+        padding: 1.2rem;
+        border-radius: 10px;
+        text-align: center;
+        /* border-left: 4px solid #104a74; */
+        transition: all 0.3s ease;
+    }
+    
+    .stat-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .vaga-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .detail-group {
+        margin-bottom: 1.2rem;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .detail-label i {
+        margin-right: 0.5rem;
+        color: #104a74;
+        width: 16px;
+    }
+    
+    .detail-value {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+    
+    .candidatos-section {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .section-header {
+        background: #f9fafc;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .section-title {
+        margin: 0;
+        color: #104a74;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        margin-right: 0.75rem;
+        color: #104a74;
+    }
+    
+    /* Estilos para a tabela de candidatos */
+    .table-responsive {
+        margin: 1rem;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .modern-table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .modern-table thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        color: #495057;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        border-top: none;
+    }
+    
+    .modern-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .modern-table tbody tr:hover {
+        background-color: rgba(0,123,255,0.04);
+    }
+    
+    .modern-table tbody td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #f1f2f3;
+    }
+    
+    .modern-table .badge {
+        font-weight: 500;
+        padding: 0.4em 0.7em;
+    }
+    
+    .avatar-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #104a74;
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    
+    .table-success.bg-opacity-25 {
+        background-color: rgba(25, 135, 84, 0.15) !important;
+    }
+    
+    .btn-group {
+        display: inline-flex;
+        gap: 4px;
+    }
+    
+    .btn-group .btn {
+        border-radius: 4px !important;
+        font-size: 0.8125rem;
+        padding: 0.35rem 0.65rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-buttons .btn {
+        border-radius: 6px;
+        font-weight: 500;
+        padding: 0.65rem 1.2rem;
+    }
+    
+    .btn-warning {
+        background: linear-gradient(135deg, #f59f00, #f08c00);
+        border: none;
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #f08c00, #e67700);
+        box-shadow: 0 5px 15px rgba(240, 140, 0, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .btn-success {
+        background: linear-gradient(135deg, #40c057, #2f9e44);
+        border: none;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: linear-gradient(135deg, #2f9e44, #2b8a3e);
+        box-shadow: 0 5px 15px rgba(47, 158, 68, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .vaga-info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .vaga-info-card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .vaga-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #104a74;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #f0f2f5;
+        padding-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .vaga-details {
+            grid-template-columns: 1fr;
+        }
+        
+        .candidatos-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .candidato-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' with active_page='candidatos' %}
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% csrf_token %}
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}">Vagas</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ vaga.cargo.nome }}</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1 class="mb-2">
+                <i class="fas fa-briefcase me-2"></i>{{ vaga.cargo.nome }}
+            </h1>
+            
+            <div class="action-buttons">
+            <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar para Vagas
+            </a>
+            {% if vaga.ativo %}
+            <a class="btn btn-warning" href="{% url 'vagas:empresa_solicitar_desativacao_vaga' vaga.id %}">
+                <i class="fas fa-ban me-1"></i>Solicitar Desativação
+            </a>            
+            {% endif %}
+        </div>
+        </div>
+
+        
+
+        <!-- Informações da Vaga -->
+        <div class="vaga-info-card">
+            <div class="d-flex">
+                <h3 class="vaga-title">{{ vaga.cargo.nome }}</h3>
+            <div class="detail-group ms-2 mt-1">
+                        
+                        <div class="detail-value">
+                            {% if vaga.ativo %}
+                                <span class="text-success fw-bold">(Ativa)</span>
+                            {% else %}
+                                <span class="text-danger fw-bold">(Inativa)</span>
+                            {% endif %}
+                        </div>
+                    </div>
+            </div>
+            <!-- Estatísticas da Vaga -->
+            <div class="vaga-stats">
+                <div class="stat-box">
+                    <div class="stat-value">{{ vaga.quantidadeVagas }}</div>
+                    <div class="stat-label">Vaga{{ vaga.quantidadeVagas|pluralize }} Disponívei{{ vaga.quantidadeVagas|pluralize }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ vaga.salario }}</div>
+                    <div class="stat-label">Salário</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ candidatos.count }}</div>
+                    <div class="stat-label">Total de Candidatos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">{{ candidatos_contratados }}</div>
+                    <div class="stat-label">Candidatos Contratados</div>
+                </div>
+            </div>
+            
+            <!-- Solicitações de Desativação -->
+            {% with solicitacoes=vaga.solicitacoes_desativacao.all %}
+              {% if solicitacoes %}
+                <div class="alert border-warning mb-4">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Solicitações de Desativação
+                  </h6>
+                  {% for solicitacao in solicitacoes %}
+                    <div class="d-flex justify-content-between align-items-center {% if not forloop.last %}mb-2 pb-2 border-bottom{% endif %}">
+                      <div>
+                        <span class="badge bg-{% if solicitacao.status == 'pendente' %}warning{% elif solicitacao.status == 'aprovada' %}success{% else %}danger{% endif %} me-2">
+                          {{ solicitacao.get_status_display }}
+                        </span>
+                        <strong>{{ solicitacao.get_motivo_display }}</strong>
+                        {% if solicitacao.observacoes %}
+                          <br><small class="text-muted">{{ solicitacao.observacoes }}</small>
+                        {% endif %}
+                        {% if solicitacao.observacoes_admin %}
+                          <br><small class="text-info">Admin: {{ solicitacao.observacoes_admin }}</small>
+                        {% endif %}
+                      </div>
+                      <div class="text-end">
+                        <small class="text-muted">{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</small>
+                        {% if solicitacao.dt_processamento %}
+                          <br><small class="text-muted">Processado: {{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}</small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            
+            <!-- Detalhes da Vaga -->
+            <div class="vaga-details">
+                <div>
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar"></i>Data de Criação
+                        </div>
+                        <div class="detail-value">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    
+                    {% if vaga.escolaridade %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-graduation-cap"></i>Escolaridade
+                        </div>
+                        <div class="detail-value">{{ vaga.escolaridade.nome }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.turno %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-clock"></i>Turno
+                        </div>
+                        <div class="detail-value">{{ vaga.get_turno_display }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.regiao %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-map-marker-alt"></i>Região
+                        </div>
+                        <div class="detail-value">{{ vaga.regiao.regiao }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    
+                    
+                    {% if vaga.empresa_responsavel %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-user-tie"></i>Responsável
+                        </div>
+                        <div class="detail-value">{{ vaga.empresa_responsavel.nome }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.dt_prazo %}
+                    <div class="detail-group">
+                        <div class="detail-label">
+                            <i class="fas fa-hourglass-end"></i>Prazo
+                        </div>
+                        <div class="detail-value">{{ vaga.dt_prazo|date:"d/m/Y" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if vaga.descricao_cargo %}
+            <div class="detail-group">
+                <div class="detail-label">
+                    <i class="fas fa-align-left"></i>Descrição da Vaga
+                </div>
+                <div class="detail-value">{{ vaga.descricao_cargo|linebreaks }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Seção de Candidatos -->
+        <div class="candidatos-section" id="candidatos">
+            <div class="section-header">
+                <h5 class="section-title">
+                    <i class="fas fa-users"></i>Candidatos ({{ candidatos.count }})
+                </h5>
+            </div>
+            
+            {% if candidatos %}
+            <div class="table-responsive">
+                <table class="table table-hover modern-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 200px;">Candidato</th>
+                            <th>Contato</th>
+                            <th>Data</th>
+                            <th>Idade</th>
+                            <th>Escolaridade</th>
+                            <th>Status</th>
+                            <th class="text-center" style="min-width: 180px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidato in candidatos %}
+                        <tr class="{% if candidato.contratado %}table-success bg-opacity-25{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="candidate-avatar me-2">
+                                        <div class="avatar-circle">{{ candidato.nome|first|upper }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ candidato.nome }}</div>
+                                        <div class="small text-muted">{{ candidato.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if candidato.celular %}
+                                <div>
+                                    <i class="fas fa-phone fa-sm text-muted me-1"></i>{{ candidato.celular }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ candidato.dt_inclusao|date:"d/m/Y" }}</div>
+                                <div class="small text-muted">{{ candidato.dt_inclusao|timesince }} atrás</div>
+                            </td>
+                            <td>
+                                {% if candidato.data_nascimento %}
+                                <div>{{ candidato.idade }} anos</div>
+                                <div class="small text-muted">{{ candidato.data_nascimento|date:"d/m/Y" }}</div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ candidato.escolaridade.nome }}</div>
+                            </td>
+                            <td>
+                                {% if candidato.conseguiu_vaga %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Selecionado
+                                </span>
+                                {% else %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-hourglass-half me-1"></i>Em análise
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <a href="{% url 'vagas:empresa_candidato_perfil' candidato.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-user me-1"></i>Perfil
+                                    </a>
+                                    
+                                    {% if not candidato.conseguiu_vaga %}
+                                    <a href="{% url 'vagas:empresa_selecionar_candidato' vaga.id candidato.id %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-handshake me-1"></i>Selecionar
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-outline-success" disabled>
+                                        <i class="fas fa-check me-1"></i>Selecionado
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h5>Nenhum candidato ainda</h5>
+                <p>Esta vaga ainda não recebeu candidaturas.</p>
+                {% if not vaga.ativo %}
+                <p class="text-warning">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    A vaga está inativa. Ative-a para receber candidatos.
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function contratarCandidato(candidatoId) {
+    if (confirm('Tem certeza que deseja contratar este candidato?')) {
+        fetch(`/vagas/empresa/candidato/${candidatoId}/contratar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao contratar candidato: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao contratar candidato');
+        });
+    }
+}
+
+function toggleVagaStatus(vagaId, ativar) {
+    const action = ativar ? 'ativar' : 'desativar';
+    if (confirm(`Tem certeza que deseja ${action} esta vaga?`)) {
+        fetch(`/vagas/empresa/vaga/${vagaId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ativo: ativar })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao alterar status da vaga: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erro ao alterar status da vaga');
+        });
+    }
+}
+
+// Animações e ajustes de UI
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll suave para seção de candidatos - verifica hash ou parâmetro tab
+    if (window.location.hash === '#candidatos' || '{{ show_candidatos_section }}' === 'True') {
+        setTimeout(() => {
+            const candidatosSection = document.getElementById('candidatos');
+            if (candidatosSection) {
+                candidatosSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }, 500); // Pequeno delay para garantir que a página esteja totalmente carregada
+    }
+    
+    // Animações para elementos da página
+    animateElements();
+    
+    // Garante que o layout responsivo seja ajustado corretamente
+    checkMobileLayout();
+    window.addEventListener('resize', checkMobileLayout);
+    
+    // Adiciona tooltips para elementos da UI
+    setupTooltips();
+});
+
+function animateElements() {
+    // Anima estatísticas
+    const statBoxes = document.querySelectorAll('.stat-box');
+    statBoxes.forEach((box, index) => {
+        setTimeout(() => {
+            box.style.opacity = 0;
+            box.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                box.style.transition = 'all 0.5s ease-out';
+                box.style.opacity = 1;
+                box.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 100);
+    });
+    
+    // Anima cards de candidatos
+    const candidatoCards = document.querySelectorAll('.candidato-card');
+    candidatoCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = 0;
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease-out';
+                card.style.opacity = 1;
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, 300 + index * 100);
+    });
+}
+
+function checkMobileLayout() {
+    const isMobile = window.innerWidth <= 768;
+    const content = document.querySelector('.dashboard-content');
+    
+    if (isMobile) {
+        // Ajustes específicos para mobile
+        document.querySelectorAll('.candidatos-grid').forEach(grid => {
+            grid.style.gridTemplateColumns = '1fr';
+        });
+        
+        // Ajuste para cards
+        document.querySelectorAll('.vaga-details').forEach(detail => {
+            detail.style.gridTemplateColumns = '1fr';
+        });
+    } else {
+        // Ajustes para desktop
+        document.querySelectorAll('.candidatos-grid').forEach(grid => {
+            grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(350px, 1fr))';
+        });
+        
+        document.querySelectorAll('.vaga-details').forEach(detail => {
+            detail.style.gridTemplateColumns = 'repeat(auto-fit, minmax(240px, 1fr))';
+        });
+    }
+}
+
+function setupTooltips() {
+    // Poderia ser usado para inicializar tooltips Bootstrap se necessário
+    // Por exemplo, para botões de ação que precisam de explicação
+}
+</script>
+{% endblock %}

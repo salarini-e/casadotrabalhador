@@ -1,0 +1,481 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}{{ vaga.cargo.nome }} - {{ vaga.empresa.nome }}{% endblock %}
+
+{% block css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/template.css' %}">
+<style>
+  body{
+  overflow-y: auto !important;
+  }
+:root {
+  --jobs-primary-color: #2563eb;
+  --jobs-primary-dark: #1d4ed8;
+  --jobs-secondary-color: #64748b;
+  --jobs-success-color: #10b981;
+  --jobs-warning-color: #f59e0b;
+  --jobs-danger-color: #ef4444;
+  --jobs-background-color: #f8fafc;
+  --jobs-surface-color: #ffffff;
+  --jobs-text-primary: #1e293b;
+  --jobs-text-secondary: #64748b;
+  --jobs-text-muted: #94a3b8;
+  --jobs-border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+}
+
+.detail-table {
+  border: none;
+}
+
+.detail-table td {
+  border: none;
+  padding: 0.75rem;
+  vertical-align: top;
+}
+
+.detail-table .label-col {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  width: 200px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.detail-table .value-col {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+.detail-table tr:not(:last-child) td {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.badge-custom {
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.info-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.action-buttons {
+  gap: 0.5rem;
+}
+
+.company-info {
+  background: linear-gradient(135deg, var(--jobs-primary-color), var(--jobs-primary-dark));
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.job-info {
+  background: linear-gradient(135deg, var(--jobs-primary-color), var(--jobs-primary-dark));
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header-jobs {
+  background: linear-gradient(135deg, var(--jobs-primary-color), var(--jobs-primary-dark));
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-hero {
+  border-radius: 10px;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.header-hero .card-body {
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .detail-table .label-col {
+    width: 120px;
+    font-size: 0.875rem;
+  }
+  
+  .detail-table .value-col {
+    font-size: 0.875rem;
+  }
+}
+
+.contact-info {
+  background: linear-gradient(135deg, var(--secondary-color), #1e7e6b);
+  color: white;
+  padding: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid py-4">
+  <!-- Header Principal -->
+  <div class="row mb-4" style="margin-top: 120px;">
+    <div class="col-12">
+      <div class="card header-hero">
+        <div class="card-body py-4" style="background: linear-gradient(135deg, var(--jobs-primary-color), var(--jobs-primary-dark)); color: white;">
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center">
+            <div class="text-center text-lg-start mb-3 mb-lg-0">              
+              <p class="lead mb-0">Referência: <strong>#{{ vaga.id }}</strong></p>
+            </div>
+            <div class="d-flex flex-column flex-md-row action-buttons">
+              <a href="{% url 'vagas:vagas' %}" class="btn btn-outline-light mb-2 mb-md-0">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+              </a>
+              {% if request.user.is_staff %}
+                <a href="{% url 'vagas:editar_vaga' vaga.pk %}" class="btn btn-light text-primary mb-2 mb-md-0">
+                  <i class="fas fa-edit me-1"></i>Editar Vaga
+                </a>
+                <a href="{% url 'vagas:candidatos_vaga' vaga.pk %}" class="btn btn-light text-primary mb-2 mb-md-0">
+                  <i class="fas fa-users me-1"></i>Ver Candidatos ({{ total_candidatos }})
+                </a>
+              {% endif %}
+              <a href="{% url 'vagas:candidatarse' vaga.pk %}" class="btn btn-success">
+                <i class="fas fa-paper-plane me-1"></i>CANDITADAR
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    {% if request.user.is_staff %}
+    <!-- Informações da Empresa (apenas para staff) -->
+    <div class="col-lg-6 mb-4">
+      <div class="card info-card h-100">
+        <div class="card-header company-info">
+          <h5 class="mb-0">
+            <i class="fas fa-building me-2"></i>Informações da Empresa
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table detail-table mb-0">
+            <tbody> 
+              <tr>
+                <td class="label-col">Empresa:</td>
+                <td class="value-col">
+                  <strong>{{ vaga.empresa.nome }}</strong>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col">CNPJ:</td>
+                <td class="value-col">{{ vaga.empresa.get_cnpj }}</td>
+              </tr>
+              {% if vaga.empresa.endereco %}
+              <tr>
+                <td class="label-col">Endereço:</td>
+                <td class="value-col">{{ vaga.empresa.endereco }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.empresa.bairro %}
+              <tr>
+                <td class="label-col">Bairro:</td>
+                <td class="value-col">{{ vaga.empresa.bairro }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.empresa.telefone %}
+              <tr>
+                <td class="label-col">Telefone:</td>
+                <td class="value-col">
+                  {{ vaga.empresa.telefone }}
+                  <a href="WEBEXTEL://{{ vaga.empresa.telefone }}" class="ms-2" title="Ligar">
+                    <i class="fas fa-phone text-primary"></i>
+                  </a>
+                  <a href="https://wa.me/{{ vaga.empresa.telefone }}" target="_blank" class="ms-2" title="WhatsApp">
+                    <i class="fab fa-whatsapp text-success"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endif %}
+              {% if vaga.empresa.email %}
+              <tr>
+                <td class="label-col">E-mail:</td>
+                <td class="value-col">
+                  <a href="mailto:{{ vaga.empresa.email }}">{{ vaga.empresa.email }}</a>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Informações da Vaga -->
+    <div class="{% if request.user.is_staff %}col-lg-6{% else %}col-12{% endif %} mb-4">
+      <div class="card info-card h-100">
+        <div class="card-header job-info">
+          <h5 class="mb-0">
+            <i class="fas fa-briefcase me-2"></i>{{ vaga.cargo.nome }}
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table detail-table mb-0">
+            <tbody>
+              <tr>
+                <td class="label-col">Tipo de Vaga:</td>
+                <td class="value-col">
+                  {% if vaga.tipo_de_vaga == 'NML' %}
+                    <span class="badge" style="background-color: var(--secondary-color); color: white;">Padrão</span>
+                  {% elif vaga.tipo_de_vaga == 'JAP' %}
+                    <span class="badge" style="background-color: var(--accent-color); color: white;">Jovem Aprendiz</span>
+                  {% elif vaga.tipo_de_vaga == 'PED' %}
+                    <span class="badge" style="background-color: var(--primary-color); color: white;">Pessoa com Deficiência</span>
+                  {% elif vaga.tipo_de_vaga == 'EST' %}
+                    <span class="badge" style="background-color: var(--success-color); color: white;">Estágio</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col">Escolaridade:</td>
+                <td class="value-col">{{ vaga.escolaridade.nome }}</td>
+              </tr>
+              <tr>
+                <td class="label-col">Quantidade de Vagas:</td>
+                <td class="value-col">
+                  <span class="badge" style="background-color: var(--jobs-primary-color); color: white; font-size: 0.9rem;">{{ vaga.quantidadeVagas }}</span>
+                </td>
+              </tr>
+              {% if vaga.salario %}
+              <tr>
+                <td class="label-col">Salário:</td>
+                <td class="value-col">{{ vaga.salario }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.carga_horaria %}
+              <tr>
+                <td class="label-col">Carga Horária:</td>
+                <td class="value-col">{{ vaga.carga_horaria }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.regime %}
+              <tr>
+                <td class="label-col">Regime:</td>
+                <td class="value-col">{{ vaga.regime }}</td>
+              </tr>
+              {% endif %}
+              <tr>
+                <td class="label-col">Experiência:</td>
+                <td class="value-col">
+                  {% if vaga.experiencia == 'Sim' %}
+                    <span class="badge" style="background-color: var(--danger-color); color: white;">Obrigatória</span>
+                  {% elif vaga.experiencia == 'Não' %}
+                    <span class="badge" style="background-color: var(--success-color); color: white;">Não necessária</span>
+                  {% elif vaga.experiencia == 'Des' %}
+                    <span class="badge" style="background-color: var(--warning-color); color: white;">Desejável</span>
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Descrições, Observações e Informações de Contato -->
+  <div class="row">
+    {% if vaga.atribuicoes %}
+    <div class="col-lg-4 mb-4">
+      <div class="card info-card h-100">
+        <div class="card-header card-header-jobs">
+          <h5 class="mb-0">
+            <i class="fas fa-tasks me-2"></i>Atribuições do Cargo
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="text-muted">{{ vaga.atribuicoes|linebreaksbr }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if vaga.observacao and request.user.is_staff %}
+    <div class="col-lg-4 mb-4">
+      <div class="card info-card h-100">
+        <div class="card-header card-header-jobs">
+          <h5 class="mb-0">
+            <i class="fas fa-sticky-note me-2"></i>Observações
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="text-muted">{{ vaga.observacao|linebreaksbr }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Informações de Contato da Casa do Trabalhador -->
+    <div class="{% if vaga.atribuicoes and vaga.observacao and request.user.is_staff %}col-lg-4{% elif vaga.atribuicoes or vaga.observacao and request.user.is_staff %}col-lg-8{% else %}col-12{% endif %} mb-4">
+      <div class="card info-card h-100">
+        <div class="card-header contact-info">
+          <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>Para mais informações
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table detail-table mb-0">
+            <tbody>
+              <tr>
+                <td class="label-col">Telefone 1:</td>
+                <td class="value-col">
+                  (22) 99793-5451
+                  <a href="tel:+5522997935451" class="ms-2" title="Ligar">
+                    <i class="fas fa-phone text-primary"></i>
+                  </a>
+                  <a href="https://wa.me/5522997935451" target="_blank" class="ms-2" title="WhatsApp">
+                    <i class="fab fa-whatsapp text-success"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col">Telefone 2:</td>
+                <td class="value-col">
+                  (22) 2525-9205
+                  <a href="tel:+552225259205" class="ms-2" title="Ligar">
+                    <i class="fas fa-phone text-primary"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col">Endereço:</td>
+                <td class="value-col">
+                  Av. Alberto Braune - 223 (Antiga rodoviária)
+                  <a href="https://maps.google.com/?q=Av.+Alberto+Braune+223+Nova+Friburgo" target="_blank" class="ms-2" title="Ver no Mapa">
+                    <i class="fas fa-map-marker-alt text-danger"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Informações de Controle -->
+  {% if request.user.is_staff %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card info-card">
+        <div class="card-header card-header-jobs">
+          <h5 class="mb-0">
+            <i class="fas fa-cog me-2"></i>Informações de Controle
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <table class="table detail-table mb-0">
+            <tbody>
+              <tr>
+                <td class="label-col">Cadastrada por:</td>
+                <td class="value-col">{{ vaga.user.first_name|default:vaga.user.username }}</td>
+              </tr>
+              <tr>
+                <td class="label-col">Data de Cadastro:</td>
+                <td class="value-col">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% if vaga.dt_atualizacao %}
+              <tr>
+                <td class="label-col">Última Atualização:</td>
+                <td class="value-col">{{ vaga.dt_atualizacao|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.dt_desativacao %}
+              <tr>
+                <td class="label-col">Data de Desativação:</td>
+                <td class="value-col">{{ vaga.dt_desativacao|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% endif %}
+              {% if vaga.email %}
+              <tr>
+                <td class="label-col">E-mail para Encaminhamento:</td>
+                <td class="value-col">
+                  <a href="mailto:{{ vaga.email }}">{{ vaga.email }}</a>
+                </td>
+              </tr>
+              {% endif %}
+              {% if vaga.destaque %}
+              <tr>
+                <td class="label-col">Destaque:</td>
+                <td class="value-col">
+                  <span class="badge bg-warning badge-custom">Vaga em Destaque</span>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Adicionar funcionalidade de responsividade extra se necessário
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajustar altura dos cards para ficarem iguais
+    function equalizeCardHeights() {
+        const cards = document.querySelectorAll('.info-card');
+        if (window.innerWidth >= 992) { // lg breakpoint
+            let maxHeight = 0;
+            cards.forEach(card => {
+                card.style.height = 'auto';
+                const height = card.offsetHeight;
+                if (height > maxHeight) {
+                    maxHeight = height;
+                }
+            });
+            cards.forEach(card => {
+                card.style.height = maxHeight + 'px';
+            });
+        } else {
+            cards.forEach(card => {
+                card.style.height = 'auto';
+            });
+        }
+    }
+    
+    equalizeCardHeights();
+    window.addEventListener('resize', equalizeCardHeights);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% if empresas_disponiveis %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body py-3">
+                <form method="post" id="seletorEmpresaForm" class="row align-items-center">
+                    {% csrf_token %}
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold mb-0">
+                            <i class="fas fa-building text-primary me-2"></i>Empresa Atual:
+                        </label>
+                    </div>
+                    <div class="col-md-7">
+                        <select name="empresa_id" class="form-select form-select-lg" id="empresa_select">
+                            {% for resp in empresas_disponiveis %}
+                                <option value="{{ resp.empresa.id }}" 
+                                        {% if empresa and resp.empresa.id == empresa.id %}selected{% endif %}>
+                                    {{ resp.empresa.nome }} {% if resp.empresa.cnpj %}({{ resp.empresa.cnpj }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sync-alt me-1"></i>Trocar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectEmpresa = document.getElementById('empresa_select');
+    const form = document.getElementById('seletorEmpresaForm');
+    
+    selectEmpresa.addEventListener('change', function() {
+        if (this.value !== '{{ empresa.id }}') {
+            const empresaNome = this.options[this.selectedIndex].text;
+            if (confirm('Deseja trocar para a empresa ' + empresaNome + '?')) {
+                form.submit();
+            } else {
+                this.value = '{{ empresa.id }}';
+            }
+        }
+    });
+});
+</script>
+{% endif %}

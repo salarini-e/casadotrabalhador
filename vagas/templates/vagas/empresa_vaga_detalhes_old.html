@@ -1,0 +1,512 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Vaga: {{ vaga.cargo.nome }} - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vaga-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .candidato-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .candidato-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .candidato-contratado {
+        border-left: 5px solid #28a745;
+        background: #f8fff9;
+    }
+    
+    .candidato-pendente {
+        border-left: 5px solid #007bff;
+    }
+    
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-contratado {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-pendente {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .status-online {
+        background: #cce5ff;
+        color: #004085;
+        border: 1px solid #99d6ff;
+    }
+    
+    .status-balcao {
+        background: #e2e3e5;
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
+    
+    .info-card {
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+        flex: 0 0 40%;
+    }
+    
+    .detail-value {
+        flex: 1;
+        text-align: right;
+    }
+    
+    .stats-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+    }
+    
+    .candidato-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-right: 15px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action {
+        flex: 1;
+        min-width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    {% include 'vagas/includes/seletor_empresa.html' %}
+    
+    <!-- Header da Vaga -->
+    <div class="vaga-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="d-flex align-items-center mb-2">
+                    <h1 class="mb-0 me-3">{{ vaga.cargo.nome }}</h1>
+                    {% if vaga.ativo %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check-circle me-1"></i>Ativa
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-times-circle me-1"></i>Inativa
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>
+                            {{ vaga.quantidadeVagas }} vaga{{ vaga.quantidadeVagas|pluralize }} - 
+                            R$ {{ vaga.salario|floatformat:2 }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar me-2"></i>
+                            Criada em {{ vaga.dt_inclusao|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if formulario %}
+                        <p class="mb-1">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Formulário #{{ formulario.id }} - {{ formulario.get_status_requisicao_display }}
+                        </p>
+                        {% else %}
+                        <p class="mb-1">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Vaga criada sem formulário
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar às Vagas
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas dos Candidatos -->
+    <div class="stats-section">
+        <h5 class="mb-4 text-center">
+            <i class="fas fa-chart-bar me-2"></i>Estatísticas dos Candidatos
+        </h5>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ total_candidatos }}</span>
+                    <span class="text-muted">Total</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-success">{{ candidatos_contratados }}</span>
+                    <span class="text-muted">Contratados</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-info">{{ candidatos_online }}</span>
+                    <span class="text-muted">Online</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number text-secondary">{{ candidatos_balcao }}</span>
+                    <span class="text-muted">Encaminhados</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Lista de Candidatos -->
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>
+                    <i class="fas fa-users me-2"></i>Candidatos da Vaga
+                    {% if not vaga.ativo %}
+                        <small class="text-muted">(apenas selecionados)</small>
+                    {% endif %}
+                </h4>
+                {% if vaga.ativo and total_candidatos > 0 %}
+                <a href="{% url 'vagas:empresa_encerrar_vaga' vaga.id %}" class="btn btn-warning">
+                    <i class="fas fa-times-circle me-2"></i>Encerrar Vaga
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if not vaga.ativo %}
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Vaga encerrada:</strong> São exibidos apenas os candidatos selecionados. 
+                Para ver todos os candidatos, consulte a seção administrativa.
+            </div>
+            {% endif %}
+            
+            {% for candidato in candidatos %}
+            <div class="card candidato-card {% if candidato.conseguiu_vaga %}candidato-contratado{% else %}candidato-pendente{% endif %}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="candidato-avatar">
+                                {{ candidato.nome|first|upper }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h5 class="mb-1">{{ candidato.nome }}</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-id-card me-1"></i>CPF: {{ candidato.cpf }}
+                                    </p>
+                                    {% if candidato.telefone %}
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-phone me-1"></i>{{ candidato.telefone }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-calendar me-1"></i>{{ candidato.dt_inclusao|date:"d/m/Y H:i" }}
+                                    </p>
+                                    {% if not candidato.candidato_online and candidato.funcionario_responsavel %}
+                                    <p class="text-muted small mb-1">
+                                        <i class="fas fa-user me-1"></i>Por: {{ candidato.funcionario_responsavel.get_full_name|default:candidato.funcionario_responsavel.username }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mb-2">
+                                {% if candidato.conseguiu_vaga %}
+                                    <span class="status-badge status-contratado">
+                                        <i class="fas fa-check-circle me-1"></i>Contratado
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-pendente">
+                                        <i class="fas fa-clock me-1"></i>Pendente
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="mb-2">
+                                {% if candidato.candidato_online %}
+                                    <span class="status-badge status-online">
+                                        <i class="fas fa-laptop me-1"></i>Online
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-balcao">
+                                        <i class="fas fa-user-tie me-1"></i>Encaminhado
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons mt-3">
+                        <a href="{% url 'vagas:empresa_candidato_perfil' candidato.id %}" 
+                           class="btn btn-outline-primary btn-sm btn-action">
+                            <i class="fas fa-eye me-1"></i>Ver Perfil
+                        </a>
+                        
+                        {% if candidato.curriculo_user_id %}
+                        <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                           class="btn btn-outline-info btn-sm btn-action" target="_blank">
+                            <i class="fas fa-file-pdf me-1"></i>Currículo
+                        </a>
+                        {% endif %}
+                        
+                        {% if not candidato.conseguiu_vaga and vaga.ativo %}
+                        <a href="{% url 'vagas:empresa_selecionar_candidato' vaga.id candidato.id %}" 
+                           class="btn btn-success btn-sm btn-action">
+                            <i class="fas fa-check me-1"></i>Selecionar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum candidato encontrado</h5>
+                    <p class="text-muted">Esta vaga ainda não recebeu candidaturas.</p>
+                    {% if vaga.ativo %}
+                    <p class="text-muted small">
+                        A vaga está ativa e pode receber candidaturas através do sistema público.
+                    </p>
+                    {% else %}
+                    <p class="text-muted small">
+                        Esta vaga está inativa e não recebe mais candidaturas.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Informações da Vaga -->
+        <div class="col-md-4">
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Informações da Vaga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Cargo:</span>
+                        <span class="detail-value">{{ vaga.cargo.nome }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Quantidade:</span>
+                        <span class="detail-value">{{ vaga.quantidadeVagas }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Salário:</span>
+                        <span class="detail-value">R$ {{ vaga.salario|floatformat:2 }}</span>
+                    </div>
+                    
+                    {% if vaga.escolaridade %}
+                    <div class="detail-item">
+                        <span class="detail-label">Escolaridade:</span>
+                        <span class="detail-value">{{ vaga.escolaridade.escolaridade }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vaga.turno %}
+                    <div class="detail-item">
+                        <span class="detail-label">Turno:</span>
+                        <span class="detail-value">{{ vaga.get_turno_display }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">
+                            {% if vaga.ativo %}
+                                <span class="badge bg-success">Ativa</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inativa</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Criação:</span>
+                        <span class="detail-value">{{ vaga.dt_inclusao|date:"d/m/Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if formulario %}
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Formulário Relacionado
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Número:</span>
+                        <span class="detail-value">#{{ formulario.id }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">
+                            <span class="badge bg-success">{{ formulario.get_status_requisicao_display }}</span>
+                        </span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Data:</span>
+                        <span class="detail-value">{{ formulario.dt_inclusao|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>Ver Formulário
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Ações Disponíveis -->
+            <div class="card info-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools me-2"></i>Ações Disponíveis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if vaga.ativo %}
+                        {% if total_candidatos > 0 %}
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'vagas:empresa_encerrar_vaga' vaga.id %}" 
+                               class="btn btn-warning btn-sm">
+                                <i class="fas fa-times-circle me-2"></i>Encerrar Vaga
+                            </a>
+                        </div>
+                        <hr>
+                        <p class="text-muted small mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Você pode encerrar esta vaga quando não precisar mais de candidatos.
+                        </p>
+                        {% else %}
+                        <p class="text-muted small text-center">
+                            <i class="fas fa-clock me-1"></i>
+                            Aguardando candidaturas...
+                        </p>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <p class="text-muted small mb-0">
+                                Esta vaga foi encerrada.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Confirmar ações importantes
+    $('a[href*="selecionar"], a[href*="encerrar"]').on('click', function(e) {
+        const action = $(this).text().toLowerCase();
+        if (!confirm(`Tem certeza que deseja ${action}?`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

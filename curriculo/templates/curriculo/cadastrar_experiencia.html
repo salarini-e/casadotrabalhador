@@ -1,175 +1,182 @@
-{% extends 'template.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% block title %}Experiência Profissional - Currículo{% endblock %}
 {% block css %}
 {{block.super}}
+{% load static %}
+<link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">
 {% endblock%}
 {% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<div class="row pt-5 mt-5">
-    <div class="col-8 mx-auto pt-5 mt-5">
-        {% if success.0 %}
-        <div class="row px-4 mb-3">
-            <div class="col d-flex bg-success py-2">
-                <p class="m-auto text-white">{{success.1}}</p>
-            </div>
-        </div>
-        {% endif %}                  
-        <div class="row">    
-            <div class="col d-flex">
-                <h2 class="text-start text-uppercase">EXPERIÊNCIA PROFISSIONAL</h2>
-    
-                    <span class="ms-auto"><a class="btn btn-btfl bg-primary ms-auto" href="{% url 'cv:index' %}">Voltar</a></span>
-                          
-            </div>
-        </div>
-        <form id="form_cadastro_vaga" {% if tipo_cadastro != '' %}method="post"{% endif %} class="form w-100 text-start mt-3">
-            <div class="row">
-                <div class="col pt-3">
-                    <h4 class="px-4">Nova experiência:</h4>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col pt-3 px-5">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {% bootstrap_form form %}
-                        <button type="submit" class="btn btn-primary text-white w-100 mt-3">
-                        CADASTRAR NOVA EXPERIÊNCIA
-                        </button>
-                    </form>
-                </div>      
-            </div>   
-            <div class="row">
-                <div class="col pt-4 pb-5 mb-5">
-                    <h2>Experiências cadastradas</h2>
-                    <ul>
-                        {% for item in experiencias %}
-                            <li class="d-flex">
-                                <div class="border mx-auto p-3" style="background-color: white; border-radius: 12px;">
-                                    <div class="mb-2">
-                                        <p><strong>{{ item.instituicao }}</strong></p>
-                                        <p>{{ item.curso }}</p>
-                                        <p>{{ item.periodo }}</p>
-                                    </div>
-                                    <form method="post" action="{% url 'cv:excluir_experiencia' item.id %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="w-100  btn btn-btfl mx-auto">Excluir item</button>
-                                    </form>
-                                </div>
-                            </li>
-                            {% if empty %}
-                                Nada cadastrado
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-    </div>
-</div> 
-    <style>
-        #form_cadastro_vaga ul, li{
-            list-style: none;
-        }
-        #form_cadastro_vaga button:hover{
-            background-color: #329787 !important;
-            border-color: #329787;
-            color: white !important;
-        }
-        #form_cadastro button, .btn-primary{
-            background-color: #329787 !important;
-            border-color: #329787;
-        }
-        #id_ativo{
-            opacity: 0;
-        }
-        .form-check{
-            display: flex;            
-        }
-        .form-switch span{
-            margin-left: 10px;
-            padding-top: 4px;
-        }
-
-        .form-switch .form-check-input{
-            margin-left: 0;
-        }
-        .form-check-input:checked[type=checkbox]{
-            background-color:#329787;
-        }
-        ul, li{
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-</form>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script>
-    function searchVaga(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getVaga(e.value)
-        }        
-    }    
-    function searchEmpresa(e){        
-        if (3<=String(e.value).length){
-            // console.log('buscando '+e.value)
-            getEmpresa(e.value)
-        }        
-    }    
-    function getEmpresa(value){
-        var url = '/get_empresa/';  
-        $.ajax({ 
-            url: url,
-            data: {
-                'empresa': value,
-            },
-            success: function(data) {                               
-                $("#search_empresa_result").html(data);
-            }
-        });                
-    };
-    function getVaga(value){
-        var url = '/get_vaga/';         
-        $.ajax({ 
-            url: url,
-            data: {
-                'vaga': value,
-            },
-            success: function(data) {                               
-                $("#search_vaga_result").html(data);
-            }
-        });                
-    };
-    function selectThisVaga(e){
-        document.getElementById('id_vaga').value=e.value
-        document.getElementById('search_vaga_result').innerHTML=''
-    }
-    function selectThisEmpresa(e){
-        document.getElementById('id_empresa').value=e.value
-        document.getElementById('search_empresa_result').innerHTML=''
-    }
-</script>
-{% if visualizar %}
 <style>
-#form_cadastro_vaga{
-    background-color: white;
-    border-radius: 20px;
-}
-label{
-    font-weight: 600;
-}
-.form-control{
-    margin-bottom: 10px !important;
-    margin-top: 5px !important;
-}
-.bg-light{
-    border-radius: 30px !important;
-    background-color: white !important;
-    border-color: rgba(116, 116, 116, 0.112) !important;
-}
+    .experience-item{
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .experience-item:hover{
+        background-color: #acb4c598;
+    }
 </style>
-{% endif %}
+<div class="form-container" style="margin-top: 120px;">
+    <div class="container-fluid px-4">
+        <!-- Success Message -->
+        {% if success.0 %}
+        <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <div>{{success.1}}</div>
+        </div>
+        {% endif %}
+        
+        <!-- Header Section -->
+        <div class="form-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <h1 class="form-title">
+                    <i class="fas fa-briefcase me-2"></i>
+                    Experiência Profissional
+                </h1>
+                
+                <div class="form-actions-header">
+                    <a class="btn btn-primary" href="{% url 'cv:index' %}">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Voltar ao Currículo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Form Section -->
+            <div class="col-lg-6">
+                <div class="form-card">
+                    <div class="form-content">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3 class="form-section-title">
+                                    <i class="fas fa-plus-circle me-2"></i>
+                                    Adicionar Experiência
+                                </h3>
+                            </div>
+                            
+                            <form method="POST" class="form-fields">
+                                {% csrf_token %}
+                                
+                                {% for field in form %}
+                                    <div class="form-field-group">
+                                        <label class="form-label" for="{{field.id_for_label}}">
+                                            {{field.label}}
+                                            {% if field.field.required %}
+                                                <span class="required-asterisk">*</span>
+                                            {% endif %}
+                                        </label>
+                                        {{field|add_class:"form-control"}}
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in field.errors %}
+                                                    {{error}}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{field.help_text}}</small>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                                
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        Salvar Experiência
+                                    </button>
+                                    <a href="{% url 'cv:index' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="col-lg-6">
+                <div class="form-card">
+                    <div class="form-content">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3 class="form-section-title">
+                                    <i class="fas fa-list me-2"></i>
+                                    Experiências Cadastradas
+                                </h3>
+                            </div>
+                            
+                            {% if experiencias %}
+                                <div class="experience-list">
+                                    {% for item in experiencias %}
+                                    <div class="experience-item w-100 d-flex">
+                                        <div class="experience-content w-100">
+                                            <h5 class="experience-title">{{item.cargo}} - {{item.empresa}}</h5>
+                                            
+                                            {% if item.periodo %}
+                                            <p class="experience-period">
+                                                {{item.periodo}}
+                                            </p>
+                                            {% endif %}
+                                            {% if item.descricao %}
+                                            <p class="experience-description" style="margin-bottom: 0px;">
+                                                {{item.descricao}}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="experience-actions">
+                                            <a href="{% url 'cv:excluir_experiencia' item.id %}" 
+                                               class="ms-auto text-danger"
+                                               onclick="return confirm('Tem certeza que deseja remover esta experiência?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    <h4>Nenhuma experiência cadastrada</h4>
+                                    <p>Adicione sua primeira experiência profissional usando o formulário ao lado.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+                }
+            });
+        }
+
+        // Add smooth scrolling to form errors
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        if (invalidFields.length > 0) {
+            invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            invalidFields[0].focus();
+        }
+    });
+</script>
+
 {% endblock %}

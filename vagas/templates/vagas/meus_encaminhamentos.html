@@ -1,56 +1,422 @@
-{% extends 'template.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
-{% block css %}
-{{block.super}}
-{% endblock%}
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Meus Encaminhamentos{% endblock %}
+
 {% block main %}
-{% load widget_tweaks %}   
-{% load bootstrap5 %}  
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<div class="row pt-5 mt-5">
-    <div class="col-8 mx-auto pt-5 mt-5">
-        {% if success.0 %}
-        <div class="row px-4 mb-3">
-            <div class="col d-flex bg-success py-2">
-                <p class="m-auto text-white">{{success.1}}</p>
+<div class="container px-4" style="margin-top: 180px;">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-user-check me-2"></i>
+                        Meus Encaminhamentos
+                    </h1>
+                    <p class="text-muted mb-0">Acompanhe suas candidaturas e encaminhamentos</p>
+                </div>
+                <div class="div-vaga-container-links d-flex">
+                    {% if request.user.is_authenticated %}
+                        <a class="btn btn-primary ms-auto my-auto" style="width: auto !important;"
+                          href="{% url 'vagas:vagas' %}">
+                          <i class="fas fa-briefcase me-1"></i>
+                          Vagas
+                        </a>
+                        <a class="btn btn-primary ms-1 me-1 my-auto" href="{% url 'cv:index' %}">
+                          <i class="fas fa-file-alt me-1"></i>
+                          Currículo
+                        </a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                        <span>
+                            <a class="btn btn-primary me-2" href="{% url 'vagas:imprimir' %}"><i class="fas fa-print"></i></a>
+                            {% if request.user.is_superuser %}
+                            <span class="ms-0">
+                                <a class="ms-0 btn btn-success text-light me-2" href="{% url 'vagas:exportar_vagas' %}">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </a>
+                            </span>
+                            {% endif %}
+                        </span>
+                        <a class="btn btn-primary" style="width: auto !important;" href="{% url 'vagas:cadastrar' %}">
+                            <i class="fas fa-plus me-1"></i>
+                            CADASTRAR
+                        </a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        {% endif %}                  
-        <div class="row mb-5">    
-            <div class="col d-flex w-100 text-center flex-column py-5 my-5">
-                <h2 class="text-uppercase">Meus encaminhamentos</h2>
-                <!-- listar encaminhamentos -->
-                <div class="row mt-5">
-                    <div class="col">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Vaga</th>
-                                    <th scope="col">Data</th>
-                                    <th scope="col">Encaminhamento</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for encaminhamento in encaminhamentos %}
-                                <tr>
-                                    <td>
-                                        <a target="_blank" href="{% url 'vagas:visualizar_vaga' encaminhamento.vaga.id %}">
-                                            {{encaminhamento.vaga.cargo}}
+
+            {% if encaminhamentos %}
+
+                <div class="row">
+                    {% for encaminhamento in encaminhamentos %}
+                        <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+                            <div class="card h-100 shadow-sm border-0 encaminhamento-card">
+                                <div class="card-header bg-white border-0 pb-0">
+                                    <div class="d-flex justify-content-between align-items-start">                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">
+                                <i class="fas fa-briefcase me-2"></i>
+                                {{ encaminhamento.vaga.cargo.nome }}
+                            </h5>
+                            {% if request.user.is_staff or not encaminhamento.vaga.empresa.ocultar %}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-building me-2"></i>
+                                    {{ encaminhamento.vaga.empresa.nome }}
+                                </p>
+                            {% endif %}
+                        </div>                        <div class="text-end">
+                            {% if not encaminhamento.vaga.ativo %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle me-1"></i>
+                                    Encerrado
+                                </span>
+                            {% endif %}
+                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body pt-2">
+                                    <div class="row g-2 mb-3">
+                                        {% if encaminhamento.vaga.salario %}
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-dollar-sign text-success me-2"></i>
+                                                    <small class="text-muted">{{ encaminhamento.vaga.salario }}</small>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if encaminhamento.vaga.carga_horaria %}
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-clock text-primary me-2"></i>
+                                                    <small class="text-muted">{{ encaminhamento.vaga.carga_horaria }}</small>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-graduation-cap text-info me-2"></i>
+                                                <small class="text-muted">{{ encaminhamento.vaga.escolaridade }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-users text-warning me-2"></i>
+                                                <small class="text-muted">{{ encaminhamento.vaga.quantidadeVagas }} vaga{{ encaminhamento.vaga.quantidadeVagas|pluralize }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {% if encaminhamento.vaga.experiencia %}
+                                        <div class="mb-3">
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-user-tie me-1"></i>
+                                                Experiência: {{ encaminhamento.vaga.get_experiencia_display }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if encaminhamento.vaga.tipo_de_vaga != 'NML' %}
+                                        <div class="mb-3">
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-star me-1"></i>
+                                                {{ encaminhamento.vaga.get_tipo_de_vaga_display }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Encaminhado em: {{ encaminhamento.dt_inclusao|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+
+                                    {% if encaminhamento.dt_aquisicao %}
+                                        <div class="mb-3">
+                                            <small class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Vaga conquistada em: {{ encaminhamento.dt_aquisicao }}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-white border-0 pt-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            {% if encaminhamento.candidato_online %}
+                                                <span class="badge bg-success bg-opacity-25 text-success">
+                                                    <i class="fas fa-globe me-1"></i>
+                                                    Online
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-primary bg-opacity-25 text-primary">
+                                                    <i class="fas fa-building me-1"></i>
+                                                    Presencial
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#encaminhamentoModal{{ encaminhamento.id }}">
+                                                <i class="fas fa-eye me-1"></i>
+                                                Detalhes
+                                            </button>
+                                            <a href="{% url 'vagas:encaminhamento' encaminhamento.id 0 %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-print me-1"></i>
+                                                Imprimir
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal para detalhes do encaminhamento -->
+                        <div class="modal fade" id="encaminhamentoModal{{ encaminhamento.id }}" tabindex="-1" aria-labelledby="encaminhamentoModalLabel{{ encaminhamento.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="encaminhamentoModalLabel{{ encaminhamento.id }}">
+                                            <i class="fas fa-briefcase me-2"></i>
+                                            {{ encaminhamento.vaga.cargo.nome }}
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">                                    <div class="row">
+                                        <!-- <div class="col-md-6">
+                                            <h6 class="text-primary mb-3">
+                                                <i class="fas fa-building me-2"></i>
+                                                Informações da Empresa
+                                            </h6>
+                                            {% if request.user.is_staff or not encaminhamento.vaga.empresa.ocultar %}
+                                                <p><strong>Nome:</strong> {{ encaminhamento.vaga.empresa.nome }}</p>
+                                                {% if encaminhamento.vaga.empresa.endereco %}
+                                                    <p><strong>Endereço:</strong> {{ encaminhamento.vaga.empresa.endereco }}</p>
+                                                {% endif %}
+                                                {% if encaminhamento.vaga.empresa.bairro %}
+                                                    <p><strong>Bairro:</strong> {{ encaminhamento.vaga.empresa.bairro }}</p>
+                                                {% endif %}
+                                                {% if encaminhamento.vaga.empresa.telefone %}
+                                                    <p><strong>Telefone:</strong> {{ encaminhamento.vaga.empresa.telefone }}</p>
+                                                {% endif %}
+                                            {% else %}
+                                                <p class="text-muted">
+                                                    <i class="fas fa-eye-slash me-1"></i>
+                                                    Informações da empresa ocultas
+                                                </p>
+                                            {% endif %}
+                                        </div> -->
+                                            <div class="col-md-6">
+                                                <h6 class="text-primary mb-3">
+                                                    <i class="fas fa-briefcase me-2"></i>
+                                                    Detalhes da Vaga
+                                                </h6>
+                                                <p><strong>Cargo:</strong> {{ encaminhamento.vaga.cargo.nome }}</p>
+                                                {% if encaminhamento.vaga.salario %}
+                                                    <p><strong>Salário:</strong> {{ encaminhamento.vaga.salario }}</p>
+                                                {% endif %}
+                                                {% if encaminhamento.vaga.carga_horaria %}
+                                                    <p><strong>Carga Horária:</strong> {{ encaminhamento.vaga.carga_horaria }}</p>
+                                                {% endif %}
+                                                {% if encaminhamento.vaga.regime %}
+                                                    <p><strong>Regime:</strong> {{ encaminhamento.vaga.regime }}</p>
+                                                {% endif %}
+                                                <p><strong>Escolaridade:</strong> {{ encaminhamento.vaga.escolaridade }}</p>
+                                                <p><strong>Experiência:</strong> {{ encaminhamento.vaga.get_experiencia_display }}</p>
+                                                <p><strong>Quantidade de Vagas:</strong> {{ encaminhamento.vaga.quantidadeVagas }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if encaminhamento.vaga.atribuicoes %}
+                                            <hr>
+                                            <h6 class="text-primary mb-3">
+                                                <i class="fas fa-tasks me-2"></i>
+                                                Atribuições
+                                            </h6>
+                                            <p>{{ encaminhamento.vaga.atribuicoes|linebreaks }}</p>
+                                        {% endif %}
+                                        
+                                        {% if encaminhamento.vaga.observacao %}
+                                            <hr>
+                                            <h6 class="text-primary mb-3">
+                                                <i class="fas fa-info-circle me-2"></i>
+                                                Observações
+                                            </h6>
+                                            <p>{{ encaminhamento.vaga.observacao|linebreaks }}</p>
+                                        {% endif %}
+
+                                        {% if not encaminhamento.vaga.ativo %}
+                                            <hr>
+                                            <h6 class="text-primary mb-3">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                Vaga Encerrada
+                                            </h6>
+                                            <div class="alert alert-danger" role="alert">
+                                                <i class="fas fa-times-circle me-2"></i>
+                                                Esta vaga foi encerrada.
+                                                {% if encaminhamento.vaga.dt_desativacao %}
+                                                    <br><strong>Data de Encerramento:</strong> {{ encaminhamento.vaga.dt_desativacao|date:"d/m/Y" }}
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+
+                                        <hr>
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Informações do Encaminhamento
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Data do Encaminhamento:</strong> {{ encaminhamento.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Tipo:</strong> 
+                                                    {% if encaminhamento.candidato_online %}
+                                                        <span class="badge bg-success">Online</span>
+                                                    {% else %}
+                                                        <span class="badge bg-primary">Presencial</span>
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                        <a href="{% url 'vagas:encaminhamento' encaminhamento.id 0 %}" target="_blank" class="btn btn-primary">
+                                            <i class="fas fa-print me-1"></i>
+                                            Imprimir Encaminhamento
                                         </a>
-                                    </td>
-                                    <td>{{encaminhamento.dt_inclusao|date:"d/m/Y"}}</td>
-                                    <td>
-                                        <a target="_blank" href="{% url 'vagas:encaminhamento' encaminhamento.id 0 %}">
-                                            <i class="fa-solid fa-print"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-briefcase fa-4x text-muted mb-3"></i>
+                                    <h4 class="text-muted">Nenhum encaminhamento encontrado</h4>
+                                    <p class="text-muted">Você ainda não possui encaminhamentos para vagas.</p>
+                                </div>
+                                <div>
+                                    <a href="{% url 'vagas:vagas' %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-search me-2"></i>
+                                        Explorar Vagas Disponíveis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-            </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<style>
+    .encaminhamento-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .encaminhamento-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15)!important;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        color: #ffffff;
+        padding: 10px 15px 15px 15px;
+    }
+    .card-header .text-muted{
+        color: #bdbcbc !important;
+    }
+    .badge {
+        font-size: 0.75rem;
+    }
+
+    .text-primary {
+        color: #0d6efd !important;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-warning {
+        color: #ffc107 !important;
+    }
+
+    .text-info {
+        color: #0dcaf0 !important;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .modal-header .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .shadow-sm {
+        box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075)!important;
+    }
+    
+    .div-vaga-container-links {
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .div-vaga-container-links .btn {
+        white-space: nowrap;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding: 0 15px;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .h3 {
+            font-size: 1.5rem;
+        }
+        
+        .encaminhamento-card {
+            margin-bottom: 1rem;
+        }
+        
+        .div-vaga-container-links {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .div-vaga-container-links .btn {
+            margin: 0.25rem 0;
+        }
+    }
+</style>
 {% endblock %}  

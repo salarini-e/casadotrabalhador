@@ -1,0 +1,193 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Acesso ao Formulário{% endblock %}
+
+{% block main %}
+<div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-lg-5 pt-5 mt-4 col-md-7">
+            <div class="top-5 card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-key me-2"></i>
+                        Acesso ao Formulário
+                    </h3>                    
+                </div>
+                
+                <div class="card-body p-5 pt-3">
+                    <!-- Mensagens de feedback -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {% if message.tags == 'error' %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle me-2"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Informações do Formulário -->
+                    <div class="alert mb-4">                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="mb-2"><strong>ID do Formulário:</strong></p>
+                                <code class="text-primary">{{ hash_id }}</code>
+                            </div>
+                            <!-- <div class="col-md-6">
+                                {% if requisicao.nome_da_empresa and requisicao.nome_da_empresa != 'A definir' %}
+                                    <p class="mb-2"><strong>Empresa:</strong></p>
+                                    <span class="text-success">{{ requisicao.nome_da_empresa }}</span>
+                                {% endif %}
+                            </div> -->
+                        </div>
+                        <hr class="my-2">
+                        <p class="mb-0 small">Para acessar este formulário, digite a <strong>chave de acesso</strong> fornecida pela Casa do Trabalhador.</p>
+                    </div>
+
+                    <!-- Instruções -->
+                    <div class="alert mb-4">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-key me-2"></i>
+                            Como funciona?
+                        </h6>
+                        <ol class="mb-0 small">
+                            <li>Você recebeu este <strong>link único</strong> com o ID do formulário</li>
+                            <li>Digite a <strong>chave de acesso</strong> que foi enviada separadamente</li>
+                            <li>Após a autenticação, você poderá preencher ou visualizar o formulário</li>
+                        </ol>
+                    </div>
+
+                    <!-- Formulário de Autenticação -->
+                    <form method="POST" id="formAutenticacao">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="chave_acesso" class="form-label fw-bold">
+                                <i class="fas fa-key me-2 text-primary"></i>
+                                Chave de Acesso
+                            </label>
+                            <div class="input-group">
+                                <input type="password" 
+                                       class="form-control form-control-lg" 
+                                       id="chave_acesso" 
+                                       name="chave_acesso" 
+                                       placeholder="Digite sua chave de acesso"
+                                       required
+                                       autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Digite exatamente como foi fornecida
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-unlock me-2"></i>
+                                Acessar Formulário
+                            </button>
+                        </div>
+                    </form>                    
+                </div>
+                
+                <div class="card-footer text-center bg-light">
+                    <small class="text-muted">
+                        <i class="fas fa-building me-1"></i>
+                        Casa do Trabalhador - Sistema de Requisição de Vagas
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.bg-light {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 2rem !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formAutenticacao');
+    const chaveInput = document.getElementById('chave_acesso');
+    const toggleBtn = document.getElementById('togglePassword');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    // Foco automático no campo
+    chaveInput.focus();
+    
+    // Toggle password visibility
+    toggleBtn.addEventListener('click', function() {
+        if (chaveInput.type === 'password') {
+            chaveInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            chaveInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+    
+    // Animação no submit
+    form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Validando...';
+        submitBtn.disabled = true;
+    });
+    
+    // Limpar espaços em branco ao digitar
+    chaveInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.trim();
+    });
+});
+</script>
+
+{% endblock %}

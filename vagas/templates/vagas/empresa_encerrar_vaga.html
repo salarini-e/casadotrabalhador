@@ -1,0 +1,325 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Encerrar Vaga - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .encerramento-header {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .vaga-card {
+        border: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        flex: 0 0 30%;
+    }
+    
+    .info-value {
+        flex: 1;
+        text-align: right;
+        font-weight: 500;
+    }
+    
+    .warning-box {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .info-box {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn-large {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        min-width: 150px;
+    }
+    
+    .encerramento-icon {
+        font-size: 4rem;
+        color: #ffc107;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    {% include 'vagas/includes/seletor_empresa.html' %}
+    
+    <!-- Header de Encerramento -->
+    <div class="encerramento-header text-center">
+        <div class="encerramento-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h1 class="mb-2">Encerrar Vaga</h1>
+        <p class="mb-0 fs-5">Solicite o encerramento desta vaga</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Informações da Vaga -->
+            <div class="card vaga-card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-briefcase me-2"></i>Informações da Vaga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <span class="info-label">Cargo:</span>
+                        <span class="info-value text-primary fw-bold">{{ vaga.cargo.nome }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Empresa:</span>
+                        <span class="info-value">{{ empresa.nome_fantasia }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Salário:</span>
+                        <span class="info-value text-success fw-bold">R$ {{ vaga.salario|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Vagas Totais:</span>
+                        <span class="info-value">{{ vaga.quantidadeVagas }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Candidatos:</span>
+                        <span class="info-value">{{ vaga.candidato_set.count }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Contratações:</span>
+                        <span class="info-value">{{ vaga.candidato_set.filter:conseguiu_vaga=True.count }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Criação:</span>
+                        <span class="info-value">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Informações sobre o Processo -->
+            {% if formulario %}
+            <div class="info-box">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x text-info me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Vaga com Formulário</h6>
+                        <p class="mb-0">
+                            Esta vaga possui um formulário associado (#{{ formulario.id }}). 
+                            A solicitação de encerramento será enviada para análise da administração.
+                            Você receberá uma resposta sobre a solicitação.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="warning-box">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Vaga sem Formulário</h6>
+                        <p class="mb-0">
+                            Esta vaga não possui um formulário associado. 
+                            Ela será <strong>encerrada imediatamente</strong> após a confirmação.
+                            Esta ação não pode ser desfeita.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Formulário de Encerramento -->
+            <div class="form-section">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="observacao" class="form-label fw-bold">
+                            <i class="fas fa-comment me-2"></i>
+                            {% if formulario %}
+                                Motivo da Solicitação de Encerramento
+                            {% else %}
+                                Motivo do Encerramento
+                            {% endif %}
+                        </label>
+                        <textarea 
+                            class="form-control" 
+                            id="observacao" 
+                            name="observacao" 
+                            rows="4" 
+                            placeholder="Descreva o motivo do encerramento da vaga..."
+                            {% if not formulario %}required{% endif %}
+                        ></textarea>
+                        <div class="form-text">
+                            {% if formulario %}
+                                Explique por que a vaga deve ser encerrada. Esta informação será enviada para análise.
+                            {% else %}
+                                Forneça uma breve explicação sobre o motivo do encerramento (obrigatório).
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Exemplos de Motivos -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Exemplos de motivos comuns:</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        Todas as vagas foram preenchidas
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-users text-info me-2"></i>
+                                        Candidatos selecionados internamente
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-pause text-warning me-2"></i>
+                                        Processo suspenso temporariamente
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="fas fa-times text-danger me-2"></i>
+                                        Vaga cancelada pela empresa
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-edit text-primary me-2"></i>
+                                        Alteração nos requisitos
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="fas fa-clock text-secondary me-2"></i>
+                                        Prazo de contratação expirado
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" 
+                           class="btn btn-outline-secondary btn-large">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        
+                        <button type="submit" class="btn btn-warning btn-large">
+                            <i class="fas fa-times-circle me-2"></i>
+                            {% if formulario %}
+                                Solicitar Encerramento
+                            {% else %}
+                                Encerrar Vaga
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Informações Adicionais -->
+            <div class="text-center">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" 
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>Ver Candidatos
+                    </a>
+                    
+                    {% if formulario %}
+                    <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" 
+                       class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-file-alt me-1"></i>Ver Formulário
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Confirmação antes de enviar
+    $('form').on('submit', function(e) {
+        const isFormulario = {% if formulario %}true{% else %}false{% endif %};
+        const message = isFormulario ? 
+            'Tem certeza que deseja solicitar o encerramento desta vaga?' :
+            'Tem certeza que deseja encerrar esta vaga? Esta ação não pode ser desfeita.';
+        
+        if (!confirm(message)) {
+            e.preventDefault();
+        }
+    });
+    
+    // Sugestões de texto ao clicar nos exemplos
+    $('.list-unstyled li').on('click', function() {
+        const texto = $(this).text().trim();
+        const textarea = $('#observacao');
+        const valorAtual = textarea.val();
+        
+        if (valorAtual.length === 0) {
+            textarea.val(texto);
+        } else {
+            textarea.val(valorAtual + '\n' + texto);
+        }
+        
+        textarea.focus();
+    });
+});
+</script>
+{% endblock %}

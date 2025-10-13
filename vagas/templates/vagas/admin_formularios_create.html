@@ -1,0 +1,223 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Novo Formulário{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-plus me-2"></i>
+          Novo Formulário
+        </h1>
+        <p class="page-subtitle">Criar formulário para empresa preencher</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          {% if origem == 'empresa' and empresa_id %}
+            <a href="{% url 'vagas:empresa_profile' empresa_id %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil da Empresa
+            </a>
+          {% else %}
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar aos Formulários
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-file-plus me-2"></i>Dados Iniciais do Formulário
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Mensagens de feedback -->
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                      <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% else %}
+                      <i class="fas fa-check-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+
+              <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                  {% if empresa_selecionada %}
+                    <!-- Informação da empresa selecionada -->
+                    <div class="col-12">
+                      <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Empresa selecionada:</strong> {{ empresa_selecionada.nome }} - {{ empresa_selecionada.get_cnpj }}
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <!-- Chave de Acesso Personalizada -->
+                  <div class="col-12">
+                    <label for="chave_de_acesso" class="form-label">
+                      <i class="fas fa-key me-1"></i>Chave de Acesso *
+                    </label>
+                    <input type="text" class="form-control" id="chave_de_acesso" 
+                           name="chave_de_acesso" placeholder="Digite uma chave de acesso única" required>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Esta chave será usada para gerar o link único do formulário
+                    </div>
+                  </div>
+
+                  <!-- Nome da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="nome_da_empresa" class="form-label">
+                      <i class="fas fa-building me-1"></i>Nome da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="nome_da_empresa" 
+                           name="nome_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.nome }}{% endif %}"
+                           placeholder="A empresa pode preencher depois">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- CNPJ (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="cnpj_da_empresa" class="form-label">
+                      <i class="fas fa-id-card me-1"></i>CNPJ (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="cnpj_da_empresa" 
+                           name="cnpj_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.cnpj }}{% endif %}"
+                           placeholder="00.000.000/0000-00">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- Email da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="email_da_empresa" class="form-label">
+                      <i class="fas fa-envelope me-1"></i>Email da Empresa (opcional)
+                    </label>
+                    <input type="email" class="form-control" id="email_da_empresa" 
+                           name="email_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.email }}{% endif %}"
+                           placeholder="email@empresa.com">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- Telefone da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="telefone_da_empresa" class="form-label">
+                      <i class="fas fa-phone me-1"></i>Telefone da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="telefone_da_empresa" 
+                           name="telefone_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.telefone }}{% endif %}"
+                           placeholder="(00) 00000-0000">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- Endereço da Empresa (Opcional) -->
+                  <div class="col-12">
+                    <label for="endereco_da_empresa" class="form-label">
+                      <i class="fas fa-map-marker-alt me-1"></i>Endereço da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="endereco_da_empresa" 
+                           name="endereco_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.endereco }}{% endif %}"
+                           placeholder="Endereço completo da empresa">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+
+                  <!-- WhatsApp da Empresa (Opcional) -->
+                  <div class="col-md-6">
+                    <label for="whatsapp_da_empresa" class="form-label">
+                      <i class="fab fa-whatsapp me-1"></i>WhatsApp da Empresa (opcional)
+                    </label>
+                    <input type="text" class="form-control" id="whatsapp_da_empresa" 
+                           name="whatsapp_da_empresa" 
+                           value="{% if empresa_selecionada %}{{ empresa_selecionada.whatsapp }}{% endif %}"
+                           placeholder="(00) 00000-0000">
+                    <div class="form-text">Se não informar, a empresa preencherá no formulário</div>
+                  </div>
+                </div>
+
+                <!-- Info Box -->
+                <div class="alert alert-info mt-4">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Como funciona?
+                  </h6>
+                  <ul class="mb-0">
+                    <li><strong>Chave de acesso:</strong> Único campo obrigatório, será usada para gerar o link</li>
+                    <li><strong>Dados da empresa:</strong> Opcionais - a empresa pode preencher depois</li>
+                    <li><strong>Hash único:</strong> Será gerado automaticamente para segurança</li>
+                    <li><strong>Link público:</strong> Será criado para enviar à empresa</li>
+                    <li><strong>Status:</strong> Começará como "Aguardando" até a empresa preencher</li>
+                  </ul>
+                </div>
+
+                <!-- Botões -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                  <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary me-md-2">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Criar Formulário
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Máscara para CNPJ
+document.getElementById('cnpj_da_empresa').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}

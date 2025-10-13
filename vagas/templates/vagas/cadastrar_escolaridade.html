@@ -1,9 +1,54 @@
-{% extends 'base_site.html' %}
+{% extends 'template_new.html' %}
+{% load static %}
 {% block title %}{{tipo_cadastro}} Vaga{% endblock %}
 {% block css %}
 {{block.super}}
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Logo">
+                <h3>Painel Admin</h3>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="/painel_administrativo"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="/pesquisar_candidatos"><i class="fas fa-search"></i> <span>Pesquisar Candidatos</span></a></li>
+                <li><a href="/excluir_cpf"><i class="fas fa-user-minus"></i> <span>Excluir CPF</span></a></li>
+                <li><a href="/infoempresa"><i class="fas fa-building"></i> <span>Info Empresa</span></a></li>
+                <li><a href="/emails"><i class="fas fa-envelope"></i> <span>Emails</span></a></li>
+                <li><a href="/vagas-com-candidatos"><i class="fas fa-briefcase"></i> <span>Vagas com Candidatos</span></a></li>
+                <li><a href="/candidatos-por-funcionarios"><i class="fas fa-users"></i> <span>Candidatos por Funcionário</span></a></li>
+                <li><a href="/cadastrar-cargo"><i class="fas fa-plus-circle"></i> <span>Cadastrar Cargo</span></a></li>
+                <li class="active"><a href="/cadastrar-escolaridade"><i class="fas fa-graduation-cap"></i> <span>Cadastrar Escolaridade</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h2>{{ tipo_cadastro }} Escolaridade</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-info">
+                    <span>Admin</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content" style="padding: 20px;">
 {% load widget_tweaks %}   
 {% load bootstrap5 %} 
 {% if success.0 %}
@@ -32,15 +77,28 @@
                 <label class="text-uppercase" for="id_{{f.name}}">{{f.label}}:</label>        
             {% endif %}
             {% if f.errors %}
-                {{f|add_class:'form-control  my-2 is-invalid'}}
-            {% elif f.name == 'destaque' %}
-            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
-                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
-                <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
-            </div>
+                {% if f.name == 'destaque' %}
+                <div class="form-check form-switch">
+                    {{f|add_class:'form-check-input is-invalid'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                    <label class="form-check-label" for="id_{{f.name}}">
+                        <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+                    </label>
+                </div>
+                {% else %}
+                    {{f|add_class:'form-control my-2 is-invalid'}}
+                {% endif %}
             {% else %}
-                {{f|add_class:'form-control bg-light my-2'}}
-            {% endif  %}
+                {% if f.name == 'destaque' %}
+                <div class="form-check form-switch">
+                    {{f|add_class:'form-check-input'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=destacar()"}}
+                    <label class="form-check-label" for="id_{{f.name}}">
+                        <span id="span_destaque">{% if f.value %}Sim, destacar.{% else %}Não destacar.{% endif %}</span>
+                    </label>
+                </div>
+                {% else %}
+                    {{f|add_class:'form-control bg-light my-2'}}
+                {% endif %}
+            {% endif %}
             <div class="invalid-feedback mb-2">
                 {{f.errors}}
             </div>
@@ -51,42 +109,7 @@
             </button>
 
         </div>      
-    </div>    
-    <style>
-        #form_cadastro_vaga ul, li{
-            list-style: none;
-        }
-        #form_cadastro_vaga button:hover{
-            background-color: #329787 !important;
-            border-color: #329787
-            color: white !important;
-        }
-        #form_cadastro button, .btn-primary{
-            background-color: #329787 !important;
-            border-color: #329787;
-        }
-        #id_ativo{
-            opacity: 0;
-        }
-        .form-check{
-            display: flex;            
-        }
-        .form-switch span{
-            margin-left: 10px;
-            padding-top: 4px;
-        }
-
-        .form-switch .form-check-input{
-            margin-left: 0;
-        }
-        .form-check-input:checked[type=checkbox]{
-            background-color:#329787;
-        }
-        ul, li{
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+    </div>
 </form>
 <script>
     function destacar(){
@@ -98,6 +121,15 @@
         }
     }
 </script>
+        </div>
+    </div>
+</div>
 
+<script>
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+    document.querySelector('.main-content').classList.toggle('content-expanded');
+});
+</script>
 
 {% endblock %}

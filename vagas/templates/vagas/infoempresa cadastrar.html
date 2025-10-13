@@ -1,0 +1,539 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% load widget_tweaks %}  
+{% load bootstrap5 %} 
+{% block title %}Informações da Empresa{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
+
+{% block head_js %}
+<script src="{% static 'assets/js/modal.js' %}"></script>
+{% endblock %}
+
+{% block main %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-building me-2"></i>
+          Informações da Empresa
+        </h1>
+        <p class="page-subtitle">Informações de empresas cadastradas</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:empresa_info' %}" style="color: #636364;" title="Atualizar dados">
+            Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+
+<div class="row">
+  <div class="col p-5">
+
+  
+
+    <!-- Companies Table -->
+    <div class="table-section mt-4">
+        <div class="modern-card">
+            <div class="card-header p-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>Cadastrar Empresa
+                </h5>
+
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <form id="form_cadastro_vaga" method="post" class="form w-100 text-start">
+    <div class="row">
+        <div class="col p-5" style="overflow-x: none;">
+           
+            {% csrf_token %}
+            {% for f in form %}                
+            {% if not f.is_hidden %}
+                <label class="text-uppercase" for="id_{{f.name}}">{{f.label}}:</label>        
+            {% endif %}
+            {% if f.errors %}
+                {{f|add_class:'form-control  my-2 is-invalid'}}
+            {% elif f.name == 'contato_email' %}
+            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
+                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=fcontato_email()"}}
+                <span id="span_contato_email">{% if f.value %}Sim.{% else %}Não.{% endif %}</span>
+            </div>
+            {% elif f.name == 'contato_presencial' %}
+            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
+                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=fcontato_presencial()"}}
+                <span id="span_contato_presencial">{% if f.value %}Sim.{% else %}Não.{% endif %}</span>
+            </div>
+            {% elif f.name == 'contato_telefone' %}
+            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
+                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=fcontato_telefone()"}}
+                <span id="span_contato_telefone">{% if f.value %}Sim.{% else %}Não.{% endif %}</span>
+            </div>
+            {% elif f.name == 'contato_whatsapp' %}
+            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
+                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=fcontato_whatsapp()"}}
+                <span id="span_contato_whatsapp">{% if f.value %}Sim.{% else %}Não.{% endif %}</span>
+            </div>
+            {% elif f.name == 'contato_link' %}
+            <div class="form-check form-switch" style="margin: 0; padding-left: 0;">                                                
+                {{f|add_class:'form-check-input my-2'|attr:'type:checkbox'|attr:'role=switch'|attr:"onclick=fcontato_link()"}}
+                <span id="span_contato_link">{% if f.value %}Sim.{% else %}Não.{% endif %}</span>
+            </div>            
+            {% else %}
+                {%if f.name == 'cnpj' %}
+                {{f|add_class:'form-control bg-light my-2'|attr:'onkeydown:mascara(this,icnpj)'|attr:'maxlength:18'}}
+                {% else %}
+                {{f|add_class:'form-control bg-light my-2'}}
+                {% endif %}
+            {% endif  %}
+            <div class="invalid-feedback mb-2">
+                {{f.errors.0}}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary text-white w-100 mt-3">
+            {{tipo_cadastro}}
+            </button>
+
+        </div>      
+    </div>    
+    <style>
+        #form_cadastro_vaga ul, li{
+            list-style: none;
+        }
+        #form_cadastro_vaga button:hover{
+            background-color: #329787 !important;
+            border-color: #329787;
+            color: white !important;
+        }
+        #form_cadastro button, .btn-primary{
+            background-color: #329787 !important;
+            border-color: #329787;
+        }
+        #id_ativo{
+            opacity: 0;
+        }
+        .form-check{
+            display: flex;            
+        }
+        .form-switch span{
+            margin-left: 10px;
+            padding-top: 4px;
+        }
+
+        .form-switch .form-check-input{
+            margin-left: 0;
+        }
+        .form-check-input:checked[type=checkbox]{
+            background-color:#329787;
+        }
+        ul, li{
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</form>
+<script>
+    function fcontato_email(){
+        span=document.getElementById('span_contato_email')
+        if (span.innerText=='Sim.'){
+            span.innerText='Não.';
+        }else{
+            span.innerText='Sim.';
+        }
+    }
+    function fcontato_presencial(){
+        span=document.getElementById('span_contato_presencial')
+        if (span.innerText=='Sim.'){
+            span.innerText='Não.';
+        }else{
+            span.innerText='Sim.';
+        }
+    }
+    function fcontato_telefone(){
+        span=document.getElementById('span_contato_telefone')
+        if (span.innerText=='Sim.'){
+            span.innerText='Não.';
+        }else{
+            span.innerText='Sim.';
+        }
+    }
+    function fcontato_whatsapp(){
+        span=document.getElementById('span_contato_whatsapp')
+        if (span.innerText=='Sim.'){
+            span.innerText='Não.';
+        }else{
+            span.innerText='Sim.';
+        }
+    }
+    function fcontato_link(){
+        span=document.getElementById('span_contato_link')
+        if (span.innerText=='Sim.'){
+            span.innerText='Não.';
+        }else{
+            span.innerText='Sim.';
+        }
+    }
+    function icnpj(v){
+        v=v.replace(/\D/g,"")                    //Remove tudo o que nao e digito
+        v=v.replace(/(\d{2})(\d)/,"$1.$2")       //Coloca um ponto entre o segundo e terceiro digitos
+        v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o quinto e o sexto digitos
+        v=v.replace(/(\d{3})(\d)/,"$1/$2")       //Coloca um ponto entre o quinto e o sexto digitos
+        v=v.replace(/(\d{4})(\d)/,"$1-$2")       //Coloca um ponto entre o quinto e o sexto digitos
+        // v=v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5")
+        return v
+    }
+    function itelefone(v){
+        v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
+        v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
+        v=v.replace(/(\d{4})(\d)/,"$1-$2")    //Coloca hifen entre o quarto e o quinto digitos
+        return v
+    }
+    function icelular(v){
+        v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
+        v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
+        v=v.replace(/(\d{5})(\d)/,"$1-$2")    //Coloca hifen entre o quarto e o quinto digitos
+        return v
+    }
+    function mascara(o,f){
+        v_obj=o
+        v_fun=f
+        setTimeout("execmascara()",1)
+    }            
+    function execmascara(){
+        v_obj.value=v_fun(v_obj.value)
+    }
+    function itel(v){
+        if (v.length==15){
+            v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
+            v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
+            v=v.replace(/(\d{5})(\d)/,"$1-$2")  
+        }else{
+            v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
+            v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
+            v=v.replace(/(\d{4})(\d)/,"$1-$2")    // 
+        }
+        return v
+    }
+</script>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+</div>
+<style>
+  #painelMenu .btn{
+    width: 300px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 5px;    
+  }
+
+  .results-section {
+    margin-top: 2rem;
+  }
+
+  .modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  .stat-card {
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .modern-table {
+    font-size: 0.9rem;
+  }
+
+  .modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa !important;
+  }
+
+  .modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+  }
+
+  .modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .cnpj-code {
+    background-color: #f8f9fa;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #495057;
+  }
+
+  .company-info {
+    line-height: 1.4;
+  }
+
+  .company-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+  }
+
+  .empty-state {
+    padding: 2rem;
+  }
+
+  .card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  .btn-outline-success.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-success.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+  }
+
+  .search-stats {
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .table-section {
+    animation: fadeInUp 0.8s ease;
+  }
+
+  @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+  }
+  
+</style>
+  
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    const totalEmpresas = {{empresas|length}};
+    
+    $("#search").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        let visibleCount = 0;
+        
+        $(".empresa-row").filter(function() {
+            const isVisible = $(this).text().toLowerCase().indexOf(value) > -1;
+            $(this).toggle(isVisible);
+            if (isVisible) visibleCount++;
+            return true;
+        });
+        
+        // Update visible count
+        $("#visible-count").text(visibleCount);
+        
+        // Show empty state if no results
+        if (visibleCount === 0 && value.length > 0) {
+            if ($(".no-results-message").length === 0) {
+                $("tbody").append(`
+                    <tr class="no-results-message">
+                        <td colspan="4" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhuma empresa encontrada</h5>
+                                <p class="text-muted mb-0">Tente ajustar os termos da pesquisa.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+        } else {
+            $(".no-results-message").remove();
+        }
+    });
+
+    $("#clear-filter").on("click", function() {
+        $("#search").val("");
+        $(".empresa-row").show();
+        $("#visible-count").text(totalEmpresas);
+        $(".no-results-message").remove();
+    });
+
+    // Export function
+    window.exportAllCompanies = function() {
+        window.open('/empresas/export/all', '_blank');
+    };
+
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+  </div>
+</div>
+
+{% endblock %}

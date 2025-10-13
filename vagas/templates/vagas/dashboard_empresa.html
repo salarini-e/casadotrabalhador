@@ -1,0 +1,283 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+
+{% block title %}Dashboard Empresarial - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="{% static 'vagas/css/dashboard_empresa.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper pb-5">
+    {% include 'vagas/includes/sidebar_empresa.html' %}
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <div class="welcome-title">Bem-vindo ao Painel Empresarial</div>
+            <p class="mb-0">Olá, <strong>{{ responsavel.nome }}</strong>! Este é seu painel de controle para gerenciar vagas e candidatos da <strong>{{ empresa.nome_fantasia }}</strong>.</p>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="d-flex">
+                    <div class="stat-icon my-auto">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <div class="stat-title">Formulários</div>
+                        <div class="stat-value">{{ formularios.count }}</div>
+                    </div>
+                </div>
+                <div class="stat-description">{{ formularios_pendentes }} pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="d-flex">
+                    <div class="stat-icon my-auto">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <div class="stat-title">Total de Vagas</div>
+                        <div class="stat-value">{{ total_vagas }}</div>
+                    </div>
+                </div>
+                <div class="stat-description text-success">{{ vagas_ativas }} vagas ativas</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="d-flex">
+                    <div class="stat-icon my-auto">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="stat-title">Candidatos</div>
+                        <div class="stat-value">{{ candidatos_total }}</div>
+                    </div>
+                </div>
+                <div class="stat-description">{{ candidatos_unicos }} candidatos únicos</div>
+            </div>
+            
+            
+            
+            
+        </div>
+
+
+
+        <!-- Vagas recentes e atividades -->
+        <div class="content-grid">
+            <!-- Vagas recentes -->
+            <div class="content-card">
+                <div class="card-header d-flex">
+                    <h5 class="card-title">
+                        <i class="fas fa-briefcase"></i>Vagas Recentes
+                    </h5>
+                    <a href="{% url 'vagas:empresa_vagas' %}" class="ms-auto btn btn-sm py-1">
+                            Ver todas as vagas <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover vagas-recentes mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Cargo</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Candidatos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vaga in ultimas_vagas %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="text-decoration-none fw-medium text-dark">
+                                            {{ vaga.cargo.nome }}
+                                        </a>
+                                    </td>
+                                    <td>{{ vaga.dt_inclusao|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if vaga.ativo %}
+                                        <span class="badge badge-status bg-success">Ativa</span>
+                                        {% else %}
+                                        <span class="badge badge-status bg-secondary">Encerrada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="text-decoration-none">
+                                            {% with candidatos_count=vaga.candidato_set.count %}
+                                                {{ candidatos_count }} 
+                                                {% if candidatos_count == 1 %}
+                                                candidato
+                                                {% else %}
+                                                candidatos
+                                                {% endif %}
+                                            {% endwith %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <p class="text-muted mb-0">Nenhuma vaga encontrada</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>                    
+                </div>
+            </div>
+
+            <!-- Formulários recentes -->
+            <div class="content-card">
+                <div class="card-header d-flex">
+                    <h5 class="card-title">
+                        <i class="fas fa-file-alt"></i>Formulários Recentes
+                    </h5>
+                    <a href="{% url 'vagas:empresa_formularios' %}" class="ms-auto btn btn-sm">
+                            Ver todos os formulários <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover vagas-recentes mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Cargo</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for formulario in ultimos_formularios %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="text-decoration-none fw-medium text-dark">
+                                            {{ formulario.cargo }}
+                                        </a>
+                                    </td>
+                                    <td>{{ formulario.dt_inclusao|date:"d/m/Y" }}</td>
+                                    <td>
+                                        {% if formulario.status_requisicao == 'PE' %}
+                                        <span class="badge badge-status bg-warning">Pendente</span>
+                                        {% elif formulario.status_requisicao == 'AP' %}
+                                        <span class="badge badge-status bg-success">Aprovado</span>
+                                        {% elif formulario.status_requisicao == 'RE' %}
+                                        <span class="badge badge-status bg-danger">Rejeitado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4">
+                                        <p class="text-muted mb-0">Nenhum formulário encontrado</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidatos recentes e ações rápidas -->
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- ApexCharts JS for charts -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Animation for statistics cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+        
+        // Render formulários donut chart
+        const formulariosChart = new ApexCharts(document.querySelector("#formulariosChart"), {
+            series: [
+                {{ formularios_pendentes }}, 
+                {{ formularios_aprovados }}, 
+                {{ formularios_rejeitados }}
+            ],
+            chart: {
+                height: 230,
+                type: 'donut',
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            labels: ['Pendentes', 'Aprovados', 'Rejeitados'],
+            colors: ['#ffc107', '#198754', '#dc3545'],
+            legend: {
+                position: 'bottom',
+                offsetY: -5
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '60%'
+                    }
+                }
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        height: 200
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }],
+            dataLabels: {
+                enabled: false
+            }
+        });
+        formulariosChart.render();
+        
+        // Set circular progress
+        const progressCircle = document.querySelector('.progress-ring-circle:not(.bg-light)');
+        const radius = progressCircle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        
+        function setProgress(percent) {
+            const offset = circumference - percent / 100 * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+        }
+        
+        // Animate the progress
+        let currentProgress = 0;
+        const targetProgress = {{ taxa_conversao }};
+        
+        const progressAnimation = setInterval(() => {
+            if (currentProgress >= targetProgress) {
+                clearInterval(progressAnimation);
+            } else {
+                currentProgress += 1;
+                setProgress(currentProgress);
+            }
+        }, 20);
+    });
+</script>
+{% endblock %}

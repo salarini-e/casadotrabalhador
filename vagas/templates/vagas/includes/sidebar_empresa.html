@@ -1,0 +1,140 @@
+<!-- Sidebar Menu -->
+<div class="dashboard-sidebar">
+    <div class="sidebar-backdrop"></div>
+    <div class="sidebar-header d-flex">
+        <div class="brand-logo">
+            <span>ADM Empresa</span>
+        </div>
+        <button class="sidebar-toggle m-auto" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <h6 class="nav-section-title">Principal</h6>
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.resolver_match.url_name == 'dashboard_empresa' %}active{% endif %}" title="Dashboard">
+                    <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>                
+                <li class="nav-item {% if request.resolver_match.url_name == 'empresa_vagas' %}active{% endif %}" title="Vagas">
+                    <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Vagas</span>
+                    </a>
+                </li>
+                <!-- <li class="nav-item {% if request.resolver_match.url_name == 'empresa_candidatos' or request.resolver_match.url_name == 'empresa_vaga_detalhes' and active_page == 'candidatos' %}active{% endif %}" title="Candidatos">
+                    <a href="{% url 'vagas:empresa_vagas' %}?view=candidatos" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Candidatos</span>
+                    </a>
+                </li> -->
+                <li class="nav-item {% if request.resolver_match.url_name == 'empresa_formularios' %}active{% endif %}" title="Formulários">
+                    <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Formulários</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'nova_vaga' %}active{% endif %}" title="Nova Vaga">
+                    <a href="{% url 'vagas:empresa_formulario_criar' %}" class="nav-link">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Nova vaga</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="nav-section">
+            <h6 class="nav-section-title">Empresa</h6>
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.resolver_match.url_name == 'empresa_perfil' %}active{% endif %}" title="Perfil da Empresa">
+                    <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
+                        <i class="fas fa-building"></i>
+                        <span>Perfil da Empresa</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <span class="user-name">{{ responsavel.nome|default:user.username }}</span>
+                <span class="user-role">{{ responsavel.cargo|default:"Representante" }}</span>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+<script>
+// Sidebar toggle functionality
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    const content = document.querySelector('.dashboard-content');
+    const backdrop = document.querySelector('.sidebar-backdrop');
+    
+    function toggleSidebar() {
+        sidebar.classList.toggle('collapsed');
+        
+        if (sidebar.classList.contains('collapsed')) {
+            content.style.marginLeft = '80px';
+            document.body.classList.remove('sidebar-open');
+        } else {
+            content.style.marginLeft = window.innerWidth <= 768 ? '0' : '280px';
+            if (window.innerWidth <= 768) {
+                document.body.classList.add('sidebar-open');
+            }
+        }
+    }
+    
+    // Sidebar toggle click
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Backdrop click to close sidebar on mobile
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                document.body.classList.remove('sidebar-open');
+                content.style.marginLeft = '80px';
+            }
+        });
+    }
+    
+    // Check screen width and collapse sidebar on small screens
+    const checkWidth = () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            content.style.marginLeft = '80px';
+        } else {
+            sidebar.classList.remove('collapsed');
+            document.body.classList.remove('sidebar-open');
+            content.style.marginLeft = '280px';
+        }
+    };
+    
+    // Add click event to menu links for mobile
+    const menuLinks = document.querySelectorAll('.nav-link');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
+                toggleSidebar();
+            }
+        });
+    });
+    
+    // Initial check and on window resize
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+});
+</script>

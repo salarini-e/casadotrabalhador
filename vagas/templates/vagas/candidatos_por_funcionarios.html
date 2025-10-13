@@ -1,9 +1,55 @@
-{% extends 'base_site.html' %}
+{% extends 'template_new.html' %}
 {% block title %}{{tipo_cadastro}} Vaga{% endblock %}
 {% block css %}
 {{block.super}}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
 {% endblock%}
-{% block main_conteudo %}
+{% block main %}
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="Logo">
+                <h3>Painel Admin</h3>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="/painel_administrativo"><i class="fas fa-home"></i> <span>Dashboard</span></a></li>
+                <li><a href="/pesquisar_candidatos"><i class="fas fa-search"></i> <span>Pesquisar Candidatos</span></a></li>
+                <li><a href="/excluir_cpf"><i class="fas fa-user-minus"></i> <span>Excluir CPF</span></a></li>
+                <li><a href="/infoempresa"><i class="fas fa-building"></i> <span>Info Empresa</span></a></li>
+                <li><a href="/emails"><i class="fas fa-envelope"></i> <span>Emails</span></a></li>
+                <li><a href="/vagas-com-candidatos"><i class="fas fa-briefcase"></i> <span>Vagas com Candidatos</span></a></li>
+                <li class="active"><a href="/candidatos-por-funcionarios"><i class="fas fa-users"></i> <span>Candidatos por Funcionário</span></a></li>
+                <li><a href="/cadastrar-cargo"><i class="fas fa-plus-circle"></i> <span>Cadastrar Cargo</span></a></li>
+                <li><a href="/cadastrar-escolaridade"><i class="fas fa-graduation-cap"></i> <span>Cadastrar Escolaridade</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h2>Candidatos por Funcionário</h2>
+            </div>
+            <div class="topbar-right">
+                <div class="user-info">
+                    <span>Admin</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content" style="padding: 20px;">
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
 {% load qntvagas %}
@@ -53,7 +99,7 @@
 	<div class="d-flex w-100 py-4">		
 		<span class="my-auto ms-auto">
 			<label for="month">Mês:</label>
-			<select name="mes" type="date" class="form-control my-auto ms-auto" id="" style="width: 180px;">
+			<select name="mes" type="date" class="form-control my-auto ms-auto" id="">
 			  <option selected value='1'>Janeiro</option>
 			  <option value='2'>Fevereiro</option>
 			  <option value='3'>Março</option>
@@ -70,7 +116,7 @@
 		  </span>
 		  <span class="my-auto ms-2 me-1"> 
 			<label for="year">Ano:</label>
-			<select name="ano" type="date" class="form-control" id="" style="width: 180px;">
+			<select name="ano" type="date" class="form-control" id="">
 			  <option selected value='2022'>2022</option>			  
 			  <option value='2023'>2023</option>			  
 			</select>
@@ -130,6 +176,16 @@
 
 <script>
    
+</script>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.querySelector('.sidebar').classList.toggle('sidebar-collapsed');
+    document.querySelector('.main-content').classList.toggle('content-expanded');
+});
 </script>
 
 {% endblock %}

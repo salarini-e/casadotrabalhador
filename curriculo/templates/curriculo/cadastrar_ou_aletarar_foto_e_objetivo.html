@@ -1,90 +1,217 @@
-{% extends 'template.html' %}
-{% block title %}{{tipo_cadastro}} Vaga{% endblock %}
+{% extends 'template_new.html' %}
+{% block title %}Dados Pessoais - Currículo{% endblock %}
 {% block css %}
 {{block.super}}
+{% load static %}
+<link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">
 {% endblock%}
 {% block main %}
 {% load widget_tweaks %}   
 {% load bootstrap5 %}  
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-<div class="row pt-5 mt-5">
-    <div class="col-8 mx-auto pt-5 mt-5">
+
+<div class="form-container" style="margin-top: 120px;">
+    <div class="container-fluid px-4">
+        <!-- Messages -->
         {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-        {% endif %}                  
-        <div class="row">    
-            <div class="col d-flex">
-                <h2 class="text-start text-uppercase">Atualizar dados</h2>
-    
-                    <span class="ms-auto"><a class="btn btn-btfl bg-primary ms-auto" href="{% url 'cv:index' %}">Voltar</a></span>
-                          
-            </div>
-        </div>
-        {% if foto %}
-        <div class="row">
-            <div class="col-12 d-flex">
-                <img src="/media/{{foto}}" style="height: 150px;" class="img-thumbnail img-fluid mx-auto" alt="Foto de perfil">
-            </div>
-        {% else %}
-        {{foto}}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
         {% endif %}
+        
+        <!-- Header Section -->
+        <div class="form-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <h1 class="form-title">
+                    <i class="fas fa-user-edit me-2"></i>
+                    Dados Pessoais
+                </h1>
+                
+                <div class="form-actions-header">
+                    <a class="btn btn-primary" href="{% url 'cv:index' %}">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Voltar ao Currículo
+                    </a>
+                </div>
+            </div>
+        </div>
 
-            <div class="row">
-                <div class="col pt-3 px-5">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <h5 class="mb-3 text-start text-uppercase">Dados do currículo</h2>
-                        {% bootstrap_form form_objetivo %}
-                        <h5 class="mb-3 text-start text-uppercase">Dados pessoais</h2>
-                        {% bootstrap_form form_pessoa %}
+        <div class="row">
+            <!-- Form Section -->
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-content">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3 class="form-section-title">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Atualizar Informações
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-content">
+                        <!-- Foto de Perfil -->
+                        <div class="text-center mb-4">
+                            {% if foto %}
+                                <div class="profile-photo-container">
+                                    <img src="/media/{{foto}}" class="profile-photo" alt="Foto de perfil">
+                                </div>
+                            {% else %}
+                                <div class="profile-photo-placeholder">
+                                    <i class="fas fa-user-circle text-muted"></i>
+                                    <small class="text-muted mt-2">Nenhuma foto cadastrada</small>
+                                </div>
+                            {% endif %}
+                        </div>
                         
-                        <button type="submit" class="btn btn-primary text-white w-100 mt-3 mb-5">
-                        Atualizar dados
-                        </button>
-                    </form>
-                </div>      
-            </div>   
-          
+                        <form method="POST" enctype="multipart/form-data" class="form-fields">
+                            {% csrf_token %}
+                            
+                            <!-- Seção Objetivo -->
+                            <div class="form-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-bullseye me-2"></i>
+                                    Objetivo Profissional
+                                </h5>
+                                <div class="section-content">
+                                    {% for field in form_objetivo %}
+                                        <div class="form-field-group">
+                                            <label class="form-label" for="{{field.id_for_label}}">
+                                                {{field.label}}
+                                                {% if field.field.required %}
+                                                    <span class="required-asterisk">*</span>
+                                                {% endif %}
+                                            </label>
+                                            {{field|add_class:"form-control"}}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in field.errors %}
+                                                        {{error}}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{field.help_text}}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <!-- Seção Dados Pessoais -->
+                            <div class="form-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-user me-2"></i>
+                                    Dados Pessoais
+                                </h5>
+                                <div class="section-content">
+                                    {% for field in form_pessoa %}
+                                        <div class="form-field-group">
+                                            <label class="form-label" for="{{field.id_for_label}}">
+                                                {{field.label}}
+                                                {% if field.field.required %}
+                                                    <span class="required-asterisk">*</span>
+                                                {% endif %}
+                                            </label>
+                                            {{field|add_class:"form-control"}}
+                                            {% if field.errors %}
+                                                <div class="invalid-feedback">
+                                                    {% for error in field.errors %}
+                                                        {{error}}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if field.help_text %}
+                                                <small class="form-text text-muted">{{field.help_text}}</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>
+                                    Atualizar Dados
+                                </button>
+                                <a href="{% url 'cv:index' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Section -->
+            <div class="col-lg-4">
+                <div class="form-card">
+                    <div class="form-content">
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <h3 class="form-section-title">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Informações
+                                </h3>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-user-circle text-primary"></i>
+                                <div>
+                                    <h6>Foto de Perfil</h6>
+                                    <p class="small text-muted">Adicione uma foto profissional para seu currículo</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-bullseye text-success"></i>
+                                <div>
+                                    <h6>Objetivo</h6>
+                                    <p class="small text-muted">Descreva seu objetivo profissional de forma clara e concisa</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-address-card text-info"></i>
+                                <div>
+                                    <h6>Dados Pessoais</h6>
+                                    <p class="small text-muted">Mantenha suas informações pessoais sempre atualizadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div> 
-    <style>
-        #form_cadastro_vaga ul, li{
-            list-style: none;
-        }
-        #form_cadastro_vaga button:hover{
-            background-color: #329787 !important;
-            border-color: #329787;
-            color: white !important;
-        }
-        #form_cadastro button, .btn-primary{
-            background-color: #329787 !important;
-            border-color: #329787;
-        }
-        #id_ativo{
-            opacity: 0;
-        }
-        .form-check{
-            display: flex;            
-        }
-        .form-switch span{
-            margin-left: 10px;
-            padding-top: 4px;
+</div>
+
+<script>
+    // Form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+                }
+            });
         }
 
-        .form-switch .form-check-input{
-            margin-left: 0;
+        // Add smooth scrolling to form errors
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        if (invalidFields.length > 0) {
+            invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            invalidFields[0].focus();
         }
-        .form-check-input:checked[type=checkbox]{
-            background-color:#329787;
-        }
-        ul, li{
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+    });
+</script>
 
 {% endblock %}

@@ -1,0 +1,259 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Solicitações de Desativação{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-ban me-2"></i>
+          Solicitações de Desativação
+        </h1>
+        <p class="page-subtitle">Gerenciar solicitações de desativação de vagas</p>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100 border-left-warning">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendentes</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pendentes }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-clock fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100 border-left-success">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Aprovadas</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.aprovadas }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100 border-left-danger">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejeitadas</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.rejeitadas }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card h-100 border-left-info">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-list fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-filter me-2"></i>Filtros
+        </h6>
+      </div>
+      <div class="card-body">
+        <form method="GET" class="row g-3">
+          <div class="col-md-3">
+            <label for="status" class="form-label">Status</label>
+            <select name="status" id="status" class="form-select">
+              <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendentes</option>
+              <option value="aprovada" {% if status_filter == 'aprovada' %}selected{% endif %}>Aprovadas</option>
+              <option value="rejeitada" {% if status_filter == 'rejeitada' %}selected{% endif %}>Rejeitadas</option>
+              <option value="todas" {% if status_filter == 'todas' %}selected{% endif %}>Todas</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search me-1"></i>Filtrar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista de Solicitações -->
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">
+          <i class="fas fa-list me-2"></i>Solicitações ({{ solicitacoes.count }})
+        </h6>
+      </div>
+      <div class="card-body">
+        {% if solicitacoes %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Vaga</th>
+                <th>Empresa</th>
+                <th>Motivo</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for solicitacao in solicitacoes %}
+              <tr>
+                <td>#{{ solicitacao.id }}</td>
+                <td>
+                  <div>
+                    <strong>{{ solicitacao.vaga.cargo.nome }}</strong>
+                    <br><small class="text-muted">ID: {{ solicitacao.vaga.id }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    {{ solicitacao.vaga.empresa.nome }}
+                    <br><small class="text-muted">{{ solicitacao.empresa_responsavel.nome }}</small>
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <span class="badge bg-secondary">{{ solicitacao.get_motivo_display }}</span>
+                    {% if solicitacao.observacoes %}
+                    <br><small class="text-muted">{{ solicitacao.observacoes|truncatechars:50 }}</small>
+                    {% endif %}
+                  </div>
+                </td>
+                <td>
+                  {% if solicitacao.status == 'pendente' %}
+                    <span class="badge bg-warning">
+                      <i class="fas fa-clock me-1"></i>Pendente
+                    </span>
+                    {% if solicitacao.get_tempo_pendente %}
+                    <br><small class="text-muted">há {{ solicitacao.get_tempo_pendente }}</small>
+                    {% endif %}
+                  {% elif solicitacao.status == 'aprovada' %}
+                    <span class="badge bg-success">
+                      <i class="fas fa-check-circle me-1"></i>Aprovada
+                    </span>
+                  {% elif solicitacao.status == 'rejeitada' %}
+                    <span class="badge bg-danger">
+                      <i class="fas fa-times-circle me-1"></i>Rejeitada
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div>
+                    {{ solicitacao.dt_criacao|date:"d/m/Y" }}
+                    <br><small class="text-muted">{{ solicitacao.dt_criacao|time:"H:i" }}</small>
+                  </div>
+                </td>
+                <td>
+                  {% if solicitacao.status == 'pendente' %}
+                  <a href="{% url 'vagas:admin_processar_solicitacao_desativacao' solicitacao.id %}" 
+                     class="btn btn-sm btn-primary">
+                    <i class="fas fa-cog me-1"></i>Processar
+                  </a>
+                  {% else %}
+                  <a href="{% url 'vagas:admin_processar_solicitacao_desativacao' solicitacao.id %}" 
+                     class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i>Ver
+                  </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">Nenhuma solicitação encontrada</h5>
+          <p class="text-muted">Não há solicitações de desativação com os filtros selecionados.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}

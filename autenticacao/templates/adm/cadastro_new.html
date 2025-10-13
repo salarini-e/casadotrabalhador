@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>    
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cadastro - Casa do Trabalhador - Nova Friburgo">
+    <title>Cadastro - Casa do Trabalhador</title>
+    
+    {% load static %}    
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/global-forms.css' %}">
+    
+    <style>
+        :root {
+            --primary-color: #329787;
+            --primary-dark: #1e5e56;
+            --primary-light: #4fb3a6;
+            --secondary-color: #28a745;
+            --accent-color: #ffc107;
+            --dark-color: #2c3e50;
+            --light-color: #f8f9fa;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            --font-primary: 'Inter', sans-serif;
+            --font-secondary: 'Poppins', sans-serif;
+            
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+            --shadow-xl: 0 12px 24px rgba(0,0,0,0.25);
+            
+            --border-radius-sm: 0.375rem;
+            --border-radius-md: 0.5rem;
+            --border-radius-lg: 0.75rem;
+            --border-radius-xl: 1rem;
+            
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 30%),
+                        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 30%),
+                        radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 30%);
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .register-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            background: var(--white);
+            border-radius: var(--border-radius-xl);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .register-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .register-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("{% static 'images/brasao.png' %}") center/contain no-repeat;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .register-header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-logo {
+            max-width: 80px;
+            margin-bottom: 1rem;
+            filter: brightness(0) invert(1);
+        }
+        
+        .register-title {
+            font-family: var(--font-secondary);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .register-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        
+        .register-content {
+            padding: 2rem;
+        }
+        
+        .register-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .form-grid .form-field-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-field-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            transition: all var(--transition-normal);
+            background-color: var(--white);
+            color: var(--gray-800);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(50, 151, 135, 0.1);
+        }
+        
+        .form-control:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+        
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group .form-control {
+            padding-left: 2.5rem;
+        }
+        
+        .input-group-icon {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            z-index: 5;
+        }
+        
+        .btn-register {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            border: none;
+            border-radius: var(--border-radius-md);
+            color: var(--white);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-register:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-register:active {
+            transform: translateY(0);
+        }
+        
+        .register-links {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .register-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+        
+        .register-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .register-link i {
+            margin-right: 0.5rem;
+        }
+        
+        .alert-modern {
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+        
+        .alert-danger {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            border-left-color: #dc2626;
+        }
+        
+        .alert-success {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            border-left-color: #16a34a;
+        }
+        
+        .alert-info {
+            background-color: rgba(6, 182, 212, 0.1);
+            color: #0891b2;
+            border-left-color: #0891b2;
+        }
+        
+        .captcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .footer-credit {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .register-container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .register-header {
+                padding: 1.5rem;
+            }
+            
+            .register-content {
+                padding: 1.5rem;
+            }
+            
+            .register-title {
+                font-size: 1.5rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .loading .btn-register {
+            position: relative;
+            color: transparent;
+        }
+        
+        .loading .btn-register::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+    
+    <script type="text/javascript">
+        var onloadCallback = function() {
+            grecaptcha.render('html_element', {
+                'sitekey': '6LdiIsweAAAAAKHnfIgGx1V-olIVbAFEBUJY5MHb',
+            });
+        };
+    </script>
+</head>
+<body>
+    <div class="register-container">
+        <!-- Header -->
+        <div class="register-header">
+            <div class="register-header-content">
+                <img src="{% static 'images/brasao.png' %}" alt="Brasão Nova Friburgo" class="register-logo">
+                <h1 class="register-title">Nova Conta</h1>
+                <p class="register-subtitle">Crie sua conta na Casa do Trabalhador</p>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="register-content">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert-modern alert-{{ message.tags }}">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {{ message|safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Registration Form -->
+            <form method="post" class="register-form" id="registerForm">
+                {% csrf_token %}
+                
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert-modern alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Form Fields -->
+                <div class="form-grid">
+                    {% for field in form %}
+                        <div class="form-field-group {% if field.name == 'email' or field.name == 'first_name' or field.name == 'last_name' %}{% else %}full-width{% endif %}">
+                            <label class="form-label {% if field.errors %}text-danger{% endif %}" for="{{ field.id_for_label }}">
+                                {% if field.name == 'first_name' %}
+                                    <i class="fas fa-user me-2"></i>
+                                {% elif field.name == 'last_name' %}
+                                    <i class="fas fa-user me-2"></i>
+                                {% elif field.name == 'email' %}
+                                    <i class="fas fa-envelope me-2"></i>
+                                {% elif field.name == 'cpf' %}
+                                    <i class="fas fa-id-card me-2"></i>
+                                {% elif field.name == 'telefone' %}
+                                    <i class="fas fa-phone me-2"></i>
+                                {% elif field.name == 'data_nascimento' %}
+                                    <i class="fas fa-calendar me-2"></i>
+                                {% elif field.name == 'endereco' %}
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                {% elif field.name == 'cep' %}
+                                    <i class="fas fa-map-pin me-2"></i>
+                                {% elif field.name == 'bairro' %}
+                                    <i class="fas fa-building me-2"></i>
+                                {% elif field.name == 'cidade' %}
+                                    <i class="fas fa-city me-2"></i>
+                                {% elif field.name == 'estado' %}
+                                    <i class="fas fa-map me-2"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle me-2"></i>
+                                {% endif %}
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            <div class="input-group">
+                                {% if field.name == 'first_name' %}
+                                    <i class="fas fa-user input-group-icon"></i>
+                                {% elif field.name == 'last_name' %}
+                                    <i class="fas fa-user input-group-icon"></i>
+                                {% elif field.name == 'email' %}
+                                    <i class="fas fa-envelope input-group-icon"></i>
+                                {% elif field.name == 'cpf' %}
+                                    <i class="fas fa-id-card input-group-icon"></i>
+                                {% elif field.name == 'telefone' %}
+                                    <i class="fas fa-phone input-group-icon"></i>
+                                {% elif field.name == 'data_nascimento' %}
+                                    <i class="fas fa-calendar input-group-icon"></i>
+                                {% elif field.name == 'endereco' %}
+                                    <i class="fas fa-map-marker-alt input-group-icon"></i>
+                                {% elif field.name == 'cep' %}
+                                    <i class="fas fa-map-pin input-group-icon"></i>
+                                {% elif field.name == 'bairro' %}
+                                    <i class="fas fa-building input-group-icon"></i>
+                                {% elif field.name == 'cidade' %}
+                                    <i class="fas fa-city input-group-icon"></i>
+                                {% elif field.name == 'estado' %}
+                                    <i class="fas fa-map input-group-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle input-group-icon"></i>
+                                {% endif %}
+                                
+                                {% if field.name == 'cpf' %}
+                                    {{ field|add_class:"form-control" }}
+                                {% else %}
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+                            </div>
+                            
+                            {% if field.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Password Error -->
+                {% if error_senha.0 %}
+                    <div class="alert-modern alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ error_senha.1 }}
+                    </div>
+                {% endif %}
+                
+                <!-- Password Fields -->
+                {% if not is_user %}
+                    <div class="form-grid">
+                        <div class="form-field-group">
+                            <label class="form-label {% if error_senha.0 %}text-danger{% endif %}" for="senha">
+                                <i class="fas fa-lock me-2"></i>
+                                Senha
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <i class="fas fa-lock input-group-icon"></i>
+                                <input required class="form-control" type="password" name="password" id="senha" placeholder="Digite sua senha">
+                            </div>
+                        </div>
+                        
+                        <div class="form-field-group">
+                            <label class="form-label {% if error_senha.0 %}text-danger{% endif %}" for="senha2">
+                                <i class="fas fa-lock me-2"></i>
+                                Confirmar Senha
+                                <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <i class="fas fa-lock input-group-icon"></i>
+                                <input required class="form-control" type="password" name="password2" id="senha2" placeholder="Confirme sua senha">
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Captcha -->
+                <div class="captcha-container">
+                    <div id="html_element"></div>
+                </div>
+                
+                <button type="submit" class="btn-register">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Criar Conta
+                </button>
+                
+                <div class="register-links">
+                    <a href="/login" class="register-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Já tem uma conta? Faça login
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="footer-credit">
+        © 2025 SECRETARIA DE CIÊNCIA, TECNOLOGIA, INOVAÇÃO E EDUCAÇÃO PROFISSIONALIZANTE E SUPERIOR
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+    
+    <script>
+        // Form enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.getElementById('registerForm');
+            const submitButton = document.querySelector('.btn-register');
+            
+            // Add form submission loading state
+            registerForm.addEventListener('submit', function(e) {
+                submitButton.classList.add('loading');
+                document.body.classList.add('loading');
+            });
+            
+            // Add focus animations
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Password validation
+            const password = document.getElementById('senha');
+            const confirmPassword = document.getElementById('senha2');
+            
+            function validatePassword() {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('As senhas não coincidem');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+            
+            if (password && confirmPassword) {
+                password.addEventListener('input', validatePassword);
+                confirmPassword.addEventListener('input', validatePassword);
+            }
+        });
+        
+        // Mask functions
+        function icpf(v){
+            v=v.replace(/\D/g,"")                    //Remove tudo o que nao e digito
+            v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
+            v=v.replace(/(\d{3})(\d)/,"$1.$2")       //Coloca um ponto entre o terceiro e o quarto digitos
+                                                    //de novo (para o segundo bloco de numeros)
+            v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2") //Coloca um hifen entre o terceiro e o quarto digitos
+            return v
+        }
+        function itel(v){
+                    v=v.replace(/\D/g,"")                 //Remove tudo o que nao e digito
+                    v=v.replace(/^(\d\d)(\d)/g,"($1) $2") //Coloca parenteses em volta dos dois primeiros digitos
+                    v=v.replace(/(\d{4})(\d)/,"$1-$2")    //Coloca hifen entre o quarto e o quinto digitos
+                    return v
+                }
+        function mascara(o,f){
+            v_obj=o
+            v_fun=f
+            setTimeout("execmascara()",1)
+        }
+    
+        function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+        }
+        
+        // Prevent form resubmission on page refresh
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+</body>
+</html>

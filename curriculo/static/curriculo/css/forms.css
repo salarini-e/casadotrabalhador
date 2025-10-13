@@ -1,0 +1,1013 @@
+/* Form Standardization CSS */
+/* This file contains common form styles for all templates */
+
+/* CSS Variables */
+:root {
+    /* Form Colors - Mantendo cores originais do sistema */
+    --form-primary-color: #2563eb;
+    --form-primary-dark: #1d4ed8;
+    --form-primary-light: #4fb3a6;
+    --form-secondary-color: #10b981;
+    --form-warning-color: #f59e0b;
+    --form-danger-color: #ef4444;
+    --form-success-color: #22c55e;
+    --form-info-color: #06b6d4;
+    --form-dark-color: #1f2937;
+    --form-light-color: #f8fafc;
+    --form-white: #ffffff;
+    --form-gray-50: #f9fafb;
+    --form-gray-100: #f3f4f6;
+    --form-gray-200: #e5e7eb;
+    --form-gray-300: #d1d5db;
+    --form-gray-400: #9ca3af;
+    --form-gray-500: #6b7280;
+    --form-gray-600: #4b5563;
+    --form-gray-700: #374151;
+    --form-gray-800: #1f2937;
+    --form-gray-900: #111827;
+    
+    /* Form Specific Colors */
+    --form-border-color: #e5e7eb;
+    --form-text-primary: #1f2937;
+    --form-text-secondary: #6b7280;
+    --form-text-muted: #9ca3af;
+    --form-surface-color: #ffffff;
+    --form-bg-color: #f9fafb;
+    
+    /* Shadows */
+    --form-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --form-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --form-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --form-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Radius */
+    --form-radius-sm: 6px;
+    --form-radius-md: 8px;
+    --form-radius-lg: 12px;
+    --form-radius-xl: 16px;
+    
+    /* Spacing */
+    --form-spacing-xs: 0.25rem;
+    --form-spacing-sm: 0.5rem;
+    --form-spacing-md: 1rem;
+    --form-spacing-lg: 1.5rem;
+    --form-spacing-xl: 2rem;
+    --form-spacing-2xl: 3rem;
+}
+
+/* Body and Layout */
+body {
+    background-color: var(--form-bg-color);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--form-text-primary);
+}
+
+/* Common Container Styles */
+.form-container,
+.job-form-container,
+.candidate-form-container {
+    min-height: 100vh;
+    padding: var(--form-spacing-xl) 0;
+    background: linear-gradient(135deg, var(--form-bg-color) 0%, var(--form-gray-50) 100%);
+}
+
+/* Common Header Styles */
+.form-header,
+.job-form-header,
+.candidate-form-header {
+    background: linear-gradient(135deg, var(--form-primary-color), var(--form-primary-dark));
+    color: white;
+    padding: var(--form-spacing-xl) var(--form-spacing-lg);
+    border-radius: var(--form-radius-lg);
+    margin-bottom: var(--form-spacing-xl);
+    box-shadow: var(--form-shadow-lg);
+}
+
+.form-title,
+.job-form-title,
+.candidate-form-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.form-actions-header,
+.job-form-actions,
+.candidate-form-actions {
+    display: flex;
+    gap: var(--form-spacing-sm);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.form-actions-header .btn,
+.job-form-actions .btn,
+.candidate-form-actions .btn {
+    border-radius: var(--form-radius-md);
+    font-weight: 500;
+    padding: var(--form-spacing-sm) var(--form-spacing-md);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.form-actions-header .btn:hover,
+.job-form-actions .btn:hover,
+.candidate-form-actions .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--form-shadow-md);
+}
+
+/* Common Form Card Styles */
+.form-card,
+.job-form-card,
+.candidate-form-card {
+    background: var(--form-surface-color);
+    border-radius: var(--form-radius-xl);
+    box-shadow: var(--form-shadow-xl);
+    margin-bottom: var(--form-spacing-xl);
+    overflow: hidden;
+    border: 1px solid var(--form-border-color);
+}
+
+.form-content,
+.job-form,
+.candidate-form {
+    padding: var(--form-spacing-2xl);
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: var(--form-spacing-xl);
+}
+
+.form-section-header {
+    margin-bottom: var(--form-spacing-lg);
+    padding-bottom: var(--form-spacing-md);
+    border-bottom: 2px solid var(--form-border-color);
+}
+
+.form-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--form-text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.form-section-subtitle {
+    color: var(--form-text-secondary);
+    margin: var(--form-spacing-sm) 0 0 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--form-text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--form-border-color);
+    padding-bottom: 0.5rem;
+}
+
+.section-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Form Field Groups */
+.form-fields {
+    display: grid;
+    gap: var(--form-spacing-lg);
+}
+
+.form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--form-spacing-sm);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--form-text-primary);
+    margin-bottom: var(--form-spacing-xs);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.required-asterisk {
+    color: var(--form-danger-color);
+    margin-left: var(--form-spacing-xs);
+}
+
+.form-control {
+    border: 2px solid var(--form-border-color);
+    border-radius: var(--form-radius-md);
+    padding: var(--form-spacing-md);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--form-surface-color);
+    width: 100%;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--form-primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-control:disabled {
+    background-color: var(--form-gray-50);
+    border-color: var(--form-gray-200);
+    color: var(--form-text-secondary);
+    cursor: not-allowed;
+}
+
+.form-control.is-invalid {
+    border-color: var(--form-danger-color);
+}
+
+.invalid-feedback {
+    color: var(--form-danger-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: var(--form-spacing-xs);
+    display: block;
+}
+
+/* Autocomplete Styles */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--form-surface-color);
+    border: 1px solid var(--form-border-color);
+    border-top: none;
+    border-radius: 0 0 var(--form-radius-md) var(--form-radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: var(--form-shadow-md);
+}
+
+.autocomplete-results .autocomplete-item {
+    padding: var(--form-spacing-sm) var(--form-spacing-md);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--form-gray-100);
+    font-weight: 500;
+    color: var(--form-text-primary);
+}
+
+.autocomplete-results .autocomplete-item:hover {
+    background-color: var(--form-gray-50);
+}
+
+.autocomplete-results .autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+/* Form Switch Styles */
+.form-switch-wrapper {
+    padding: var(--form-spacing-md);
+    background-color: var(--form-gray-50);
+    border-radius: var(--form-radius-md);
+    border: 1px solid var(--form-border-color);
+}
+
+.form-check-input:checked {
+    background-color: var(--form-primary-color);
+    border-color: var(--form-primary-color);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: var(--form-text-primary);
+}
+
+/* Button standardization */
+.btn {
+    border-radius: var(--form-radius-md, 8px);
+    font-weight: 500;
+    padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--form-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--form-primary-color, #2563eb), var(--form-primary-dark, #1e40af));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--form-primary-dark, #1e40af), #1e3a8a);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--form-success-color, #22c55e), #16a34a);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--form-warning-color), #d97706);
+    border: none;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--form-danger-color), #dc2626);
+    border: none;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--form-gray-600), var(--form-gray-700));
+    border: none;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, var(--form-gray-700), var(--form-gray-800));
+    color: white;
+}
+
+/* Alert standardization */
+.alert {
+    border-radius: var(--form-radius-md, 8px);
+    border: none;
+    padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+    font-weight: 500;
+    box-shadow: var(--form-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+    margin-bottom: var(--form-spacing-lg, 1.5rem);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, var(--form-success-color, #22c55e), #16a34a);
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, var(--form-danger-color, #ef4444), #dc2626);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, var(--form-warning-color, #f59e0b), #d97706);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, var(--form-info-color, #06b6d4), #0891b2);
+    color: white;
+}
+
+/* Form validation feedback */
+.invalid-feedback {
+    color: var(--form-danger-color, #ef4444);
+    font-size: 0.875rem;
+    margin-top: var(--form-spacing-xs, 0.25rem);
+}
+
+.valid-feedback {
+    color: var(--form-success-color, #22c55e);
+    font-size: 0.875rem;
+    margin-top: var(--form-spacing-xs, 0.25rem);
+}
+
+/* Select standardization */
+.form-select {
+    border: 2px solid var(--form-border-color, #e5e7eb);
+    border-radius: var(--form-radius-md, 8px);
+    padding: var(--form-spacing-md, 1rem);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--form-surface-color, #ffffff);
+    color: var(--form-text-primary, #1f2937);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--form-primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Textarea standardization */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Input group standardization */
+.input-group .form-control {
+    border-radius: 0;
+}
+
+.input-group .form-control:first-child {
+    border-top-left-radius: var(--form-radius-md, 8px);
+    border-bottom-left-radius: var(--form-radius-md, 8px);
+}
+
+.input-group .form-control:last-child {
+    border-top-right-radius: var(--form-radius-md, 8px);
+    border-bottom-right-radius: var(--form-radius-md, 8px);
+}
+
+/* Checkbox and radio standardization */
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--form-border-color, #e5e7eb);
+    border-radius: var(--form-radius-sm, 6px);
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--form-primary-color, #2563eb);
+    border-color: var(--form-primary-color, #2563eb);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: var(--form-text-primary, #1f2937);
+    padding-left: var(--form-spacing-sm, 0.5rem);
+}
+
+/* File input standardization */
+.form-control[type="file"] {
+    padding: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Placeholder standardization */
+.form-control::placeholder {
+    color: var(--form-text-muted, #9ca3af);
+    opacity: 1;
+}
+
+/* Disabled state standardization */
+.form-control:disabled {
+    background-color: var(--form-gray-100, #f3f4f6);
+    border-color: var(--form-gray-300, #d1d5db);
+    color: var(--form-text-muted, #9ca3af);
+    cursor: not-allowed;
+}
+
+/* Required field indicator */
+.required::after {
+    content: " *";
+    color: var(--form-danger-color, #ef4444);
+    font-weight: bold;
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: var(--form-spacing-lg, 1.5rem);
+}
+
+/* Responsive form adjustments */
+@media (max-width: 768px) {
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .btn {
+        padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+        font-size: 1rem;
+    }
+}
+
+/* Custom form colors for specific apps */
+.app-auth .btn-primary {
+    background: #329787;
+    border-color: #329787;
+}
+
+.app-auth .btn-primary:hover {
+    background: #2d8073;
+    border-color: #2d8073;
+}
+
+.app-auth .form-control:focus {
+    border-color: #329787;
+    box-shadow: 0 0 0 3px rgba(50, 151, 135, 0.1);
+}
+
+.app-auth .form-check-input:checked {
+    background-color: #329787;
+    border-color: #329787;
+}
+
+.app-vagas .btn-primary {
+    background: #329787;
+    border-color: #329787;
+}
+
+.app-vagas .btn-primary:hover {
+    background: #2d8073;
+    border-color: #2d8073;
+}
+
+.app-vagas .form-control:focus {
+    border-color: #329787;
+    box-shadow: 0 0 0 3px rgba(50, 151, 135, 0.1);
+}
+
+.app-vagas .form-check-input:checked {
+    background-color: #329787;
+    border-color: #329787;
+}
+
+/* Ensure all forms in the system use consistent styling */
+form {
+    margin-bottom: var(--form-spacing-xl, 2rem);
+}
+
+form .form-control {
+    margin-bottom: var(--form-spacing-md, 1rem);
+}
+
+form .form-label {
+    margin-bottom: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Clean up any existing inline styles */
+.form-control[style*="background-color"],
+.btn[style*="background-color"] {
+    background-color: inherit !important;
+}
+
+.form-control[style*="border-color"],
+.btn[style*="border-color"] {
+    border-color: inherit !important;
+}
+
+/* Global form styles - applies to all forms in the system */
+/* These styles ensure consistency across all forms without needing to include this CSS file */
+
+/* Override default Bootstrap form styles globally */
+.form-control {
+    border: 2px solid var(--form-border-color, #e5e7eb);
+    border-radius: var(--form-radius-md, 8px);
+    padding: var(--form-spacing-md, 1rem);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--form-surface-color, #ffffff);
+    color: var(--form-text-primary, #1f2937);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--form-primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-control.is-invalid {
+    border-color: var(--form-danger-color, #ef4444);
+}
+
+.form-control.is-valid {
+    border-color: var(--form-success-color, #22c55e);
+}
+
+/* Form labels */
+.form-label {
+    font-weight: 600;
+    color: var(--form-text-primary, #1f2937);
+    font-size: 0.875rem;
+    margin-bottom: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Form switches */
+.form-switch .form-check-input {
+    width: 2.5rem;
+    height: 1.25rem;
+    background-color: var(--form-gray-300, #d1d5db);
+    border: none;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--form-primary-color, #2563eb);
+    border-color: var(--form-primary-color, #2563eb);
+}
+
+.form-switch .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-switch .form-check-label {
+    font-weight: 500;
+    color: var(--form-text-primary, #1f2937);
+    padding-left: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Button standardization */
+.btn {
+    border-radius: var(--form-radius-md, 8px);
+    font-weight: 500;
+    padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--form-shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--form-primary-color, #2563eb), var(--form-primary-dark, #1e40af));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--form-primary-dark, #1e40af), #1e3a8a);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--form-success-color, #22c55e), #16a34a);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--form-warning-color), #d97706);
+    border: none;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--form-danger-color), #dc2626);
+    border: none;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--form-gray-600), var(--form-gray-700));
+    border: none;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, var(--form-gray-700), var(--form-gray-800));
+    color: white;
+}
+
+/* Alert standardization */
+.alert {
+    border-radius: var(--form-radius-md, 8px);
+    border: none;
+    padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+    font-weight: 500;
+    box-shadow: var(--form-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+    margin-bottom: var(--form-spacing-lg, 1.5rem);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, var(--form-success-color, #22c55e), #16a34a);
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, var(--form-danger-color, #ef4444), #dc2626);
+    color: white;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, var(--form-warning-color, #f59e0b), #d97706);
+    color: white;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, var(--form-info-color, #06b6d4), #0891b2);
+    color: white;
+}
+
+/* Form validation feedback */
+.invalid-feedback {
+    color: var(--form-danger-color, #ef4444);
+    font-size: 0.875rem;
+    margin-top: var(--form-spacing-xs, 0.25rem);
+}
+
+.valid-feedback {
+    color: var(--form-success-color, #22c55e);
+    font-size: 0.875rem;
+    margin-top: var(--form-spacing-xs, 0.25rem);
+}
+
+/* Select standardization */
+.form-select {
+    border: 2px solid var(--form-border-color, #e5e7eb);
+    border-radius: var(--form-radius-md, 8px);
+    padding: var(--form-spacing-md, 1rem);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: var(--form-surface-color, #ffffff);
+    color: var(--form-text-primary, #1f2937);
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--form-primary-color, #2563eb);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Textarea standardization */
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Input group standardization */
+.input-group .form-control {
+    border-radius: 0;
+}
+
+.input-group .form-control:first-child {
+    border-top-left-radius: var(--form-radius-md, 8px);
+    border-bottom-left-radius: var(--form-radius-md, 8px);
+}
+
+.input-group .form-control:last-child {
+    border-top-right-radius: var(--form-radius-md, 8px);
+    border-bottom-right-radius: var(--form-radius-md, 8px);
+}
+
+/* Checkbox and radio standardization */
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--form-border-color, #e5e7eb);
+    border-radius: var(--form-radius-sm, 6px);
+    transition: all 0.2s ease;
+}
+
+.form-check-input:checked {
+    background-color: var(--form-primary-color, #2563eb);
+    border-color: var(--form-primary-color, #2563eb);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: var(--form-text-primary, #1f2937);
+    padding-left: var(--form-spacing-sm, 0.5rem);
+}
+
+/* File input standardization */
+.form-control[type="file"] {
+    padding: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Placeholder standardization */
+.form-control::placeholder {
+    color: var(--form-text-muted, #9ca3af);
+    opacity: 1;
+}
+
+/* Disabled state standardization */
+.form-control:disabled {
+    background-color: var(--form-gray-100, #f3f4f6);
+    border-color: var(--form-gray-300, #d1d5db);
+    color: var(--form-text-muted, #9ca3af);
+    cursor: not-allowed;
+}
+
+/* Required field indicator */
+.required::after {
+    content: " *";
+    color: var(--form-danger-color, #ef4444);
+    font-weight: bold;
+}
+
+/* Form group spacing */
+.form-group {
+    margin-bottom: var(--form-spacing-lg, 1.5rem);
+}
+
+/* Responsive form adjustments */
+@media (max-width: 768px) {
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .btn {
+        padding: var(--form-spacing-md, 1rem) var(--form-spacing-lg, 1.5rem);
+        font-size: 1rem;
+    }
+}
+
+/* Custom form colors for specific apps */
+.app-auth .btn-primary {
+    background: #329787;
+    border-color: #329787;
+}
+
+.app-auth .btn-primary:hover {
+    background: #2d8073;
+    border-color: #2d8073;
+}
+
+.app-auth .form-control:focus {
+    border-color: #329787;
+    box-shadow: 0 0 0 3px rgba(50, 151, 135, 0.1);
+}
+
+.app-auth .form-check-input:checked {
+    background-color: #329787;
+    border-color: #329787;
+}
+
+.app-vagas .btn-primary {
+    background: #329787;
+    border-color: #329787;
+}
+
+.app-vagas .btn-primary:hover {
+    background: #2d8073;
+    border-color: #2d8073;
+}
+
+.app-vagas .form-control:focus {
+    border-color: #329787;
+    box-shadow: 0 0 0 3px rgba(50, 151, 135, 0.1);
+}
+
+.app-vagas .form-check-input:checked {
+    background-color: #329787;
+    border-color: #329787;
+}
+
+/* Ensure all forms in the system use consistent styling */
+form {
+    margin-bottom: var(--form-spacing-xl, 2rem);
+}
+
+form .form-control {
+    margin-bottom: var(--form-spacing-md, 1rem);
+}
+
+form .form-label {
+    margin-bottom: var(--form-spacing-sm, 0.5rem);
+}
+
+/* Clean up any existing inline styles */
+.form-control[style*="background-color"],
+.btn[style*="background-color"] {
+    background-color: inherit !important;
+}
+
+.form-control[style*="border-color"],
+.btn[style*="border-color"] {
+    border-color: inherit !important;
+}
+
+/* Profile Photo Styles */
+.profile-photo-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--form-border-color);
+    transition: all 0.3s ease;
+}
+
+.profile-photo:hover {
+    transform: scale(1.05);
+    border-color: var(--form-primary-color);
+}
+
+.profile-photo-placeholder {
+    width: 120px;
+    height: 120px;
+    border: 3px dashed var(--form-border-color);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.profile-photo-placeholder:hover {
+    border-color: var(--form-primary-color);
+    background-color: var(--form-gray-50);
+}
+
+.profile-photo-placeholder i {
+    font-size: 2.5rem;
+}
+
+/* Info Items */
+.info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--form-spacing-md);
+    margin-bottom: var(--form-spacing-lg);
+    padding: var(--form-spacing-md);
+    border-radius: var(--form-radius-md);
+    background-color: var(--form-gray-50);
+    border: 1px solid var(--form-border-color);
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-top: 0.25rem;
+}
+
+.info-item h6 {
+    margin: 0 0 var(--form-spacing-xs) 0;
+    color: var(--form-text-primary);
+    font-weight: 600;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--form-text-muted);
+    font-size: 0.875rem;
+}

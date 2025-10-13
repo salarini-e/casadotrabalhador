@@ -1,0 +1,463 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Candidatos por Funcionário - Admin{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+  .card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  
+  .chart-container {
+    height: 400px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .staff-table {
+    background-color: white;
+  }
+  
+  .staff-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .badge-count {
+    font-size: 0.9em;
+    padding: 0.4em 0.8em;
+    border-radius: 30px;
+  }
+  
+  .date-filter {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  
+  .filter-title {
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: #495057;
+  }
+  
+  .btn-action {
+    border-radius: 4px;
+    /* transition: all 0.2s; */
+  }
+  
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .summary-card {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .summary-icon {
+    font-size: 1.8rem;
+    opacity: 0.7;
+  }
+
+  /* Estilos específicos para progress bar */
+  .progress {
+    height: 10px !important;
+    background-color: #e9ecef !important;
+    border-radius: 5px !important;
+    overflow: hidden !important;
+    margin-bottom: 5px !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  
+  .progress-bar {
+    display: block !important;
+    height: 100% !important;
+    color: #fff !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    transition: width 0.6s ease !important;
+    border-radius: 5px !important;
+    min-width: 2px !important;
+  }
+  
+  .progress-bar.bg-success {
+    background-color: #28a745 !important;
+  }
+
+  /* Melhorar o estilo da coluna percentual */
+  .percentual-column {
+    min-width: 120px !important;
+    padding: 10px !important;
+  }
+
+  /* Garantir que a progress bar seja visível */
+  .staff-table .progress {
+    height: 12px !important;
+    background: #e9ecef !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  .staff-table .progress-bar {
+    background: #28a745 !important;
+    min-width: 1% !important;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1">Candidatos por Funcionário</h2>
+          <p class="text-muted">Visualize e analise o desempenho dos atendentes na captação de candidatos</p>
+        </div>
+        <div>
+          <a href="{% url 'vagas:painel_administrativo' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Filter Status -->
+      {% if filtro_aplicado %}
+      <div class="alert alert-info d-flex justify-content-between align-items-center mb-4" role="alert">
+        <div>
+          <i class="fas fa-filter me-2"></i>
+          <strong>Filtro aplicado:</strong> {{ periodo_descricao }}
+        </div>
+        <a href="?limpar_filtros=1" class="btn btn-sm btn-outline-info">
+          <i class="fas fa-times me-1"></i>Limpar filtro
+        </a>
+      </div>
+      {% endif %}
+      
+      <!-- Statistics Summary -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="summary-card card h-100 border-left-primary" style="border-left-color: #4e73df;">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total de Atendentes</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ lista|length }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-user-tie fa-2x text-gray-300 summary-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="summary-card card h-100 border-left-success" style="border-left-color: #1cc88a;">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total de Encaminhamentos</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {{ total_encaminhamentos }}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-clipboard-list fa-2x text-gray-300 summary-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="summary-card card h-100 border-left-info" style="border-left-color: #36b9cc;">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Média por Atendente</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {{ media_por_atendente|floatformat:1 }}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-calculator fa-2x text-gray-300 summary-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="summary-card card h-100 border-left-warning" style="border-left-color: #f6c23e;">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Período</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {% if filtro_aplicado and mes and ano %}
+                      {{ mes }}/{{ ano }}
+                    {% else %}
+                      Todos os dados
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-calendar fa-2x text-gray-300 summary-icon"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filter & Chart Row -->
+      <div class="row mb-4">
+        <div class="col-lg-4 mb-4">
+          <div class="card shadow h-100">
+            <div class="card-header py-3 d-flex align-items-center">
+              <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Filtrar por Período
+              </h6>
+            </div>
+            <div class="card-body">
+              <form method="post" class="form">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="mes" class="form-label">Mês</label>
+                  <select name="mes" class="form-select" id="mes">
+                    <option value="1" {% if mes == '1' %}selected{% endif %}>Janeiro</option>
+                    <option value="2" {% if mes == '2' %}selected{% endif %}>Fevereiro</option>
+                    <option value="3" {% if mes == '3' %}selected{% endif %}>Março</option>
+                    <option value="4" {% if mes == '4' %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if mes == '5' %}selected{% endif %}>Maio</option>
+                    <option value="6" {% if mes == '6' %}selected{% endif %}>Junho</option>
+                    <option value="7" {% if mes == '7' %}selected{% endif %}>Julho</option>
+                    <option value="8" {% if mes == '8' %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if mes == '9' %}selected{% endif %}>Setembro</option>
+                    <option value="10" {% if mes == '10' %}selected{% endif %}>Outubro</option>
+                    <option value="11" {% if mes == '11' %}selected{% endif %}>Novembro</option>
+                    <option value="12" {% if mes == '12' %}selected{% endif %}>Dezembro</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="ano" class="form-label">Ano</label>
+                  <select name="ano" class="form-select" id="ano">
+                    <option value="2022" {% if ano == '2022' %}selected{% endif %}>2022</option>
+                    <option value="2023" {% if ano == '2023' %}selected{% endif %}>2023</option>
+                    <option value="2024" {% if ano == '2024' %}selected{% endif %}>2024</option>
+                    <option value="2025" {% if ano == '2025' %}selected{% endif %}>2025</option>
+                    <option value="2026" {% if ano == '2026' %}selected{% endif %}>2026</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="fas fa-search me-2"></i>Filtrar
+                </button>
+                
+                {% if filtro_aplicado %}
+                <a href="?limpar_filtros=1" class="btn btn-outline-secondary w-100 mt-2">
+                  <i class="fas fa-times me-2"></i>Limpar Filtro
+                </a>
+                {% endif %}
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8 mb-4">
+          <div class="card shadow h-100">
+            <div class="card-header py-3 d-flex align-items-center">
+              <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-chart-pie me-2"></i>Distribuição de Encaminhamentos
+              </h6>
+            </div>
+            <div class="card-body">
+              <div id="piechart" style="width: 100%; height: 350px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Table -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex align-items-center">
+          <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-users me-2"></i>Desempenho por Atendente
+          </h6>
+          {% if filtro_aplicado and mes and ano %}
+          <span class="badge bg-primary ms-3">
+            Período: {{ mes }}/{{ ano }}
+          </span>
+          {% elif not filtro_aplicado %}
+          <span class="badge bg-secondary ms-3">
+            Todos os dados
+          </span>
+          {% endif %}
+          <div class="ms-auto">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buscar atendente...">
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover staff-table" id="staffTable">
+              <thead class="table-light">
+                <tr>
+                  <th class="text-center sortable" data-column="nome">Nome <i class="fas fa-sort ms-1"></i></th>
+                  <th class="text-center sortable" data-column="encaminhamentos">Encaminhamentos <i class="fas fa-sort ms-1"></i></th>
+                  <th class="text-center sortable" data-column="percentual">Percentual <i class="fas fa-sort ms-1"></i></th>
+                  <th class="text-center">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in lista %}
+                  <tr>
+                    <td class="text-center">{{ item.0 }}</td>
+                    <td class="text-center">
+                      <span class="badge bg-primary badge-count">{{ item.1 }}</span>
+                    </td>
+                    <td class="text-center percentual-column">
+                      {% if total_encaminhamentos > 0 and item.3 > 0 %}
+                          <div style="width: 100%; height: 12px; background-color: #e9ecef; border-radius: 6px; margin-bottom: 5px; border: 1px solid #dee2e6;">
+                            <div style="width: {{ item.3|floatformat:0 }}%; height: 100%; background-color: #28a745; border-radius: 5px; transition: width 0.3s ease; max-width: 100%;"></div>
+                          </div>
+                          <small class="text-muted">{{ item.3 }}%</small>
+                      
+                      {% else %}
+                        <div style="width: 100%; height: 12px; background-color: #e9ecef; border-radius: 6px; margin-bottom: 5px; border: 1px solid #dee2e6;">
+                          <div style="width: 0%; height: 100%; background-color: #6c757d; border-radius: 5px; max-width: 100%;"></div>
+                        </div>
+                        <small class="text-muted">0%</small>
+                      {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                      <a href="{% url 'vagas:funcionarios_encaminhados' item.2 %}{% if filtro_aplicado and mes and ano %}?mes={{ mes }}&ano={{ ano }}{% endif %}" 
+                         class="btn btn-sm btn-primary btn-action" 
+                         title="Ver detalhes dos encaminhamentos" style="color: white;">
+                        <i class="fas fa-eye me-1"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-center py-4">
+                      <i class="fas fa-info-circle me-2 text-info"></i>
+                      Nenhum dado encontrado para o período selecionado
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+      ['Atendente', 'Encaminhamentos'],  
+      {% for item in lista %}        
+        ['{{item.0}}', {{item.1}}],
+      {% endfor %}
+    ]);
+
+    var options = {
+      title: '',
+      legend: { position: 'right' },
+      chartArea: { width: '80%', height: '80%' },
+      colors: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#5a5c69', '#858796'],
+      pieHole: 0.4,
+      pieSliceText: 'percentage',
+      tooltip: { showColorCode: true }
+    };
+
+    var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+    chart.draw(data, options);
+  }
+  
+  // Table search functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableRows = document.querySelectorAll('#staffTable tbody tr');
+    
+    searchInput.addEventListener('keyup', function() {
+      const searchTerm = this.value.toLowerCase();
+      
+      tableRows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+      });
+    });
+    
+    // Table sorting
+    const sortableHeaders = document.querySelectorAll('.sortable');
+    sortableHeaders.forEach(header => {
+      header.addEventListener('click', function() {
+        const table = document.getElementById('staffTable');
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const column = this.dataset.column;
+        let sortDirection = this.classList.contains('sort-asc') ? 'desc' : 'asc';
+        
+        // Reset all headers
+        sortableHeaders.forEach(h => {
+          h.classList.remove('sort-asc', 'sort-desc');
+        });
+        
+        // Add sorting class
+        this.classList.add(`sort-${sortDirection}`);
+        
+        // Sort the rows
+        rows.sort((a, b) => {
+          let aValue, bValue;
+          
+          if (column === 'nome') {
+            aValue = a.cells[0].textContent.trim();
+            bValue = b.cells[0].textContent.trim();
+          } else if (column === 'encaminhamentos') {
+            aValue = parseInt(a.cells[1].textContent.trim());
+            bValue = parseInt(b.cells[1].textContent.trim());
+          } else if (column === 'percentual') {
+            aValue = parseFloat(a.cells[2].querySelector('small').textContent.replace('%', ''));
+            bValue = parseFloat(b.cells[2].querySelector('small').textContent.replace('%', ''));
+          }
+          
+          if (sortDirection === 'asc') {
+            return aValue > bValue ? 1 : -1;
+          } else {
+            return aValue < bValue ? 1 : -1;
+          }
+        });
+        
+        // Reorder the rows
+        rows.forEach(row => tbody.appendChild(row));
+      });
+    });
+  });
+</script>
+{% endblock %}

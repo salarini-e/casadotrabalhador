@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatura Realizada - Casa do Trabalhador Totem</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --totem-primary: #2563eb;
+            --totem-primary-dark: #1d4ed8;
+            --totem-success: #10b981;
+            --totem-warning: #f59e0b;
+            --totem-surface: #ffffff;
+            --totem-background: #f8fafc;
+            --totem-text-primary: #1e293b;
+            --totem-text-secondary: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--totem-success), #059669);
+            color: var(--totem-text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .success-card {
+            background: var(--totem-surface);
+            border-radius: 30px;
+            padding: 4rem 3rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border: 4px solid var(--totem-success);
+            max-width: 800px;
+            width: 100%;
+            animation: successSlideIn 0.8s ease-out;
+        }
+
+        @keyframes successSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: var(--totem-success);
+            margin-bottom: 2rem;
+            animation: successPulse 2s infinite;
+        }
+
+        @keyframes successPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .success-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--totem-success);
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-subtitle {
+            font-size: 1.5rem;
+            color: var(--totem-text-secondary);
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        .candidate-info {
+            background: linear-gradient(135deg, var(--totem-background), #e2e8f0);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            border: 2px solid var(--totem-success);
+        }
+
+        .info-header {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--totem-text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            text-align: left;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--totem-text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--totem-text-primary);
+        }
+
+        .next-steps {
+            background: linear-gradient(135deg, #fff7ed, #fed7aa);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            border: 2px solid var(--totem-warning);
+            text-align: left;
+        }
+
+        .steps-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--totem-warning);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .steps-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .step-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-number {
+            background: var(--totem-warning);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1.25rem 2.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--totem-success), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, var(--totem-primary-dark), #1e40af);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--totem-warning), #d97706);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
+
+        .countdown {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .countdown-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .countdown-number {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--totem-warning);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .success-container {
+                padding: 1rem;
+            }
+
+            .success-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .success-title {
+                font-size: 2rem;
+            }
+
+            .success-subtitle {
+                font-size: 1.25rem;
+            }
+
+            .success-icon {
+                font-size: 4rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .countdown {
+                top: 1rem;
+                right: 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(37, 99, 235, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .print-instruction {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 8px 12px;
+            /* background-color: rgba(16, 185, 129, 0.1); */
+            border-radius: 8px;
+            color: var(--totem-success);
+            animation: pulse 2s infinite;
+        }
+        
+        .print-instruction i {
+            font-size: 1.2rem;
+        }
+        
+        kbd {
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-weight: bold;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 0 #cbd5e1;
+            display: inline-block;
+            margin: 0 4px;
+            color: var(--totem-text-primary);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .success-container, .countdown, .keyboard-hint, .loading-overlay, .print-instruction, .btn {
+                display: none !important;
+            }
+            
+            .print-template {
+                display: block !important;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Redirecionando...</div>
+    </div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown" id="countdown">
+        <div class="countdown-text">
+            <i class="fas fa-clock"></i>
+            <span>Retorno automático em <span class="countdown-number" id="countdownNumber">30</span>s</span>
+        </div>
+    </div>
+
+    <div class="success-container">
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+
+            <h1 class="success-title">Candidatura Realizada!</h1>
+            <p class="success-subtitle">Seus dados foram enviados com sucesso</p>
+            <!-- Instrução de impressão -->
+            <div class="print-instruction">
+                <div class="help-instruction">
+                    <i class="fas fa-keyboard"></i>
+                    <span>Pressione <kbd>Enter</kbd> para imprimir o encaminhamento</span>
+                </div>
+            </div>
+            <div class="candidate-info">
+                <div class="info-header">
+                    <i class="fas fa-user-check"></i>
+                    Informações da Candidatura
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Candidato</span>
+                        <span class="info-value">{{ candidato.nome }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">CPF</span>
+                        <span class="info-value">{{ candidato.get_cpf }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Vaga</span>
+                        <span class="info-value">{{ vaga.cargo.nome }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Referência</span>
+                        <span class="info-value">{{ vaga.id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Data de Candidatura</span>
+                        <span class="info-value">{{ candidato.dt_inclusao|date:"d/m/Y às H:i" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Contato</span>
+                        <span class="info-value">{{ candidato.celular }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="next-steps">
+                <div class="steps-title">
+                    <i class="fas fa-list-check"></i>
+                    Próximos Passos
+                </div>
+                <ul class="steps-list">
+                    <li class="step-item">
+                        <div class="step-number">1</div>
+                        <div>Sua candidatura foi registrada e está sendo processada pela nossa equipe</div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">2</div>
+                        <div>Aguarde o contato da Casa do Trabalhador no telefone <strong>{{ candidato.celular }}</strong></div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">3</div>
+                        <div>Mantenha seus documentos atualizados e prepare-se para possíveis entrevistas</div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-number">4</div>
+                        <div>Continue verificando outras oportunidades disponíveis no nosso sistema</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="btn btn-warning" id="printBtn">
+                    <i class="fas fa-print"></i>
+                    Imprimir Encaminhamento
+                </button>
+                <a href="{% url 'vagas:totem_v1' %}" class="btn btn-primary" id="backBtn">
+                    <i class="fas fa-home"></i>
+                    Voltar às Vagas
+                </a>                
+            </div>                        
+        </div>
+    </div>
+
+    <!-- Template de Impressão (oculto até a impressão) -->
+    <div class="print-template" style="display: none;">
+        <style>
+            h1{
+                font-family: Verdana, Arial, sans-serif;
+            }
+            p{
+                text-indent: 30px;
+                text-align: justify;
+                font-family: Arial, sans-serif;
+                font-size: 14pt;
+            }
+            span{
+                font-family: Arial, sans-serif;
+                font-size: 14pt;
+            }
+            b{
+                text-transform: uppercase;
+            }
+            @media print {
+                .print-template {
+                    display: block !important;
+                }
+            }
+        </style>
+
+        <div style="margin: auto; width: 100%;">
+            <header style="display: flex; width: 800px; margin: auto;">            
+                <img src="/static/images/logo.jpg" style="height: 110px;" alt="">            
+                <img src="/static/images/SUBSECRETARIA.png" style="width: 500px; height: auto; margin-left:0px; margin-right: 0px; margin-top: auto; margin-bottom: auto; margin-left: auto;" alt="">            
+            </header>
+            <main style="padding: 0 100px; width: 800px; display: flex; flex-direction: column; padding-top: 60px; margin: auto;"> 
+                <h1 style="margin: auto;">ENCAMINHAMENTO</h1>
+
+                <span style="margin-top: 40px;">Prezado(a),</span>
+                <p>
+                    A CASA DO TRABALHADOR, no exercício de suas atribuições legais e regimentais,  
+                    encaminha pelo presente o candidato <b>{{ candidato.nome }}</b>, portador do cpf de nº <b>{{ candidato.get_cpf }}</b>, 
+                    interessado na vaga de <b>{{ vaga.cargo.nome }}</b>{% if vaga.empresa_fantasia %},
+                    à empresa <b>{{ vaga.empresa_fantasia }}</b>{% endif %}.
+                </p>
+                
+                <p>Pedimos ao candidato que busque fazer contato:</p>
+                
+                {% if vaga.contato_presencial %}
+                <p style="margin: 0 30px;">                
+                De forma presencial, munido de seu currículo e com este encaminhamento em mãos, no endereço: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.empresa_endereco }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_telefone %}
+                <p style="margin: 10px 30px;">                
+                Por telefone: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_telefone }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_whatsapp %}
+                <p style="margin: 10px 30px;">                
+                    O candidato deve enviar o seu currículo digital para o whatsapp abaixo: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_whatsapp }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_email %}
+                <p style="margin: 0 30px;">                
+                Por email, com seu currículo em anexo, ao endereço: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_email }}</span></p>
+                {% endif %}
+                
+                {% if vaga.contato_link %}
+                <p style="margin: 0 30px;">                
+                Pelo endereço eletrônico: <br>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_link }}</span></p>
+                {% endif %}
+                
+                <p style="margin-top: 30px;">
+                    <b>OBS.:</b>
+                    {% if vaga.observacao %}{{ vaga.observacao }}{% else %}As informações presentes nesta são de responsabilidade do candidato.{% endif %}
+                </p>
+                
+                <p style="margin-top: 0;">
+                    Desde já agradecemos e continuamos a disposição de V. srª para maiores
+                    informações no telefone (22)2525-9205.                 
+                </p>
+                
+                <p style="margin-bottom: 0; text-indent: 0; text-align: center;">                    
+                    <span>Documento gerado automaticamente pelo</span><br>
+                    <span><b>TOTEM DA CASA DO TRABALHADOR</b></span>
+                </p>
+                
+                <p style="text-align: center; margin-top: 40px; text-indent: 0;">
+                    Nova Friburgo, {% now "d \d\e F \d\e Y" %}.
+                </p>
+                
+                <p style="text-align: center; margin: 80px; text-indent: 0;">
+                    João Vitor Guerra Toledo Tamez <br>Matrícula: 063.734<br>
+                    Subsecretário de Trabalho e Renda                
+                </p>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class TotemSuccessPage {
+            constructor() {
+                this.countdownSeconds = 30;
+                this.countdownTimer = null;
+                this.loadingOverlay = document.getElementById('loadingOverlay');
+                this.init();
+            }
+
+            init() {
+                this.clearSavedVaga(); // Clear saved vaga after successful candidature
+                this.startCountdown();
+                this.bindEvents();
+                this.addKeyboardNavigation();
+            }
+
+            // Clear saved vaga cookie
+            clearSavedVaga() {
+                document.cookie = `totem_current_vaga=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+
+            bindEvents() {
+                // Handle back button click
+                document.getElementById('backBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.goBack();
+                });
+                
+                // Handle print button click
+                document.getElementById('printBtn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.printEncaminhamento();
+                });
+
+                // Handle any click to reset countdown
+                document.addEventListener('click', () => {
+                    this.resetCountdown();
+                });
+
+                // Handle keyboard interaction to reset countdown
+                document.addEventListener('keydown', (e) => {
+                    this.resetCountdown();
+                    this.handleKeydown(e);
+                });
+
+                // Handle mouse movement to reset countdown
+                document.addEventListener('mousemove', () => {
+                    this.resetCountdown();
+                });
+            }
+
+            handleKeydown(e) {
+                switch(e.code) {
+                    case 'Enter':
+                        e.preventDefault();
+                        this.printEncaminhamento();
+                        break;
+                    case 'Space':
+                        e.preventDefault();
+                        this.goBack();
+                        break;
+                    case 'ControlLeft':
+                    case 'ControlRight':
+                    case 'Delete':
+                    case 'Backspace':
+                        e.preventDefault();
+                        this.goBack();
+                        break;
+                }
+            }
+
+            startCountdown() {
+                this.countdownTimer = setInterval(() => {
+                    this.countdownSeconds--;
+                    this.updateCountdownDisplay();
+                    
+                    if (this.countdownSeconds <= 0) {
+                        this.goBack();
+                    }
+                }, 1000);
+            }
+
+            resetCountdown() {
+                this.countdownSeconds = 30;
+                this.updateCountdownDisplay();
+            }
+
+            updateCountdownDisplay() {
+                const countdownElement = document.getElementById('countdownNumber');
+                if (countdownElement) {
+                    countdownElement.textContent = this.countdownSeconds;
+                    
+                    // Change color when time is running out
+                    if (this.countdownSeconds <= 10) {
+                        countdownElement.style.color = '#ef4444';
+                    } else {
+                        countdownElement.style.color = '#f59e0b';
+                    }
+                }
+            }
+
+            goBack() {
+                if (this.countdownTimer) {
+                    clearInterval(this.countdownTimer);
+                }
+                
+                this.showLoading(true);
+                
+                setTimeout(() => {
+                    window.location.href = "{% url 'vagas:totem_v1' %}";
+                }, 1000);
+            }
+            
+            printEncaminhamento() {
+                // Pausar o countdown durante a impressão
+                if (this.countdownTimer) {
+                    clearInterval(this.countdownTimer);
+                }
+                
+                // Mostrar feedback visual antes da impressão
+                const printBtn = document.getElementById('printBtn');
+                const originalText = printBtn.innerHTML;
+                
+                printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Imprimindo...';
+                printBtn.disabled = true;
+                
+                // Formatação de telefones, se existirem
+                this.formatPhoneNumbers();
+                
+                // Pequeno delay para mostrar o feedback visual
+                setTimeout(() => {
+                    // Executa a impressão
+                    window.print();
+                    
+                    // Retorna ao estado normal após a impressão
+                    printBtn.innerHTML = originalText;
+                    printBtn.disabled = false;
+                    
+                    // Reinicia o countdown
+                    this.resetCountdown();
+                    this.startCountdown();
+                }, 300);
+            }
+            
+            formatPhoneNumbers() {
+                // Formata números de telefone no formato (XX) XXXX-XXXX
+                const phones = document.querySelectorAll('.print-template [data-phone]');
+                phones.forEach(phone => {
+                    const phoneNumber = phone.textContent.trim();
+                    if (phoneNumber && phoneNumber.length === 10) {
+                        phone.textContent = phoneNumber.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+                    }
+                });
+            }
+
+            showLoading(show) {
+                if (show) {
+                    this.loadingOverlay.classList.add('show');
+                } else {
+                    this.loadingOverlay.classList.remove('show');
+                }
+            }
+
+            addKeyboardNavigation() {
+                // Focus on the back button for keyboard navigation
+                setTimeout(() => {
+                    document.getElementById('backBtn').focus();
+                }, 500);
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new TotemSuccessPage();
+        });
+
+        // Prevent going back with browser back button
+        history.pushState(null, null, location.href);
+        window.onpopstate = function () {
+            history.go(1);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Formulário enviado com sucesso{% endblock %}
+
+{% block main %}
+<div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="text-center">
+        <div class="mb-4">
+            <i class="fas fa-check-circle fa-5x text-success"></i>
+        </div>
+        <h1 class="h2 mb-3">Formulário enviado com sucesso!</h1>
+        <p class="text-muted mb-4">
+            Obrigado por enviar sua requisição de vaga.<br>
+            Nossa equipe analisará as informações e entrará em contato em breve.
+        </p>
+        
+        <div class="card mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    Próximos passos
+                </h5>
+                <ul class="list-unstyled text-start">
+                    <li class="mb-2">
+                        <i class="fas fa-clock text-muted me-2"></i>
+                        Análise da requisição em até 2 dias úteis
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-phone text-muted me-2"></i>
+                        Retorno por telefone ou e-mail
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-handshake text-muted me-2"></i>
+                        Agendamento de reunião se necessário
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <a href="/" class="btn btn-primary me-3">
+                <i class="fas fa-home me-2"></i>Voltar ao Início
+            </a>
+            <p class="text-muted small mt-3">
+                <i class="fas fa-envelope me-1"></i>
+                Em caso de dúvidas: contato@casadotrabalhador.gov.br
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

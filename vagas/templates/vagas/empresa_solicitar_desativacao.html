@@ -1,0 +1,277 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+
+{% block title %}Solicitar Desativação - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .solicitar-desativacao-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .alert-warning-custom {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .vaga-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h6 {
+        color: #104a74;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .btn-confirmar {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-confirmar:hover {
+        background: linear-gradient(135deg, #c82333, #bd2130);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+        color: white;
+    }
+    
+    .motivo-option {
+        margin-bottom: 0.75rem;
+    }
+    
+    .motivo-option input[type="radio"] {
+        margin-right: 0.5rem;
+    }
+    
+    .observacoes-field {
+        display: none;
+        margin-top: 1rem;
+    }
+    
+    .observacoes-field.show {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' %}
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    {% if tipo == 'vaga' %}
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}">Vagas</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">{{ vaga.cargo.nome }}</a>
+                    </li>
+                    {% else %}
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_formularios' %}">Formulários</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}">Formulário #{{ formulario.id }}</a>
+                    </li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" aria-current="page">Solicitar Desativação</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-ban me-2 text-danger"></i>Solicitar Desativação
+            </h1>
+            <p>Envie uma solicitação para desativar a vaga</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Aviso -->
+                <div class="alert-warning-custom">
+                    <h5>
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Importante
+                    </h5>
+                    <p class="mb-0">
+                        Esta ação enviará uma solicitação para a equipe da Casa do Trabalhador. 
+                        A vaga permanecerá ativa até que a solicitação seja analisada e aprovada.
+                        Você receberá uma confirmação quando a solicitação for processada.
+                    </p>
+                </div>
+
+                <!-- Informações da Vaga -->
+                <div class="vaga-info">
+                    <h5 class="mb-3">
+                        <i class="fas fa-briefcase me-2"></i>Informações da Vaga
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Cargo:</strong> {{ vaga.cargo.nome }}</p>
+                            <p><strong>Empresa:</strong> {{ vaga.empresa.nome }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Salário:</strong> R$ {{ vaga.salario|floatformat:2 }}</p>
+                            <p><strong>Vagas:</strong> {{ vaga.quantidadeVagas }}</p>
+                        </div>
+                    </div>
+                    {% if formulario %}
+                    <p><strong>Formulário:</strong> #{{ formulario.id }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Formulário -->
+                <div class="solicitar-desativacao-card">
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <div class="form-section">
+                                <h6>
+                                    <i class="fas fa-question-circle me-2"></i>Motivo da Solicitação
+                                </h6>
+                                
+                                <div class="motivo-option">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="motivo" value="vaga_preenchida" class="form-check-input" required>
+                                        <strong>Vaga já preenchida</strong>
+                                        <br><small class="text-muted">A vaga foi preenchida e não precisamos mais de candidatos</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="motivo-option">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="motivo" value="sem_candidatos" class="form-check-input" required>
+                                        <strong>Não recebemos candidatos adequados</strong>
+                                        <br><small class="text-muted">Os candidatos não atendem aos requisitos da vaga</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="motivo-option">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="motivo" value="vaga_suspensa" class="form-check-input" required>
+                                        <strong>Vaga temporariamente suspensa</strong>
+                                        <br><small class="text-muted">Precisamos pausar o recrutamento temporariamente</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="motivo-option">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="motivo" value="vaga_cancelada" class="form-check-input" required>
+                                        <strong>Vaga cancelada</strong>
+                                        <br><small class="text-muted">A vaga foi cancelada definitivamente</small>
+                                    </label>
+                                </div>
+                                
+                                <div class="motivo-option">
+                                    <label class="form-check-label">
+                                        <input type="radio" name="motivo" value="outro" class="form-check-input" id="motivoOutro" required>
+                                        <strong>Outro motivo</strong>
+                                        <br><small class="text-muted">Especifique o motivo nas observações</small>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h6>
+                                    <i class="fas fa-comment me-2"></i>Observações
+                                </h6>
+                                <textarea name="observacoes" class="form-control" rows="4" 
+                                          placeholder="Forneça detalhes adicionais sobre o motivo da solicitação..."></textarea>
+                                <small class="form-text text-muted">
+                                    Campo obrigatório quando selecionar "Outro motivo"
+                                </small>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if tipo == 'vaga' %}{% url 'vagas:empresa_vaga_detalhes' vaga.id %}{% else %}{% url 'vagas:empresa_formulario_detalhes' formulario.id %}{% endif %}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                </a>
+                                
+                                <button type="submit" class="btn btn-confirmar">
+                                    <i class="fas fa-paper-plane me-2"></i>Enviar Solicitação
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Validação do formulário
+    $('form').on('submit', function(e) {
+        const motivoSelecionado = $('input[name="motivo"]:checked').val();
+        const observacoes = $('textarea[name="observacoes"]').val().trim();
+        
+        if (motivoSelecionado === 'outro' && !observacoes) {
+            e.preventDefault();
+            alert('Por favor, forneça detalhes nas observações quando selecionar "Outro motivo".');
+            $('textarea[name="observacoes"]').focus();
+            return false;
+        }
+        
+        if (!confirm('Tem certeza que deseja enviar esta solicitação de desativação?')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
+    // Marcar campo de observações como obrigatório quando selecionar "Outro"
+    $('input[name="motivo"]').on('change', function() {
+        const observacoesField = $('textarea[name="observacoes"]');
+        
+        if ($(this).val() === 'outro') {
+            observacoesField.attr('required', true);
+            observacoesField.closest('.form-section').find('h6').html('<i class="fas fa-comment me-2"></i>Observações <span class="text-danger">*</span>');
+        } else {
+            observacoesField.removeAttr('required');
+            observacoesField.closest('.form-section').find('h6').html('<i class="fas fa-comment me-2"></i>Observações');
+        }
+    });
+});
+</script>
+{% endblock %}

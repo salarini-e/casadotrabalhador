@@ -1,0 +1,1509 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Detalhes do Formulário{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-eye me-2"></i>
+          Detalhes do Formulário
+        </h1>
+        <p class="page-subtitle">{{ formulario.nome_da_empresa }} - {{ formulario.cargo_ofertado }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a href="{% url 'vagas:admin_formularios_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+          </a>
+          {% if formulario.status_requisicao == 'AG' or formulario.status_requisicao == 'AP' %}
+            <button type="button" class="btn btn-primary" onclick="copyToClipboard('{{ public_url }}')">
+              <i class="fas fa-link me-2"></i>
+              {% if formulario.status_requisicao == 'AG' %}
+                Copiar Link
+              {% else %}
+                Copiar Link (Visualização)
+              {% endif %}
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <!-- Quick Stats Cards -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-primary">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Status</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {% if formulario.status_requisicao == 'AG' %}
+                      <span class="text-warning">Aguardando</span>
+                    {% elif formulario.status_requisicao == 'PE' %}
+                      <span class="text-info">Pendente</span>
+                    {% elif formulario.status_requisicao == 'AP' %}
+                      {% if vaga_vinculada and not vaga_vinculada.ativo %}
+                        <span class="text-danger">Encerrada</span>
+                      {% else %}
+                        <span class="text-success">Aprovada</span>
+                      {% endif %}
+                    {% elif formulario.status_requisicao == 'RE' %}
+                      <span class="text-danger">Rejeitada</span>
+                    {% elif formulario.status_requisicao == 'AE' %}
+                      <span class="text-warning">Aguard. Encerramento</span>
+                    {% elif formulario.status_requisicao == 'EN' %}
+                      <span class="text-secondary">Encerrada</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-success">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Candidatos</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    {% if candidatos_da_vaga %}{{ candidatos_da_vaga.count }}{% else %}0{% endif %}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-users fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-info">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Vagas</div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ formulario.quantidade_de_vagas }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-briefcase fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card h-100 border-left-warning">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Criado</div>
+                  <div class="h6 mb-0 font-weight-bold text-gray-800">{{ formulario.dt_inclusao|date:"d/m/Y" }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="row">
+        <div class="col-12">
+          <ul class="nav nav-pills nav-fill mb-4" id="formularioTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">
+                <i class="fas fa-tachometer-alt me-2"></i>Resumo Geral
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="job-tab" data-bs-toggle="pill" data-bs-target="#job" type="button" role="tab">
+                <i class="fas fa-briefcase me-2"></i>Vaga
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="candidates-tab" data-bs-toggle="pill" data-bs-target="#candidates" type="button" role="tab">
+                <i class="fas fa-users me-2"></i>Candidatos
+                {% if candidatos_da_vaga %}
+                  <span class="badge bg-primary ms-1">{{ candidatos_da_vaga.count }}</span>
+                {% endif %}
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="actions-tab" data-bs-toggle="pill" data-bs-target="#actions" type="button" role="tab">
+                <i class="fas fa-cogs me-2"></i>Ações
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="formularioTabsContent">
+        
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active overview-compact" id="overview" role="tabpanel">
+          <div class="row">
+            <!-- Coluna da Esquerda - Histórico de Mudanças -->
+            <div class="col-lg-5 mb-4">
+              <!-- Informações Técnicas Compactas -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <small class="text-muted">ID:</small>
+                      <div class="fw-bold">#{{ formulario.pk }}</div>
+                    </div>
+                    <div class="col-6">
+                      <small class="text-muted">Criado:</small>
+                      <div class="fw-bold">{{ formulario.dt_inclusao|date:"d/m/Y" }}</div>
+                    </div>
+                    <div class="col-12 mt-2">
+                      <small class="text-muted">Chave de Acesso:</small>
+                      <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" value="{{ formulario.chave_de_acesso }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ formulario.chave_de_acesso }}')">
+                          <i class="fas fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Histórico de Mudanças -->
+              {% if formulario.historico.all %}
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Mudanças</h5>
+                  </div>
+                  <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    <div class="timeline">
+                      <!-- Histórico de mudanças do formulário e solicitações de desativação combinados -->
+                      {% with historico_items=formulario.historico.all solicitacoes=vaga_vinculada.solicitacoes_desativacao.all %}
+                        {% comment %}Criamos uma lista combinada ordenada por data{% endcomment %}
+                        {% if vaga_vinculada %}
+                          {% for solicitacao in solicitacoes %}
+                            <!-- Entrada para criação da solicitação -->
+                            <div class="timeline-item">
+                              <div class="timeline-marker">
+                                <i class="fas fa-ban text-warning"></i>
+                              </div>
+                              <div class="timeline-content">
+                                <div class="timeline-header">
+                                  <h6 class="mb-1">
+                                    Solicitação de Desativação
+                                    <span class="badge bg-warning">{{ solicitacao.get_motivo_display }}</span>
+                                  </h6>
+                                  <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}
+                                    por {{ solicitacao.empresa_responsavel.nome }}
+                                  </small>
+                                </div>
+                                {% if solicitacao.observacoes %}
+                                  <div class="timeline-body mt-2">
+                                    <p class="mb-0">{{ solicitacao.observacoes }}</p>
+                                  </div>
+                                {% endif %}
+                                {% if solicitacao.status == 'pendente' %}
+                                  <div class="timeline-actions mt-2">
+                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#processar-{{ solicitacao.id }}">
+                                      <i class="fas fa-gavel me-1"></i>Processar Solicitação
+                                    </button>
+                                  </div>
+                                {% endif %}
+                              </div>
+                            </div>
+
+                            <!-- Se foi processada, adicionar entrada do processamento -->
+                            {% if solicitacao.status != 'pendente' and solicitacao.dt_processamento %}
+                              <div class="timeline-item">
+                                <div class="timeline-marker">
+                                  {% if solicitacao.status == 'aprovada' %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                  {% else %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                  {% endif %}
+                                </div>
+                                <div class="timeline-content">
+                                  <div class="timeline-header">
+                                    <h6 class="mb-1">
+                                      Solicitação {{ solicitacao.get_status_display }}
+                                      <span class="badge bg-{% if solicitacao.status == 'aprovada' %}success{% else %}danger{% endif %}">
+                                        {{ solicitacao.get_status_display|capfirst }}
+                                      </span>
+                                    </h6>
+                                    <small class="text-muted">
+                                      <i class="fas fa-clock me-1"></i>
+                                      {{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}
+                                      {% if solicitacao.processado_por %}
+                                        por {{ solicitacao.processado_por.get_full_name|default:solicitacao.processado_por.username }}
+                                      {% endif %}
+                                    </small>
+                                  </div>
+                                  {% if solicitacao.observacoes_admin %}
+                                    <div class="timeline-body mt-2">
+                                      <p class="mb-0">{{ solicitacao.observacoes_admin }}</p>
+                                    </div>
+                                  {% endif %}
+                                </div>
+                              </div>
+                            {% endif %}
+                          {% endfor %}
+                        {% endif %}
+                        {% for item in historico_items %}
+                        <div class="timeline-item">
+                          <div class="timeline-marker">
+                            {% if item.acao == 'CR' %}
+                              <i class="fas fa-plus-circle text-success"></i>
+                            {% elif item.acao == 'ST' %}
+                              <i class="fas fa-exchange-alt text-primary"></i>
+                            {% elif item.acao == 'OB' %}
+                              <i class="fas fa-comment text-info"></i>
+                            {% elif item.acao == 'ED' %}
+                              <i class="fas fa-edit text-warning"></i>
+                            {% endif %}
+                          </div>
+                          <div class="timeline-content">
+                            <div class="timeline-header">
+                              <h6 class="mb-1">
+                                {{ item.get_acao_display }}
+                                {% if item.acao == 'ST' %}
+                                  {% if item.status_anterior %}
+                                    <span class="badge bg-secondary">{{ item.get_status_anterior_display }}</span>
+                                    <i class="fas fa-arrow-right mx-1"></i>
+                                  {% endif %}
+                                  {% if item.status_novo %}
+                                    <span class="badge 
+                                      {% if item.status_novo == 'PE' %}bg-info
+                                      {% elif item.status_novo == 'AP' %}bg-success
+                                      {% elif item.status_novo == 'RE' %}bg-danger
+                                      {% elif item.status_novo == 'AG' %}bg-warning
+                                      {% elif item.status_novo == 'AE' %}bg-warning
+                                      {% elif item.status_novo == 'EN' %}bg-secondary
+                                      {% endif %}">
+                                      {{ item.get_status_novo_display }}
+                                    </span>
+                                  {% endif %}
+                                {% endif %}
+                              </h6>
+                              <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ item.dt_criacao|date:"d/m/Y H:i" }}
+                                {% if item.usuario %}
+                                  por {{ item.usuario.get_full_name|default:item.usuario.username }}
+                                {% endif %}
+                              </small>
+                            </div>
+                            {% if item.observacao %}
+                              <div class="timeline-body mt-2">
+                                <p class="mb-0">{{ item.observacao }}</p>
+                              </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Adicionar solicitações de desativação ao histórico -->
+                        
+                      {% endwith %}
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Modals para processar solicitações de desativação -->
+                {% if vaga_vinculada %}
+                  {% for solicitacao in vaga_vinculada.solicitacoes_desativacao.all %}
+                    {% if solicitacao.status == 'pendente' %}
+                      <div class="modal fade" id="processar-{{ solicitacao.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <form method="post" action="{% url 'vagas:admin_processar_solicitacao_desativacao' solicitacao.id %}">
+                              {% csrf_token %}
+                              <div class="modal-header">
+                                <h5 class="modal-title">Processar Solicitação de Desativação</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                              </div>
+                              <div class="modal-body">
+                                <div class="mb-3">
+                                  <h6>Formulário:</h6>
+                                  <p><strong>{{ formulario.cargo_ofertado }}</strong> - {{ formulario.nome_da_empresa }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                  <h6>Motivo:</h6>
+                                  <p>{{ solicitacao.get_motivo_display }}</p>
+                                  {% if solicitacao.observacoes %}
+                                    <small class="text-muted">{{ solicitacao.observacoes }}</small>
+                                  {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                  <h6>Solicitante:</h6>
+                                  <p>{{ solicitacao.empresa_responsavel.nome }}</p>
+                                </div>
+
+                                <div class="mb-3">
+                                  <label class="form-label">Decisão</label>
+                                  <div>
+                                    <div class="form-check">
+                                      <input class="form-check-input" type="radio" name="status" value="aprovada" id="aprovar-{{ solicitacao.id }}" required>
+                                      <label class="form-check-label" for="aprovar-{{ solicitacao.id }}">
+                                        Aprovar solicitação
+                                      </label>
+                                    </div>
+                                    <div class="form-check">
+                                      <input class="form-check-input" type="radio" name="status" value="rejeitada" id="rejeitar-{{ solicitacao.id }}" required>
+                                      <label class="form-check-label" for="rejeitar-{{ solicitacao.id }}">
+                                        Rejeitar solicitação
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div class="mb-3">
+                                  <label for="observacoes-{{ solicitacao.id }}" class="form-label">Observações</label>
+                                  <textarea class="form-control" id="observacoes-{{ solicitacao.id }}" name="observacoes" rows="3" placeholder="Se necessário, adicione observações sobre a sua decisão"></textarea>
+                                </div>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Confirmar</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              {% else %}
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Histórico de Mudanças</h5>
+                  </div>
+                  <div class="card-body text-center text-muted">                    
+                    <p class="mb-0">Nenhum histórico disponível ainda.</p>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Coluna da Direita - Resumo Executivo e Vaga Vinculada -->
+            <div class="col-lg-7">
+              <!-- Resumo Executivo -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Resumo Executivo</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="text-primary">{{ formulario.nome_da_empresa }}</h6>
+                      <p class="mb-1"><strong>Cargo:</strong> {{ formulario.cargo_ofertado }}</p>
+                      <p class="mb-1"><strong>Vagas:</strong> {{ formulario.quantidade_de_vagas }}</p>
+                      <p class="mb-1"><strong>Tipo:</strong> {{ formulario.get_tipo_de_vaga_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                      <p class="mb-1"><strong>Salário:</strong> {{ formulario.get_faixa_salarial_display }}</p>
+                      <p class="mb-1"><strong>Escolaridade:</strong> {{ formulario.escolaridade.nome|default:"Não informado" }}</p>
+                      <p class="mb-1"><strong>Experiência:</strong> {{ formulario.get_experiencia_display|default:"Não informado" }}</p>
+                      <p class="mb-1"><strong>Responsável:</strong> {{ formulario.nome_do_responsavel_pela_divulgacao_da_vaga|default:"Não informado" }}</p>
+                    </div>
+                  </div>
+                  {% if formulario.status_requisicao == 'AP' and not vaga_vinculada %}
+                  <div class="row">
+                    <div class="col py-4">
+                      
+                        <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="w-100 btn btn-success">
+                          Cadastrar Vaga no Sistema
+                        </a>
+                      
+                    </div>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Vaga Vinculada (se existir) -->
+              {% if vaga_vinculada %}
+                <div class="card border-success mb-4">
+                  <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                      <i class="fas fa-link me-2"></i>Vaga Vinculada no Sistema
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <h6 class="text-success">{{ vaga_vinculada.cargo.nome }}</h6>
+                        <p class="mb-1"><strong>ID da Vaga:</strong> #{{ vaga_vinculada.pk }}</p>
+                        <p class="mb-1"><strong>Empresa:</strong> {{ vaga_vinculada.empresa.nome }}</p>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="text-end">
+                          <div class="badge bg-primary fs-6 mb-2">{{ candidatos_da_vaga.count }} Candidatos</div>
+                          <p class="mb-1"><strong>Criada em:</strong> {{ vaga_vinculada.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- <div class="mt-3">
+                      <div class="btn-group w-100" role="group">
+                        <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-success">
+                          <i class="fas fa-users me-1"></i>Ver Candidatos
+                        </a>
+                        <a href="#" class="btn btn-outline-success">
+                          <i class="fas fa-eye me-1"></i>Ver Vaga
+                        </a>
+                      </div>
+                    </div> -->
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Contato da Empresa (se existir vaga vinculada) -->
+              {% if vaga_vinculada %}
+                <div class="card">
+                  <div class="card-header">
+                    <h5 class="mb-0">
+                      <i class="fas fa-address-book me-2"></i>Contato da Empresa
+                    </h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <h6 class="text-primary mb-2">{{ vaga_vinculada.empresa.nome }}</h6>
+                      </div>
+                      
+                      {% if vaga_vinculada.empresa.email %}
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-circle me-2" style="width: 32px; height: 32px; background: #e3f2fd; color: #1976d2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-envelope" style="font-size: 14px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <small class="text-muted d-block">Email</small>
+                              <div class="fw-medium" style="font-size: 0.9rem;">{{ vaga_vinculada.empresa.email }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                      
+                      {% if vaga_vinculada.empresa.telefone %}
+                        <div class="col-md-6">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-circle me-2" style="width: 32px; height: 32px; background: #e8f5e8; color: #388e3c; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-phone" style="font-size: 14px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <small class="text-muted d-block">Telefone</small>
+                              <div class="fw-medium" style="font-size: 0.9rem;">{{ vaga_vinculada.empresa.telefone }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                      
+                      {% if vaga_vinculada.empresa.endereco %}
+                        <div class="col-12">
+                          <div class="d-flex align-items-start">
+                            <div class="icon-circle me-2" style="width: 32px; height: 32px; background: #fff3e0; color: #f57c00; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-map-marker-alt" style="font-size: 14px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <small class="text-muted d-block">Endereço</small>
+                              <div class="fw-medium" style="font-size: 0.9rem;">{{ vaga_vinculada.empresa.endereco }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                      
+                      {% if vaga_vinculada.empresa.site %}
+                        <div class="col-12">
+                          <div class="d-flex align-items-center">
+                            <div class="icon-circle me-2" style="width: 32px; height: 32px; background: #f3e5f5; color: #7b1fa2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                              <i class="fas fa-globe" style="font-size: 14px;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                              <small class="text-muted d-block">Website</small>
+                              <a href="{{ vaga_vinculada.empresa.site }}" target="_blank" class="fw-medium text-decoration-none" style="font-size: 0.9rem;">
+                                {{ vaga_vinculada.empresa.site|truncatechars:30 }}
+                                <i class="fas fa-external-link-alt ms-1" style="font-size: 12px;"></i>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      {% endif %}
+                      
+                      <!-- <div class="col-12 mt-3">
+                        <div class="d-grid gap-2 d-md-flex">
+                          {% if vaga_vinculada.empresa.email %}
+                            <a href="mailto:{{ vaga_vinculada.empresa.email }}" class="btn btn-outline-primary btn-sm">
+                              <i class="fas fa-envelope me-1"></i>Enviar Email
+                            </a>
+                          {% endif %}
+                          {% if vaga_vinculada.empresa.telefone %}
+                            <a href="tel:{{ vaga_vinculada.empresa.telefone }}" class="btn btn-outline-success btn-sm">
+                              <i class="fas fa-phone me-1"></i>Ligar
+                            </a>
+                          {% endif %}
+                          <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-primary btn-sm">
+                            <i class="fas fa-users me-1"></i>Ver Candidatos ({{ candidatos_da_vaga.count|default:0 }})
+                          </a>
+                        </div>
+                      </div> -->
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+          
+    <!-- Job Tab (now includes all information: Responsável, Empresa, and Vaga) -->
+    <div class="tab-pane fade" id="job" role="tabpanel">
+      <div class="row">
+        <!-- Coluna Esquerda - Dados do Responsável, Empresa e Contatos -->
+        <div class="col-lg-6">
+          <!-- Dados do Responsável -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-user me-2"></i>Dados do Responsável</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-bold">Nome:</label>
+                  <p class="mb-0">{{ formulario.nome_do_responsavel_pela_divulgacao_da_vaga|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CPF:</label>
+                  <p class="mb-0">{{ formulario.cpf_do_responsavel|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Contato:</label>
+                  <p class="mb-0">{{ formulario.contato_do_responsavel|default:"Não informado" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dados da Empresa -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-building me-2"></i>Dados da Empresa</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nome da Empresa:</label>
+                  <p class="mb-0">{{ formulario.nome_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CNPJ:</label>
+                  <p class="mb-0">{{ formulario.cnpj_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Email:</label>
+                  <p class="mb-0">{{ formulario.email_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Telefone:</label>
+                  <p class="mb-0">{{ formulario.telefone_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Endereço:</label>
+                  <p class="mb-0">{{ formulario.endereco_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Segmento:</label>
+                  <p class="mb-0">{{ formulario.segmento_da_empresa|default:"Não informado" }}</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">WhatsApp:</label>
+                  <p class="mb-0">{{ formulario.whatsapp_da_empresa|default:"Não informado" }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Formas de Contato -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-phone me-2"></i>Formas de Contato</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.enviar_curriculo_para_email %}checked{% endif %} disabled>
+                    <label class="form-check-label">Enviar por Email</label>
+                  </div>
+                  {% if formulario.email_para_envio %}
+                    <small class=" d-block mt-1">Email: {{ formulario.email_para_envio }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.levar_curriculo_direto_ao_local %}checked{% endif %} disabled>
+                    <label class="form-check-label">Levar Diretamente</label>
+                  </div>
+                  {% if formulario.endereco_para_levar_curriculo %}
+                    <small class=" d-block mt-1">Endereço: {{ formulario.endereco_para_levar_curriculo }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.via_telefone_ou_whatsapp %}checked{% endif %} disabled>
+                    <label class="form-check-label">Via Telefone/WhatsApp</label>
+                  </div>
+                  {% if formulario.telefone_ou_whatsapp %}
+                    <small class=" d-block mt-1">Telefone: {{ formulario.telefone_ou_whatsapp }}</small>
+                  {% endif %}
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" {% if formulario.outra_forma_de_contato %}checked{% endif %} disabled>
+                    <label class="form-check-label">Outra Forma</label>
+                  </div>
+                  {% if formulario.outra_forma_de_contato_descricao %}
+                    <small class=" d-block mt-1">Descrição: {{ formulario.outra_forma_de_contato_descricao }}</small>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Coluna Direita - Dados da Vaga Vinculada -->
+        <div class="col-lg-6">
+          {% if vaga_vinculada %}
+            <!-- Vaga Vinculada no Sistema -->
+            <div class="card border-success">
+              <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                  <i class="fas fa-link me-2"></i>Vaga Vinculada no Sistema
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <h6 class="text-success mb-3">{{ vaga_vinculada.cargo.nome }}</h6>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">ID da Vaga:</label>
+                    <p class="mb-0">#{{ vaga_vinculada.pk }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Empresa:</label>
+                    <p class="mb-0">{{ vaga_vinculada.empresa.nome }}</p>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Tipo de Vaga:</label>
+                    <p class="mb-0">{{ vaga_vinculada.get_tipo_display|default:"Não informado" }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Vagas Disponíveis:</label>
+                    <p class="mb-0">{{ vaga_vinculada.quantidadeVagas|default:"Não informado" }}</p>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Salário:</label>
+                    <p class="mb-0">
+                      {% if vaga_vinculada.salario %}
+                        R$ {{ vaga_vinculada.salario }}
+                      {% else %}
+                        A combinar
+                      {% endif %}
+                    </p>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Status:</label>
+                    <p class="mb-0">
+                      {% if vaga_vinculada.ativo %}
+                        <span class="badge bg-success">Ativa</span>
+                      {% else %}
+                        <span class="badge bg-secondary">Inativa</span>
+                      {% endif %}
+                    </p>
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Criada em:</label>
+                    <p class="mb-0">{{ vaga_vinculada.dt_inclusao|date:"d/m/Y H:i" }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold">Candidatos:</label>
+                    <p class="mb-0">
+                      <span class="badge bg-primary">{{ candidatos_da_vaga.count|default:0 }}</span>
+                    </p>
+                  </div>
+                  
+                  {% if vaga_vinculada.descricao %}
+                    <div class="col-12">
+                      <label class="form-label fw-bold">Descrição:</label>
+                      <p class="mb-0">{{ vaga_vinculada.descricao|truncatewords:20 }}</p>
+                    </div>
+                  {% endif %}
+                  
+                  <div class="col-12 mt-4">
+                    <div class="d-grid gap-2 d-md-flex">                      
+                      <a href="{% url 'vagas:visualizar_vaga' vaga_vinculada.pk %}" target="_blank" class="btn btn-outline-success">
+                        <i class="fas fa-eye me-1"></i>Ver Detalhes da Vaga
+                      </a>
+                    </div>
+                  </div>
+                </div>  
+              </div>
+            </div>
+          {% else %}
+            <!-- Nenhuma Vaga Vinculada -->
+            <div class="card border-warning">
+              <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                  <i class="fas fa-exclamation-triangle me-2"></i>Vaga não Vinculada
+                </h5>
+              </div>
+              <div class="card-body text-center">
+                <div class="my-4">
+                  <i class="fas fa-unlink fa-4x text-muted mb-3"></i>
+                  <h6 class="mb-3">Nenhuma vaga vinculada no sistema</h6>
+                  <p class="text-muted mb-4">
+                    Este formulário ainda não possui uma vaga cadastrada no sistema interno.
+                    Para vincular uma vaga, é necessário primeiro aprovar o formulário.
+                  </p>
+                  {% if formulario.status_requisicao == 'AP' %}
+                    <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="btn btn-success">
+                      <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
+                    </a>
+                  {% else %}
+                    <div class="alert mb-0">
+                      <i class="fas fa-info-circle me-2"></i>
+                      <strong>Status atual:</strong> <span class="alert alert-info py-1">{{ formulario.get_status_requisicao_display }}</span> 
+                      <br><small>Aprove o formulário primeiro para poder cadastrar a vaga.</small>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Dados da Vaga -->
+    
+    <!-- Candidates Tab -->
+    <div class="tab-pane fade" id="candidates" role="tabpanel">
+      {% if vaga_vinculada %}
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                  <i class="fas fa-users me-2"></i>Candidatos da Vaga
+                  <span class="badge bg-primary ms-2">{{ candidatos_da_vaga.count|default:0 }}</span>
+                </h5>
+                <div>
+                  <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-primary btn-sm">
+                    <i class="fas fa-external-link-alt me-1"></i>Ver Todos
+                  </a>
+                </div>
+              </div>
+              <div class="card-body">
+                {% if candidatos_da_vaga and candidatos_da_vaga.count > 0 %}
+                  <div class="row">
+                    {% for candidato in candidatos_da_vaga|slice:":12" %}
+                      <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card h-100 border-left-primary">
+                          <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                              <div class="avatar-circle me-3">
+                                <i class="fas fa-user"></i>
+                              </div>
+                              <div>
+                                <h6 class="mb-1">{{ candidato.nome|truncatechars:20 }}</h6>
+                                <small class="text-muted">{{ candidato.idade }} anos</small>
+                              </div>
+                            </div>
+                            <div class="mb-2">
+                              <small class="text-muted d-block">
+                                <i class="fas fa-graduation-cap me-1"></i>{{ candidato.escolaridade.nome|default:"N/A" }}
+                              </small>
+                              <small class="text-muted d-block">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ candidato.bairro|default:"N/A" }}
+                              </small>
+                              <small class="text-muted d-block">
+                                <i class="fas fa-calendar me-1"></i>{{ candidato.dt_inclusao|date:"d/m/Y" }}
+                              </small>
+                            </div>
+                            <div class="d-grid">
+                              <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                                 class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-eye me-1"></i>Ver Currículo
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  
+                  {% if candidatos_da_vaga.count > 12 %}
+                    <div class="text-center mt-3">
+                      <a href="{% url 'vagas:candidatos_vaga' vaga_vinculada.pk %}?origem=formulario" class="btn btn-primary">
+                        <i class="fas fa-users me-2"></i>Ver Todos os {{ candidatos_da_vaga.count }} Candidatos
+                      </a>
+                    </div>
+                  {% endif %}
+                {% else %}
+                  <div class="alert text-center mb-0">
+                    <div class="my-3">
+                      <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                      <h6 class="mb-2">Ainda não há candidatos para esta vaga</h6>
+                      <p class="text-muted mb-0">
+                        A vaga está vinculada ao sistema, mas ainda não recebeu candidaturas.
+                      </p>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="alert border-warning text-center alert-warning" style="border: 1px solid #ffc107;">
+          <h6 class="alert-heading">
+            <i class="fas fa-exclamation-triangle me-2"></i>Nenhuma vaga vinculada
+          </h6>
+          <p class="mb-2">Este formulário ainda não possui uma vaga vinculada no sistema.</p>
+          {% if formulario.status_requisicao == 'AP' %}
+            <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="btn btn-success">
+              <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
+            </a>
+          {% else %}
+            <p class="mb-0">
+              <i>Aprove o formulário primeiro para poder cadastrar a vaga.</i>
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Actions Tab -->
+    <div class="tab-pane fade" id="actions" role="tabpanel">
+      <div class="row">
+        <div class="col-lg-6">
+          <!-- Status e Controles de Estado -->
+           <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Informações Técnicas</h5>
+            </div>
+            <div class="card-body">
+              <table class="table table-sm">
+                <tr>
+                  <td><strong>ID:</strong></td>
+                  <td>{{ formulario.pk }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Criado em:</strong></td>
+                  <td>{{ formulario.dt_inclusao|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                  <td><strong>Hash ID:</strong></td>
+                  <td><code>{{ formulario.hash_id }}</code></td>
+                </tr>
+                
+                <tr>
+                  <td><strong>Chave de Acesso:</strong></td>
+                  <td><code>{{ formulario.chave_de_acesso }}</code></td>
+                </tr>
+                {% if vaga_vinculada %}
+                <tr>
+                  <td><strong>Vaga Vinculada:</strong></td>
+                  <td>#{{ vaga_vinculada.pk }}</td>
+                </tr>
+                {% endif %}
+              </table>
+            </div>
+          </div>
+          <div class="card mt-4 mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Controle de Status</h5>
+            </div>
+            <div class="card-body">
+              <!-- Status Atual -->
+              <div class="mb-0 d-flex">
+                <label class="form-label">Status Atual:</label>
+                <div class="ms-2">
+                  {% if formulario.status_requisicao == 'AG' %}
+                    <span class="badge bg-warning fs-6">Aguardando Preenchimento</span>
+                  {% elif formulario.status_requisicao == 'PE' %}
+                    <span class="badge bg-info fs-6">Pendente Análise</span>
+                  {% elif formulario.status_requisicao == 'AP' %}
+                    <span class="badge bg-success fs-6">Aprovada</span>
+                  {% elif formulario.status_requisicao == 'RE' %}
+                    <span class="badge bg-danger fs-6">Rejeitada</span>
+                  {% elif formulario.status_requisicao == 'AE' %}
+                    <span class="badge bg-warning fs-6">Aguardando Encerramento</span>
+                  {% elif formulario.status_requisicao == 'EN' %}
+                    <span class="badge bg-secondary fs-6">Encerrada</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% if vaga_vinculada %}
+                <div class="alert mt-3 p-0">
+                  <i class="fas fa-info-circle me-2 text-success"></i>
+                  Esta requisição está vinculada à vaga REF <strong>#{{ vaga_vinculada.pk }}</strong>  no sistema.
+                </div>
+              {% endif %}
+              <!-- Atualizar Status -->
+              {% if formulario.status_requisicao == 'PE' or formulario.status_requisicao == 'AE' %}
+                <form method="POST" action="{% url 'vagas:admin_formularios_update_status' formulario.pk %}">
+                  {% csrf_token %}
+                  <div class="mb-3">
+                    <label for="status" class="form-label">Atualizar Status:</label>
+                    <select name="status" id="status" class="form-select" onchange="toggleObservacaoField()">
+                      {% if formulario.status_requisicao == 'PE' %}
+                        <option value="PE" selected>Pendente</option>
+                        <option value="AP">Aprovar</option>
+                        <option value="RE">Rejeitar</option>
+                      {% elif formulario.status_requisicao == 'AE' %}
+                        <option value="AE" selected>Aguardando Encerramento</option>
+                        <option value="EN">Encerrar Vaga</option>
+                        <option value="AP">Reativar Vaga</option>
+                      {% endif %}
+                    </select>
+                  </div>
+                  
+                  <!-- Campo de Observação -->
+                  <div class="mb-3" id="observacaoField">
+                    <label for="observacao" class="form-label">
+                      <i class="fas fa-comment me-1"></i>Observação:
+                    </label>
+                    <textarea name="observacao" id="observacao" class="form-control" rows="3" 
+                              placeholder="Adicione uma observação sobre o status ou pendências...">{{ formulario.observacao_interna|default:"" }}</textarea>
+                    <div class="form-text">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Esta observação será visível para a empresa no painel externo
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-save me-2"></i>Atualizar Status
+                  </button>
+                </form>
+              {% endif %}
+
+              <!-- Botão para cadastrar vaga -->
+              {% if formulario.status_requisicao == 'AP' and not vaga_vinculada %}
+                <div class="mt-3">
+                  <a href="{% url 'vagas:cadastrar_vaga_aprovada' formulario.pk %}" class="btn btn-success w-100">
+                    <i class="fas fa-plus me-2"></i>Cadastrar Vaga no Sistema
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <!-- Acesso Externo e Links -->
+          {% if formulario.status_requisicao == 'AG' or formulario.status_requisicao == 'AP' %}
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-link me-2"></i>
+                  {% if formulario.status_requisicao == 'AG' %}
+                    Acesso para Preenchimento
+                  {% else %}
+                    Acesso Externo (Empresa)
+                  {% endif %}
+                </h5>
+              </div>
+              <div class="card-body">
+                <!-- Chave de Acesso -->
+                <div class="mb-3">
+                  <label class="form-label">Chave de Acesso:</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" value="{{ formulario.chave_de_acesso }}" readonly id="chaveAcesso">
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ formulario.chave_de_acesso }}')">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                  <div class="form-text">
+                    <i class="fas fa-key me-1"></i>
+                    A empresa precisará desta chave para acessar o formulário
+                  </div>
+                </div>
+
+                <!-- Link Público -->
+                <div class="mb-3">
+                  <label class="form-label">Link de Acesso:</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" value="{{ public_url }}" readonly id="publicUrl">
+                    <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ public_url }}')">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                  <div class="form-text">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% if formulario.status_requisicao == 'AG' %}
+                      Envie este link junto com a chave de acesso para a empresa preencher o formulário
+                    {% else %}
+                      Envie este link para a empresa visualizar os dados e candidatos
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Ações rápidas -->
+                <div class="d-grid gap-2">
+                  <button type="button" class="btn btn-primary" onclick="copyToClipboard('{{ public_url }}')">
+                    <i class="fas fa-link me-2"></i>
+                    {% if formulario.status_requisicao == 'AG' %}
+                      Copiar Link de Preenchimento
+                    {% else %}
+                      Copiar Link de Visualização
+                    {% endif %}
+                  </button>
+                  <button type="button" class="btn btn-secondary" style="background-color: #6c757d !important; border-color: #6c757d !important; color: #fff !important;  " onclick="copyBothToClipboard()">
+                    <i class="fas fa-clipboard me-2"></i>Copiar Link + Chave
+                  </button>
+                </div>
+
+                <!-- Instruções -->
+                {% if formulario.status_requisicao == 'AG' %}
+                  <div class="alert mt-3 mb-0">
+                    <h6 class="alert-heading">
+                      <i class="fas fa-lightbulb me-2"></i>Como enviar para a empresa:
+                    </h6>
+                    <ol class="mb-2">
+                      <li>Copie o <strong>link de acesso</strong> acima</li>
+                      <li>Copie a <strong>chave de acesso</strong>: <code>{{ formulario.chave_de_acesso }}</code></li>
+                      <li>Envie ambos para a empresa por email ou WhatsApp</li>
+                      <li>A empresa acessará o link e digitará a chave para <strong>preencher</strong> o formulário</li>
+                    </ol>
+                  </div>
+                {% elif formulario.status_requisicao == 'AP' %}
+                  <div class="alert mt-3 mb-0">
+                    <h6 class="alert-heading">
+                      <i class="fas fa-eye me-2"></i>Acesso para visualização:
+                    </h6>
+                    <ol class="mb-2">
+                      <li>Copie o <strong>link de acesso</strong> acima.</li>
+                      <li>Copie a <strong>chave de acesso</strong>.</li>
+                      <li>Envie para a empresa visualizar os dados e candidatos, após a criação da vaga.</li>
+                      <li>A empresa poderá <strong>visualizar candidatos</strong> e fazer seleções.</li>
+                    </ol>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Informações Técnicas -->
+            
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Feedback visual
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Link copiado para a área de transferência!'
+        });
+    }).catch(function(err) {
+        console.error('Erro ao copiar: ', err);
+        alert('Erro ao copiar o link. Tente novamente.');
+    });
+}
+
+function copyBothToClipboard() {
+    const link = '{{ public_url }}';
+    const chave = '{{ formulario.chave_de_acesso }}';
+    const texto = `Link de acesso: ${link}\nChave de acesso: ${chave}`;
+    
+    navigator.clipboard.writeText(texto).then(function() {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+        
+        Toast.fire({
+            icon: 'success',
+            title: 'Link e chave copiados!'
+        });
+    }).catch(function(err) {
+        console.error('Erro ao copiar: ', err);
+        alert('Erro ao copiar. Tente novamente.');
+    });
+}
+
+function toggleObservacaoField() {
+    const statusSelect = document.getElementById('status');
+    const observacaoField = document.getElementById('observacaoField');
+    const observacaoTextarea = document.getElementById('observacao');
+    
+    if (statusSelect && observacaoTextarea) {
+        if (statusSelect.value === 'PE') {
+            observacaoField.style.display = 'block';
+            observacaoTextarea.placeholder = 'Adicione uma observação sobre pendências ou questões a serem resolvidas...';
+        } else if (statusSelect.value === 'RE') {
+            observacaoField.style.display = 'block';
+            observacaoTextarea.placeholder = 'Informe o motivo da rejeição para que a empresa possa corrigir...';
+        } else {
+            observacaoField.style.display = 'block';
+            observacaoTextarea.placeholder = 'Observação sobre a aprovação (opcional)...';
+        }
+    }
+}
+
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+    
+    // Inicializar o campo de observação
+    toggleObservacaoField();
+    
+    // Ativar a navegação por tabs com hash na URL
+    const tabTriggers = document.querySelectorAll('#formularioTabs button');
+    tabTriggers.forEach(trigger => {
+        trigger.addEventListener('shown.bs.tab', function (e) {
+            const targetTab = e.target.getAttribute('data-bs-target');
+            const tabName = targetTab.replace('#', '');
+            history.replaceState(null, null, '#' + tabName);
+        });
+    });
+    
+    // Ativar tab baseada no hash da URL
+    const hash = window.location.hash;
+    if (hash) {
+        const tabButton = document.querySelector(`button[data-bs-target="${hash}"]`);
+        if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+        }
+    }
+});
+</script>
+
+<style>
+/* Card borders com cores */
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+/* Navigation pills styling */
+.nav-pills .nav-link {
+    color: #5a5c69;
+    background-color: transparent;
+    border: 1px solid #e3e6f0;
+    border-radius: 0.35rem;
+    margin: 0 0.125rem;
+    transition: all 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: #f8f9fc;
+    border-color: #d1d3e2;
+    color: #3a3b45;
+}
+
+.nav-pills .nav-link.active {
+    background-color: #4e73df;
+    border-color: #4e73df;
+    color: white;
+}
+
+.nav-pills .nav-link i {
+    font-size: 0.9rem;
+}
+
+/* Avatar circle for candidates */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Compact layout improvements */
+.overview-compact .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.overview-compact .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    padding: 0.75rem 1rem;
+}
+
+.overview-compact .card-header h5 {
+    font-size: 1rem;
+    margin-bottom: 0;
+}
+
+.overview-compact .input-group-sm .form-control,
+.overview-compact .input-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Badge improvements for overview */
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+}
+
+/* Button group full width */
+.btn-group.w-100 .btn {
+    flex: 1;
+}
+
+/* Timeline improvements */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-left: 8px;
+}
+
+.timeline-header h6 {
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.timeline-body {
+    padding-top: 8px;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Stats cards */
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+/* Badge improvements */
+.badge {
+    font-size: 0.75em;
+}
+
+/* Alert improvements */
+.alert-heading {
+    margin-bottom: 0.5rem;
+}
+
+/* Quick actions spacing */
+.quick-actions .btn {
+    margin-left: 0.5rem;
+}
+
+.quick-actions .btn:first-child {
+    margin-left: 0;
+}
+
+/* Tab content padding */
+.tab-content {
+    padding-top: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .nav-pills .nav-link {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        left: -12px;
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+    
+    .timeline-content {
+        margin-left: 4px;
+    }
+    
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+}
+
+/* Input group improvements */
+.input-group .form-control {
+    border-right: none;
+}
+
+.input-group .btn-outline-secondary {
+    border-left: none;
+    border-color: #ced4da;
+}
+
+/* Card hover effects */
+.card:not(.border-left-primary):not(.border-left-success):not(.border-left-info):not(.border-left-warning):hover {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+}
+
+/* Table improvements */
+.table td {
+    vertical-align: middle;
+}
+
+.table-responsive {
+    border-radius: 0.35rem;
+}
+
+/* Form improvements */
+.form-check-input:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Button group improvements */
+.btn-group .btn {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-group .btn:hover {
+    z-index: 2;
+}
+
+.form-check-input:disabled ~ .form-check-label, .form-check-input[disabled] ~ .form-check-label {
+  opacity: 1;
+}
+.form-check-input:disabled {  
+  opacity: 1;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Criar Nova Vaga{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'curriculo/css/forms.css' %}">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Breadcrumb -->
+      <div class="row mb-4">
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'vagas:painel_administrativo' %}">Dashboard</a></li>
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:admin_vagas_list' %}">Vagas</a>
+              </li>
+              <li class="breadcrumb-item active">Criar Nova Vaga</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">
+            <i class="fas fa-plus me-2"></i>Criar Nova Vaga
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+              <!-- Empresa -->
+              <div class="col-md-6 mb-3">
+                <label for="empresa" class="form-label">Empresa *</label>
+                <div class="autocomplete-wrapper">
+                  <input name="empresa" 
+                         autocomplete="off" 
+                         id="id_empresa" 
+                         onkeyup="searchEmpresa(this)" 
+                         type="text" 
+                         class="form-control" 
+                         placeholder="Digite o nome da empresa..."
+                         required>
+                  <div class="autocomplete-results" id="search_empresa_result"></div>
+                </div>
+                <input type="hidden" id="empresa_id" name="empresa_id">
+              </div>
+
+              <!-- Cargo -->
+              <div class="col-md-6 mb-3">
+                <label for="cargo" class="form-label">Cargo *</label>
+                <div class="autocomplete-wrapper">
+                  <input name="cargo" 
+                         autocomplete="off" 
+                         id="id_cargo" 
+                         onkeyup="searchCargo(this)" 
+                         type="text" 
+                         class="form-control" 
+                         placeholder="Digite o cargo desejado..."
+                         required>
+                  <div class="autocomplete-results" id="search_cargo_result"></div>
+                </div>
+                <input type="hidden" id="cargo_id" name="cargo_id">
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Escolaridade -->
+              <div class="col-md-6 mb-3">
+                <label for="escolaridade" class="form-label">Escolaridade *</label>
+                <select class="form-select" name="escolaridade" id="escolaridade" required>
+                  <option value="">Selecione a escolaridade...</option>
+                  {% for escolaridade in escolaridades %}
+                    <option value="{{ escolaridade.id }}">{{ escolaridade.nome }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Quantidade de Vagas -->
+              <div class="col-md-6 mb-3">
+                <label for="quantidadeVagas" class="form-label">Quantidade de Vagas *</label>
+                <input type="number" class="form-control" name="quantidadeVagas" id="quantidadeVagas" min="1" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Tipo de Vaga -->
+              <div class="col-md-6 mb-3">
+                <label for="tipo_de_vaga" class="form-label">Tipo de Vaga</label>
+                <select class="form-select" name="tipo_de_vaga" id="tipo_de_vaga">
+                  <option value="NML">Padrão</option>
+                  <option value="JAP">Jovem Aprendiz</option>
+                  <option value="PED">Pessoa com Deficiência</option>
+                  <option value="EST">Estágio</option>
+                </select>
+              </div>
+
+              <!-- Experiência -->
+              <div class="col-md-6 mb-3">
+                <label for="experiencia" class="form-label">Experiência *</label>
+                <select class="form-select" name="experiencia" id="experiencia" required>
+                  <option value="">Selecione...</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                  <option value="Des">Desejável</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Salário -->
+              <div class="col-md-6 mb-3">
+                <label for="salario" class="form-label">Salário</label>
+                <input type="text" class="form-control" name="salario" id="salario" placeholder="Ex: R$ 1.500,00">
+              </div>
+
+              <!-- Carga Horária -->
+              <div class="col-md-6 mb-3">
+                <label for="carga_horaria" class="form-label">Carga Horária</label>
+                <input type="text" class="form-control" name="carga_horaria" id="carga_horaria" placeholder="Ex: 40h/semanais">
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Regime -->
+              <div class="col-md-6 mb-3">
+                <label for="regime" class="form-label">Regime</label>
+                <input type="text" class="form-control" name="regime" id="regime" placeholder="Ex: CLT">
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email para Encaminhamento</label>
+                <input type="email" class="form-control" name="email" id="email" placeholder="email@empresa.com">
+              </div>
+            </div>
+
+            <!-- Observações -->
+            <div class="mb-3">
+              <label for="observacao" class="form-label">Observações</label>
+              <textarea class="form-control" name="observacao" id="observacao" rows="4" placeholder="Informações adicionais sobre a vaga..."></textarea>
+            </div>
+
+            <!-- Atribuições -->
+            <div class="mb-3">
+              <label for="atribuicoes" class="form-label">Atribuições</label>
+              <textarea class="form-control" name="atribuicoes" id="atribuicoes" rows="4" placeholder="Descrição das atividades e responsabilidades..."></textarea>
+            </div>
+
+            <!-- Destaque -->
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="destaque" id="destaque">
+                <label class="form-check-label" for="destaque">
+                  Destacar esta vaga
+                </label>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-save me-1"></i>Criar Vaga
+              </button>
+              <a href="{% url 'vagas:admin_vagas_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+// Search functions
+function searchCargo(e) {        
+    if (String(e.value).length >= 3) {
+        getCargo(e.value);
+    } else {
+        document.getElementById('search_cargo_result').innerHTML = '';
+    }
+}    
+
+function searchEmpresa(e) {        
+    if (String(e.value).length >= 3) {
+        getEmpresa(e.value);
+    } else {
+        document.getElementById('search_empresa_result').innerHTML = '';
+    }
+}    
+
+function getEmpresa(value) {
+    const resultDiv = document.getElementById('search_empresa_result');
+    
+    const url = '/get_empresa/';  
+    $.ajax({ 
+        url: url,
+        data: {
+            'empresa': value,
+        },
+        success: function(data) {                               
+            $(resultDiv).html(data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching empresa:', error);
+            $(resultDiv).html('<div class="autocomplete-item text-danger">Erro ao buscar empresas</div>');
+        }
+    });                
+}
+
+function getCargo(value) {
+    const resultDiv = document.getElementById('search_cargo_result');
+    
+    const url = '/get_vaga/';         
+    $.ajax({ 
+        url: url,
+        data: {
+            'vaga': value,
+        },
+        success: function(data) {                               
+            $(resultDiv).html(data);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching cargo:', error);
+            $(resultDiv).html('<div class="autocomplete-item text-danger">Erro ao buscar cargos</div>');
+        }
+    });                
+}
+
+function selectThisCargo(e) {
+    const cargoName = e.getAttribute('data-value');
+    document.getElementById('id_cargo').value = cargoName;
+    document.getElementById('cargo_id').value = cargoName; // For form submission
+    document.getElementById('search_cargo_result').innerHTML = '';
+}
+
+function selectThisEmpresa(e) {
+    const empresaName = e.getAttribute('data-value');
+    document.getElementById('id_empresa').value = empresaName;
+    document.getElementById('empresa_id').value = empresaName; // For form submission
+    document.getElementById('search_empresa_result').innerHTML = '';
+}
+
+// Form validation and UX improvements
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus no primeiro campo
+    document.getElementById('id_empresa').focus();
+    
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Ensure hidden fields are populated
+            const cargoInput = document.getElementById('id_cargo');
+            const empresaInput = document.getElementById('id_empresa');
+            const cargoHidden = document.getElementById('cargo_id');
+            const empresaHidden = document.getElementById('empresa_id');
+            
+            if (cargoInput.value && !cargoHidden.value) {
+                cargoHidden.value = cargoInput.value;
+            }
+            if (empresaInput.value && !empresaHidden.value) {
+                empresaHidden.value = empresaInput.value;
+            }
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Criando...';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

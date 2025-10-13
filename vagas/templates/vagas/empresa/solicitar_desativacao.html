@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Solicitar Desativação de Vaga</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Detalhes da Vaga</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">Cargo:</dt>
+                            <dd class="col-sm-9">{{ vaga.cargo.nome }}</dd>
+
+                            <dt class="col-sm-3">Empresa:</dt>
+                            <dd class="col-sm-9">{{ vaga.empresa.nome }}</dd>
+
+                            <dt class="col-sm-3">Qtd. de vagas:</dt>
+                            <dd class="col-sm-9">{{ vaga.quantidadeVagas }}</dd>
+
+                            <dt class="col-sm-3">Data de inclusão:</dt>
+                            <dd class="col-sm-9">{{ vaga.dt_inclusao|date:"d/m/Y" }}</dd>
+                        </dl>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            Por favor, corrija os erros abaixo.
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.motivo.label }}</label>
+                            {{ form.motivo }}
+                            {% if form.motivo.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.motivo.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.observacoes.label }}</label>
+                            {{ form.observacoes }}
+                            <div class="form-text">{{ form.observacoes.help_text }}</div>
+                            {% if form.observacoes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.observacoes.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" class="btn btn-secondary">
+                                Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Enviar Solicitação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    select.form-control {
+        height: calc(2.25rem + 2px);
+    }
+    textarea.form-control {
+        min-height: 100px;
+    }
+</style>
+{% endblock %}

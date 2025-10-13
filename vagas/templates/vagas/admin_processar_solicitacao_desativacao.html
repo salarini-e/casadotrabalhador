@@ -1,0 +1,310 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Processar Solicitação #{{ solicitacao.id }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-cog me-2"></i>
+          Processar Solicitação #{{ solicitacao.id }}
+        </h1>
+        <p class="page-subtitle">{{ solicitacao.vaga.cargo.nome }} - {{ solicitacao.vaga.empresa.nome }}</p>
+      </div>
+      <div class="topbar-right">
+        {% if solicitacao.formulario %}
+          <a href="{% url 'vagas:admin_formularios_detail' solicitacao.formulario.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar ao Formulário
+          </a>
+        {% else %}
+          <a href="{% url 'vagas:admin_vagas_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Voltar às Vagas
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Informações da Solicitação -->
+      <div class="col-lg-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-info-circle me-2"></i>Detalhes da Solicitação
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Status Atual:</label>
+                <div>
+                  {% if solicitacao.status == 'pendente' %}
+                    <span class="badge bg-warning fs-6">
+                      <i class="fas fa-clock me-1"></i>Pendente
+                    </span>
+                  {% elif solicitacao.status == 'aprovada' %}
+                    <span class="badge bg-success fs-6">
+                      <i class="fas fa-check-circle me-1"></i>Aprovada
+                    </span>
+                  {% elif solicitacao.status == 'rejeitada' %}
+                    <span class="badge bg-danger fs-6">
+                      <i class="fas fa-times-circle me-1"></i>Rejeitada
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Data da Solicitação:</label>
+                <div>{{ solicitacao.dt_criacao|date:"d/m/Y H:i" }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Motivo:</label>
+                <div>
+                  <span class="badge bg-secondary">{{ solicitacao.get_motivo_display }}</span>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Solicitante:</label>
+                <div>{{ solicitacao.empresa_responsavel.nome }}</div>
+              </div>
+              
+              {% if solicitacao.observacoes %}
+              <div class="col-12">
+                <label class="form-label fw-bold">Observações da Empresa:</label>
+                <div class="p-3 bg-light rounded">{{ solicitacao.observacoes|linebreaks }}</div>
+              </div>
+              {% endif %}
+              
+              {% if solicitacao.formulario %}
+              <div class="col-12">
+                <label class="form-label fw-bold">Formulário Relacionado:</label>
+                <div>
+                  <a href="{% url 'vagas:admin_formularios_detail' solicitacao.formulario.id %}" 
+                     class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-file-alt me-1"></i>Ver Formulário #{{ solicitacao.formulario.id }}
+                  </a>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Informações da Vaga -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-briefcase me-2"></i>Informações da Vaga
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Cargo:</label>
+                <div>{{ solicitacao.vaga.cargo.nome }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Empresa:</label>
+                <div>{{ solicitacao.vaga.empresa.nome }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Salário:</label>
+                <div>R$ {{ solicitacao.vaga.salario|floatformat:2 }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Vagas:</label>
+                <div>{{ solicitacao.vaga.quantidadeVagas }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Status da Vaga:</label>
+                <div>
+                  {% if solicitacao.vaga.ativo %}
+                    <span class="badge bg-success">Ativa</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Inativa</span>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Data de Criação:</label>
+                <div>{{ solicitacao.vaga.dt_inclusao|date:"d/m/Y H:i" }}</div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <a href="{% url 'vagas:visualizar_vaga' solicitacao.vaga.id %}" 
+                 target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-external-link-alt me-1"></i>Ver Vaga Completa
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {% if solicitacao.status != 'pendente' %}
+        <!-- Informações do Processamento -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-user-check me-2"></i>Informações do Processamento
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Processado por:</label>
+                <div>{{ solicitacao.processado_por.get_full_name|default:solicitacao.processado_por.username }}</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Data do Processamento:</label>
+                <div>{{ solicitacao.dt_processamento|date:"d/m/Y H:i" }}</div>
+              </div>
+              
+              {% if solicitacao.observacoes_admin %}
+              <div class="col-12">
+                <label class="form-label fw-bold">Observações do Administrador:</label>
+                <div class="p-3 bg-light rounded">{{ solicitacao.observacoes_admin|linebreaks }}</div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Ações -->
+      <div class="col-lg-4">
+        {% if solicitacao.status == 'pendente' %}
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-cogs me-2"></i>Processar Solicitação
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Atenção!</strong> 
+              Se aprovar, a vaga será automaticamente desativada.
+            </div>
+
+            <form method="POST">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label for="observacoes_admin" class="form-label">
+                  <i class="fas fa-comment me-1"></i>Observações (opcional)
+                </label>
+                <textarea name="observacoes_admin" id="observacoes_admin" 
+                          class="form-control" rows="3" 
+                          placeholder="Adicione observações sobre sua decisão..."></textarea>
+              </div>
+              
+              <div class="d-grid gap-2">
+                <button type="submit" name="acao" value="aprovada" 
+                        class="btn btn-success" onclick="return confirm('Tem certeza que deseja APROVAR esta solicitação? A vaga será desativada.')">
+                  <i class="fas fa-check-circle me-2"></i>Aprovar Solicitação
+                </button>
+                
+                <button type="submit" name="acao" value="rejeitada" 
+                        class="btn btn-danger" onclick="return confirm('Tem certeza que deseja REJEITAR esta solicitação?')">
+                  <i class="fas fa-times-circle me-2"></i>Rejeitar Solicitação
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-check me-2"></i>Solicitação Processada
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              Esta solicitação já foi processada e não pode ser alterada.
+            </div>
+            
+            <div class="d-grid">
+              {% if solicitacao.formulario %}
+                <a href="{% url 'vagas:admin_formularios_detail' solicitacao.formulario.pk %}" 
+                   class="btn btn-primary">
+                  <i class="fas fa-file-alt me-2"></i>Ver Formulário
+                </a>
+              {% else %}
+                <a href="{% url 'vagas:admin_vagas_list' %}" 
+                   class="btn btn-primary">
+                  <i class="fas fa-list me-2"></i>Ver Lista de Vagas
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Links Úteis -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-external-link-alt me-2"></i>Links Úteis
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <a href="{% url 'vagas:candidatos_vaga' solicitacao.vaga.id %}" 
+                 class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-users me-1"></i>Ver Candidatos da Vaga
+              </a>
+              
+              <a href="{% url 'vagas:visualizar_vaga' solicitacao.vaga.id %}" 
+                 target="_blank" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-eye me-1"></i>Ver Vaga Pública
+              </a>
+              
+              {% if solicitacao.formulario %}
+              <a href="{% url 'vagas:admin_formularios_detail' solicitacao.formulario.id %}" 
+                 class="btn btn-outline-info btn-sm">
+                <i class="fas fa-file-alt me-1"></i>Ver Formulário
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+</style>
+{% endblock %}

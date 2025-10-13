@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatar-se - Casa do Trabalhador Totem</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --totem-primary: #2563eb;
+            --totem-primary-dark: #1d4ed8;
+            --totem-success: #10b981;
+            --totem-danger: #ef4444;
+            --totem-warning: #f59e0b;
+            --totem-surface: #ffffff;
+            --totem-background: #f8fafc;
+            --totem-text-primary: #1e293b;
+            --totem-text-secondary: #64748b;
+            --totem-border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: var(--totem-text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .totem-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .job-info-card {
+            background: var(--totem-surface);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--totem-warning);
+        }
+
+        .job-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--totem-border);
+        }
+
+        .job-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--totem-primary);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .job-reference {
+            font-size: 1.1rem;
+            color: var(--totem-text-secondary);
+            background: var(--totem-background);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .job-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--totem-background), #e2e8f0);
+            border-radius: 15px;
+            border: 2px solid var(--totem-border);
+        }
+
+        .detail-icon {
+            font-size: 2rem;
+            color: var(--totem-primary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: var(--totem-text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--totem-text-primary);
+            line-height: 1.3;
+        }
+
+        .job-description {
+            background: var(--totem-background);
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
+        .description-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--totem-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .description-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--totem-text-primary);
+        }
+
+        .form-card {
+            background: var(--totem-surface);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--totem-success);
+            position: relative;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--totem-success);
+            margin-bottom: 1rem;
+        }
+
+        .form-subtitle {
+            font-size: 1.1rem;
+            color: var(--totem-text-secondary);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--totem-text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1.1rem;
+            border: 3px solid var(--totem-border);
+            border-radius: 10px;
+            background: var(--totem-surface);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--totem-success);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--totem-danger);
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+
+        .form-control.field-highlighted {
+            border-color: var(--totem-warning);
+            box-shadow: 0 0 0 0.3rem rgba(245, 158, 11, 0.3);
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .field-highlighted {
+            position: relative;
+        }
+
+        .field-highlighted::before {
+            content: '👉';
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            animation: pointingHand 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes pointingHand {
+            from {
+                transform: translateY(-50%) translateX(0);
+            }
+            to {
+                transform: translateY(-50%) translateX(5px);
+            }
+        }
+
+        /* Custom Select Modal */
+        .select-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .select-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .select-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .select-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--totem-surface);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 70vh;
+            overflow: hidden;
+            border: 3px solid var(--totem-primary);
+        }
+
+        .select-modal-header {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .select-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .select-modal-body {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .select-options {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .select-option {
+            padding: 1rem 2rem;
+            border: none;
+            background: none;
+            text-align: left;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            color: var(--totem-text-primary);
+        }
+
+        .select-option:hover,
+        .select-option.selected {
+            background: linear-gradient(135deg, var(--totem-background), #e2e8f0);
+            border-left-color: var(--totem-primary);
+            transform: translateX(5px);
+        }
+
+        .select-option.highlighted {
+            background: linear-gradient(135deg, var(--totem-primary), var(--totem-primary-dark));
+            color: white;
+            border-left-color: var(--totem-warning);
+            transform: translateX(10px);
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .select-modal-footer {
+            background: var(--totem-background);
+            padding: 1rem 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .modal-instructions {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--totem-text-secondary);
+            justify-content: center;
+        }
+
+        .modal-instructions span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-instructions i {
+            color: var(--totem-primary);
+        }
+
+        /* Custom Select Styling */
+        .custom-select-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .custom-select {
+            cursor: pointer;
+            padding-right: 3rem !important;
+        }
+
+        .custom-select:focus {
+            cursor: pointer;
+            outline: none;
+        }
+
+        .custom-select-arrow {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--totem-primary);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+
+        .custom-select-wrapper.active .custom-select-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        
+        /* Arrow Navigation Indicators */
+        .select-arrow-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+        
+        .arrow-left, .arrow-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--totem-primary);
+            color: white;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .field-highlighted .arrow-left, .field-highlighted .arrow-right {
+            opacity: 1;
+            transform: scale(1.2);
+            background: var(--totem-warning);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+                box-shadow: 0 0 0 rgba(245, 158, 11, 0.5);
+            }
+            to {
+                transform: scale(1.2);
+                box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+            }
+        }
+        
+        /* Animations for option changes */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.2s ease forwards;
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.2s ease forwards;
+        }
+        
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 3rem;
+        }
+
+        .error-message {
+            color: var(--totem-danger);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .required {
+            color: var(--totem-danger);
+            margin-left: 0.25rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1.25rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--totem-success), #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--totem-text-secondary), #475569);
+            color: white;
+            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(100, 116, 139, 0.4);
+            color: white;
+        }
+
+        .navigation-help {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .help-instruction {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .help-instruction:last-child {
+            margin-bottom: 0;
+        }
+
+        .help-instruction i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .job-title {
+                font-size: 2rem;
+            }
+
+            .form-title {
+                font-size: 1.5rem;
+            }
+
+            .job-details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .totem-container {
+                padding: 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(37, 99, 235, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Focus styles for keyboard navigation */
+        .form-control:focus,
+        .btn:focus {
+            outline: 3px solid rgba(16, 185, 129, 0.5);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processando candidatura...</div>
+    </div>
+
+    <div class="totem-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <i class="fas fa-user-plus me-3"></i>
+                Candidatar-se à Vaga
+            </h1>
+            <p>Preencha seus dados para se candidatar</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Job Information -->
+            <div class="job-info-card">
+                <div class="job-header">
+                    <h2 class="job-title">{{ vaga.cargo.nome }}</h2>
+                    <div class="job-reference">Referência: {{ vaga.id }}</div>
+                </div>
+
+                <div class="job-details-grid">
+                    <div class="detail-card">
+                        <i class="fas fa-users detail-icon"></i>
+                        <div class="detail-label">Vagas Disponíveis</div>
+                        <div class="detail-value">{{ vaga.quantidadeVagas }}</div>
+                    </div>
+
+                    <div class="detail-card">
+                        <i class="fas fa-graduation-cap detail-icon"></i>
+                        <div class="detail-label">Escolaridade</div>
+                        <div class="detail-value">{{ vaga.escolaridade.nome }}</div>
+                    </div>
+
+                    <div class="detail-card">
+                        <i class="fas fa-clock detail-icon"></i>
+                        <div class="detail-label">Carga Horária</div>
+                        <div class="detail-value">{{ vaga.carga_horaria|default:"A definir" }}</div>
+                    </div>
+
+                    <div class="detail-card">
+                        <i class="fas fa-map-marker-alt detail-icon"></i>
+                        <div class="detail-label">Localização</div>
+                        <div class="detail-value">{{ vaga.empresa.bairro }}</div>
+                    </div>
+                </div>
+
+                {% if vaga.observacao %}
+                <div class="job-description">
+                    <h3 class="description-title">
+                        <i class="fas fa-info-circle"></i>
+                        Observações
+                    </h3>
+                    <div class="description-content">
+                        {{ vaga.observacao|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if vaga.atribuicoes %}
+                <div class="job-description" style="margin-top: 1.5rem;">
+                    <h3 class="description-title">
+                        <i class="fas fa-tasks"></i>
+                        Atribuições
+                    </h3>
+                    <div class="description-content">
+                        {{ vaga.atribuicoes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Candidature Form -->
+            <div class="form-card">
+                <div class="form-header">
+                    <h2 class="form-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        Seus Dados
+                    </h2>
+                    <p class="form-subtitle">Preencha as informações abaixo</p>
+                </div>
+
+                <form method="post" id="candidatureForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="vaga" value="{{ vaga.id }}">
+                    <input type="hidden" name="candidato_online" value="true">
+
+                    <div class="form-group">
+                        <label for="nome" class="form-label">
+                            <i class="fas fa-user me-2"></i>
+                            Nome Completo <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control {% if form.nome.errors %}is-invalid{% endif %}" 
+                               id="nome" 
+                               name="nome" 
+                               value="{{ form.nome.value|default:'' }}"
+                               required 
+                               tabindex="1"
+                               autocomplete="off"
+                               >
+                        {% if form.nome.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.nome.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cpf" class="form-label">
+                            <i class="fas fa-id-card me-2"></i>
+                            CPF <span class="required">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control {% if form.cpf.errors %}is-invalid{% endif %}" 
+                               id="cpf" 
+                               name="cpf" 
+                               value="{{ form.cpf.value|default:'' }}"
+                               placeholder="000.000.000-00"
+                               required 
+                               tabindex="2"
+                               autocomplete="off"
+                               >
+                        {% if form.cpf.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.cpf.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data_nascimento" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Data de Nascimento <span class="required">*</span>
+                        </label>
+                        <input type="date" 
+                               class="form-control {% if form.data_nascimento.errors %}is-invalid{% endif %}" 
+                               id="data_nascimento" 
+                               name="data_nascimento" 
+                               value="{{ form.data_nascimento.value|default:'' }}"
+                               required 
+                               tabindex="3"
+                               autocomplete="off"
+                               >
+                        {% if form.data_nascimento.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.data_nascimento.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sexo" class="form-label">
+                            <i class="fas fa-venus-mars me-2"></i>
+                            Sexo <span class="required">*</span>
+                        </label>
+                        <div class="custom-select-wrapper">
+                            <input type="text" 
+                                   class="form-control custom-select {% if form.sexo.errors %}is-invalid{% endif %}" 
+                                   id="sexo-display" 
+                                   readonly
+                                   placeholder="Use as setas ← → para selecionar"
+                                   data-select-target="sexo">
+                            <i class="fas fa-chevron-down custom-select-arrow"></i>
+                            <select id="sexo" name="sexo" style="display: none;" required>
+                                <option value="">Selecione</option>
+                                <option value="m" {% if form.sexo.value == 'm' %}selected{% endif %}>Masculino</option>
+                                <option value="f" {% if form.sexo.value == 'f' %}selected{% endif %}>Feminino</option>
+                                <option value="o" {% if form.sexo.value == 'o' %}selected{% endif %}>Outro</option>
+                            </select>
+                        </div>
+                        {% if form.sexo.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.sexo.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="celular" class="form-label">
+                            <i class="fas fa-mobile-alt me-2"></i>
+                            Celular <span class="required">*</span>
+                        </label>
+                        <input type="tel" 
+                               class="form-control {% if form.celular.errors %}is-invalid{% endif %}" 
+                               id="celular" 
+                               name="celular" 
+                               value="{{ form.celular.value|default:'' }}"
+                               placeholder="(00) 00000-0000"
+                               required 
+                               tabindex="5"
+                               autocomplete="off">
+                        {% if form.celular.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.celular.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-2"></i>
+                            E-mail
+                        </label>
+                        <input type="email" 
+                               class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                               id="email" 
+                               name="email" 
+                               value="{{ form.email.value|default:'' }}"
+                               placeholder="seu@email.com"
+                               tabindex="6"
+                               autocomplete="off"
+                               >
+                        {% if form.email.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.email.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bairro" class="form-label">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Bairro
+                        </label>
+                        <input type="text" 
+                               class="form-control {% if form.bairro.errors %}is-invalid{% endif %}" 
+                               id="bairro" 
+                               name="bairro" 
+                               value="{{ form.bairro.value|default:'' }}"
+                               tabindex="7"
+                               autocomplete="off"
+                               >
+                        {% if form.bairro.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.bairro.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="escolaridade" class="form-label">
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            Escolaridade <span class="required">*</span>
+                        </label>
+                        <div class="custom-select-wrapper">
+                            <input type="text" 
+                                   class="form-control custom-select {% if form.escolaridade.errors %}is-invalid{% endif %}" 
+                                   id="escolaridade-display" 
+                                   readonly
+                                   placeholder="Use as setas ← → para selecionar"
+                                   data-select-target="escolaridade">
+                            <i class="fas fa-chevron-down custom-select-arrow"></i>
+                            <select id="escolaridade" name="escolaridade" style="display: none;" required>
+                                <option value="">Selecione sua escolaridade</option>
+                                {% for escolaridade in form.escolaridade.field.queryset %}
+                                    <option value="{{ escolaridade.id }}" 
+                                            {% if form.escolaridade.value == escolaridade.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ escolaridade.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if form.escolaridade.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.escolaridade.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="window.totemForm.goBack()">
+                            <i class="fas fa-arrow-left"></i>
+                            Voltar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Candidatar-se
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Select Modal -->
+    <div class="select-modal" id="selectModal">
+        <div class="select-modal-overlay"></div>
+        <div class="select-modal-content">
+            <div class="select-modal-header">
+                <h3 id="selectModalTitle">Selecione uma opção</h3>
+                <button type="button" class="modal-close" onclick="window.totemForm.closeSelectModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="select-modal-body">
+                <div class="select-options" id="selectOptions">
+                    <!-- Options will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="select-modal-footer">
+                <div class="modal-instructions">
+                    <span><i class="fas fa-arrows-alt-v"></i> ↑↓ Navegar</span>
+                    <span><i class="fas fa-check"></i> Enter para selecionar</span>
+                    <span><i class="fas fa-times"></i> ESC para cancelar</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Help -->
+    <div class="navigation-help">
+        <div class="help-instruction">
+            <i class="fas fa-arrows-alt-v"></i>
+            <span>↑↓ Navegar entre campos</span>
+        </div>
+        <div class="help-instruction">
+            <i class="fas fa-arrows-alt-h"></i>
+            <span>←→ Escolher opções</span>
+        </div>
+        <div class="help-instruction">
+            <i class="fas fa-check"></i>
+            <span>Enter para próximo/enviar</span>
+        </div>
+        <div class="help-instruction">
+            <i class="fas fa-times"></i>
+            <span>CTRL para voltar</span>
+        </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class TotemCandidatureForm {
+            constructor() {
+                this.form = document.getElementById('candidatureForm');
+                this.loadingOverlay = document.getElementById('loadingOverlay');
+                this.currentFieldIndex = 0;
+                this.formFields = [];
+                this.init();
+            }
+
+            init() {
+                this.setupFormFields();
+                this.bindEvents();
+                this.focusFirstField();
+                this.setupInputMasks();
+                this.disableAutocomplete();
+                this.setupCustomSelects();
+                this.saveCurrentVaga(); // Save current vaga when entering candidature
+            }
+
+            setupFormFields() {
+                // Get all visible form inputs in order (excluding hidden selects)
+                this.formFields = Array.from(this.form.querySelectorAll('input, textarea')).filter(field => {
+                    return field.type !== 'hidden' && 
+                           !field.disabled && 
+                           field.offsetParent !== null &&
+                           !field.closest('select[style*="display: none"]');
+                });
+                
+                // Add data-field-index to each field
+                this.formFields.forEach((field, index) => {
+                    field.setAttribute('data-field-index', index);
+                });
+            }
+
+            disableAutocomplete() {
+                // Disable autocomplete on all inputs to prevent dropdown suggestions
+                this.formFields.forEach(field => {
+                    field.setAttribute('autocomplete', 'off');
+                    field.setAttribute('autocorrect', 'off');
+                    field.setAttribute('autocapitalize', 'off');
+                    field.setAttribute('spellcheck', 'false');
+                });
+            }
+
+            focusFirstField() {
+                if (this.formFields.length > 0) {
+                    this.currentFieldIndex = 0;
+                    this.formFields[0].focus();
+                    this.highlightCurrentField();
+                }
+            }
+
+            highlightCurrentField() {
+                // Remove highlight from all fields
+                this.formFields.forEach(field => field.classList.remove('field-highlighted'));
+                
+                // Highlight current field
+                if (this.formFields[this.currentFieldIndex]) {
+                    this.formFields[this.currentFieldIndex].classList.add('field-highlighted');
+                }
+            }
+
+            navigateToField(direction) {
+                if (direction === 'next' && this.currentFieldIndex < this.formFields.length - 1) {
+                    this.currentFieldIndex++;
+                } else if (direction === 'prev' && this.currentFieldIndex > 0) {
+                    this.currentFieldIndex--;
+                } else {
+                    return; // No navigation possible
+                }
+
+                this.formFields[this.currentFieldIndex].focus();
+                this.highlightCurrentField();
+            }
+
+            isLastField() {
+                return this.currentFieldIndex === this.formFields.length - 1;
+            }
+
+            isCurrentFieldFilled() {
+                const currentField = this.formFields[this.currentFieldIndex];
+                return currentField && currentField.value.trim() !== '';
+            }
+
+            bindEvents() {
+                // Form submission
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+                // Field focus tracking
+                this.formFields.forEach((field, index) => {
+                    field.addEventListener('focus', () => {
+                        this.currentFieldIndex = index;
+                        this.highlightCurrentField();
+                    });
+
+                    // Prevent Tab navigation
+                    field.addEventListener('keydown', (e) => {
+                        if (e.code === 'Tab') {
+                            e.preventDefault();
+                        }
+                    });
+                });
+
+                // CPF validation
+                const cpfInput = document.getElementById('cpf');
+                if (cpfInput) {
+                    cpfInput.addEventListener('blur', () => this.validateCPF());
+                }
+
+                // A validação do telefone agora é feita no setupInputMasks
+            }
+
+            handleKeydown(e) {
+                // If select modal is open, let it handle the keydown
+                if (this.selectModalOpen) {
+                    return;
+                }
+
+                // Prevent default behavior for navigation keys
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Tab', 'ControlLeft', 'ControlRight'].includes(e.code)) {
+                    
+                    const currentField = this.formFields[this.currentFieldIndex];
+                    
+                    switch(e.code) {
+                        case 'ControlLeft':
+                        case 'ControlRight':
+                            e.preventDefault();
+                            this.goBack();
+                            break;
+                            
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            this.navigateToField('next');
+                            break;
+                            
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            this.navigateToField('prev');
+                            break;
+                        
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            // Check if current field is for selection (sexo or escolaridade)
+                            if (currentField && currentField.classList.contains('custom-select')) {
+                                const selectTarget = currentField.getAttribute('data-select-target');
+                                this.navigateSelectOption(selectTarget, 'prev');
+                            } else {
+                                this.navigateToField('prev');
+                            }
+                            break;
+                            
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            // Check if current field is for selection (sexo or escolaridade)
+                            if (currentField && currentField.classList.contains('custom-select')) {
+                                const selectTarget = currentField.getAttribute('data-select-target');
+                                this.navigateSelectOption(selectTarget, 'next');
+                            } else {
+                                this.navigateToField('next');
+                            }
+                            break;
+                            
+                        case 'Enter':
+                            e.preventDefault();
+                            if (this.isLastField() && this.isCurrentFieldFilled()) {
+                                // Submit form if on last field and it's filled
+                                this.form.requestSubmit();
+                            } else if (this.isCurrentFieldFilled()) {
+                                // Move to next field if current is filled
+                                this.navigateToField('next');
+                            } else {
+                                // Show validation message for current field
+                                this.validateCurrentField();
+                            }
+                            break;
+                            
+                        case 'Tab':
+                            e.preventDefault(); // Disable tab navigation
+                            break;
+                    }
+                }
+            }
+            
+            navigateSelectOption(selectTarget, direction) {
+                const selectElement = document.getElementById(selectTarget);
+                if (!selectElement) return;
+                
+                const options = Array.from(selectElement.querySelectorAll('option')).filter(opt => opt.value !== '');
+                if (options.length === 0) return;
+                
+                let currentIndex = -1;
+                if (selectElement.value) {
+                    currentIndex = options.findIndex(opt => opt.value === selectElement.value);
+                }
+                
+                // Calculate new index
+                if (direction === 'next') {
+                    currentIndex = (currentIndex + 1) % options.length;
+                } else {
+                    currentIndex = (currentIndex - 1 + options.length) % options.length;
+                }
+                
+                // Select new option
+                const newOption = options[currentIndex];
+                selectElement.value = newOption.value;
+                
+                // Update display
+                const displayElement = document.getElementById(`${selectTarget}-display`);
+                if (displayElement) {
+                    displayElement.value = newOption.textContent;
+                }
+                
+                // Visual feedback
+                this.showOptionChangeAnimation(displayElement, direction);
+                
+                // Trigger change event
+                selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            showOptionChangeAnimation(element, direction) {
+                if (!element) return;
+                
+                // Remove any existing animations
+                element.style.transition = 'none';
+                element.classList.remove('slide-in-left', 'slide-in-right');
+                
+                // Force reflow
+                void element.offsetWidth;
+                
+                // Add animation class
+                element.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                
+                // Highlight the arrow that was pressed
+                const wrapper = element.closest('.custom-select-wrapper');
+                if (wrapper) {
+                    const arrowRight = wrapper.querySelector('.arrow-right');
+                    const arrowLeft = wrapper.querySelector('.arrow-left');
+                    
+                    if (direction === 'next' && arrowRight) {
+                        arrowRight.style.transform = 'scale(1.3)';
+                        arrowRight.style.opacity = '1';
+                        arrowRight.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.7)';
+                        setTimeout(() => {
+                            arrowRight.style.transform = '';
+                            arrowRight.style.opacity = '';
+                            arrowRight.style.boxShadow = '';
+                        }, 300);
+                    } else if (direction === 'prev' && arrowLeft) {
+                        arrowLeft.style.transform = 'scale(1.3)';
+                        arrowLeft.style.opacity = '1';
+                        arrowLeft.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.7)';
+                        setTimeout(() => {
+                            arrowLeft.style.transform = '';
+                            arrowLeft.style.opacity = '';
+                            arrowLeft.style.boxShadow = '';
+                        }, 300);
+                    }
+                }
+                
+                // Animate the text change
+                if (direction === 'next') {
+                    element.style.transform = 'translateX(-10px)';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(10px)';
+                        
+                        setTimeout(() => {
+                            element.style.transform = 'translateX(0)';
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 150);
+                } else {
+                    element.style.transform = 'translateX(10px)';
+                    element.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(-10px)';
+                        
+                        setTimeout(() => {
+                            element.style.transform = 'translateX(0)';
+                            element.style.opacity = '1';
+                        }, 10);
+                    }, 150);
+                }
+            }
+
+            validateCurrentField() {
+                const currentField = this.formFields[this.currentFieldIndex];
+                if (currentField && !currentField.value.trim()) {
+                    currentField.classList.add('is-invalid');
+                    
+                    // Show error message if not already present
+                    if (!currentField.nextElementSibling || !currentField.nextElementSibling.classList.contains('error-message')) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Este campo é obrigatório';
+                        currentField.parentNode.insertBefore(errorDiv, currentField.nextSibling);
+                    }
+                } else if (currentField) {
+                    currentField.classList.remove('is-invalid');
+                    
+                    // Remove error message if present
+                    const errorMsg = currentField.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.remove();
+                    }
+                }
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                
+                if (this.validateForm()) {
+                    this.showLoading(true);
+                    
+                    // Add small delay for user feedback
+                    setTimeout(() => {
+                        this.form.submit();
+                    }, 1000);
+                }
+            }
+
+            validateForm() {
+                let isValid = true;
+                const requiredFields = ['nome', 'cpf', 'data_nascimento', 'sexo', 'celular', 'escolaridade'];
+                
+                requiredFields.forEach(fieldName => {
+                    const field = document.getElementById(fieldName);
+                    if (field && !field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                        
+                        // Show error message if not already present
+                        if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'error-message';
+                            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Este campo é obrigatório';
+                            field.parentNode.insertBefore(errorDiv, field.nextSibling);
+                        }
+                    } else if (field) {
+                        field.classList.remove('is-invalid');
+                        
+                        // Remove error message if present
+                        const errorMsg = field.nextElementSibling;
+                        if (errorMsg && errorMsg.classList.contains('error-message')) {
+                            errorMsg.remove();
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    // Focus on first invalid field
+                    const firstInvalid = document.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.focus();
+                    }
+                }
+
+                return isValid;
+            }
+
+            validateCPF() {
+                const cpfInput = document.getElementById('cpf');
+                const cpf = cpfInput.value.replace(/\D/g, '');
+                
+                if (cpf && !this.isValidCPF(cpf)) {
+                    cpfInput.classList.add('is-invalid');
+                    
+                    // Show CPF error
+                    let errorDiv = cpfInput.nextElementSibling;
+                    if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        cpfInput.parentNode.insertBefore(errorDiv, cpfInput.nextSibling);
+                    }
+                    errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> CPF inválido';
+                } else {
+                    cpfInput.classList.remove('is-invalid');
+                    const errorMsg = cpfInput.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.remove();
+                    }
+                }
+            }
+
+            isValidCPF(cpf) {
+                if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+                
+                let sum = 0;
+                for (let i = 0; i < 9; i++) {
+                    sum += parseInt(cpf.charAt(i)) * (10 - i);
+                }
+                let digit1 = 11 - (sum % 11);
+                if (digit1 > 9) digit1 = 0;
+                
+                sum = 0;
+                for (let i = 0; i < 10; i++) {
+                    sum += parseInt(cpf.charAt(i)) * (11 - i);
+                }
+                let digit2 = 11 - (sum % 11);
+                if (digit2 > 9) digit2 = 0;
+                
+                return digit1 === parseInt(cpf.charAt(9)) && digit2 === parseInt(cpf.charAt(10));
+            }
+
+            // As funções addInputMasks e formatPhone foram incorporadas em setupInputMasks
+            
+            setupInputMasks() {
+                // CPF mask
+                const cpfInput = document.getElementById('cpf');
+                const self = this;
+                
+                if (cpfInput) {
+                    cpfInput.addEventListener('keyup', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        
+                        if (value.length > 11) {
+                            value = value.substring(0, 11);
+                        }
+                        
+                        if (value.length > 0) {
+                            value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+                        }
+                        
+                        if (value.length > 3) {
+                            value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+                        }
+                        
+                        if (value.length > 6) {
+                            value = value.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+                        }
+                        
+                        e.target.value = value;
+                        
+                        // Validação em tempo real quando o CPF estiver completo
+                        if (value.replace(/\D/g, '').length === 11) {
+                            self.validateCPF();
+                        } else if (value.replace(/\D/g, '').length < 11) {
+                            // Se ainda não está completo, remover mensagem de erro se existir
+                            cpfInput.classList.remove('is-invalid');
+                            const errorMsg = cpfInput.nextElementSibling;
+                            if (errorMsg && errorMsg.classList.contains('error-message')) {
+                                errorMsg.remove();
+                            }
+                        }
+                    });
+                }
+                
+                // Celular mask
+                const celularInput = document.getElementById('celular');
+                if (celularInput) {
+                    celularInput.addEventListener('keyup', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        
+                        if (value.length > 11) {
+                            value = value.substring(0, 11);
+                        }
+                        
+                        if (value.length > 0) {
+                            value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+                        }
+                        
+                        if (value.length > 2) {
+                            value = value.replace(/^\((\d{2})\) (\d{5})(\d)/, '($1) $2-$3');
+                        }
+                        
+                        e.target.value = value;
+                        
+                        // Validação simples do telefone (pelo menos 10 dígitos)
+                        if (value.length < 10 && value.length > 0) {
+                            celularInput.classList.add('is-invalid');
+                            
+                            // Mostrar erro se não existir
+                            let errorDiv = celularInput.nextElementSibling;
+                            if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                                errorDiv = document.createElement('div');
+                                errorDiv.className = 'error-message';
+                                celularInput.parentNode.insertBefore(errorDiv, celularInput.nextSibling);
+                            }
+                            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Telefone incompleto';
+                        } else {
+                            celularInput.classList.remove('is-invalid');
+                            const errorMsg = celularInput.nextElementSibling;
+                            if (errorMsg && errorMsg.classList.contains('error-message')) {
+                                errorMsg.remove();
+                            }
+                        }
+                    });
+                }
+            }
+
+            setFocusToFirstField() {
+                const firstField = document.getElementById('nome');
+                if (firstField) {
+                    setTimeout(() => firstField.focus(), 100);
+                }
+            }
+
+            goBack() {
+                // Don't clear the saved vaga when going back - maintain current position
+                // The user should return to the same vaga they were viewing
+                
+                this.showLoading(true);
+                setTimeout(() => {
+                    window.location.href = "{% url 'vagas:totem_v1' %}";
+                }, 500);
+            }
+
+            // Custom Select Modal Functions
+            setupCustomSelects() {
+                this.selectModal = document.getElementById('selectModal');
+                this.selectOptions = document.getElementById('selectOptions');
+                this.selectModalTitle = document.getElementById('selectModalTitle');
+                this.currentSelectTarget = null;
+                this.highlightedOptionIndex = 0;
+                this.selectModalOpen = false;
+
+                // No modal on click, now we use arrow keys for navigation
+                document.querySelectorAll('.custom-select').forEach(select => {
+                    // Add visual indicator for arrow navigation
+                    const wrapper = select.closest('.custom-select-wrapper');
+                    if (wrapper) {
+                        const indicator = document.createElement('div');
+                        indicator.className = 'select-arrow-indicator';
+                        indicator.innerHTML = `
+                            <div class="arrow-left">
+                                <i class="fas fa-chevron-left"></i>
+                            </div>
+                            <div class="arrow-right">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        `;
+                        wrapper.appendChild(indicator);
+                    }
+                });
+
+                // Update display values for initially selected options
+                this.updateSelectDisplays();
+            }
+
+            openSelectModal(targetSelectId) {
+                if (this.selectModalOpen) return;
+
+                this.currentSelectTarget = document.getElementById(targetSelectId);
+                if (!this.currentSelectTarget) return;
+
+                this.selectModalOpen = true;
+                
+                // Set modal title
+                const label = document.querySelector(`label[for="${targetSelectId}-display"]`);
+                if (label) {
+                    this.selectModalTitle.textContent = label.textContent.replace('*', '').trim();
+                }
+
+                // Populate options
+                this.populateSelectOptions();
+
+                // Show modal
+                this.selectModal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+
+                // Add modal keyboard events
+                document.addEventListener('keydown', this.handleSelectModalKeydown.bind(this));
+
+                // Focus first option
+                this.highlightedOptionIndex = 0;
+                this.updateOptionHighlight();
+            }
+
+            populateSelectOptions() {
+                this.selectOptions.innerHTML = '';
+                const options = this.currentSelectTarget.querySelectorAll('option');
+                
+                options.forEach((option, index) => {
+                    if (option.value === '') return; // Skip empty option
+                    
+                    const optionButton = document.createElement('button');
+                    optionButton.type = 'button';
+                    optionButton.className = 'select-option';
+                    optionButton.textContent = option.textContent;
+                    optionButton.setAttribute('data-value', option.value);
+                    optionButton.setAttribute('data-index', index - 1); // -1 because we skip empty option
+                    
+                    if (option.selected) {
+                        optionButton.classList.add('selected');
+                        this.highlightedOptionIndex = index - 1;
+                    }
+
+                    optionButton.addEventListener('click', () => {
+                        this.selectOption(option.value, option.textContent);
+                    });
+
+                    this.selectOptions.appendChild(optionButton);
+                });
+            }
+
+            handleSelectModalKeydown(e) {
+                if (!this.selectModalOpen) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const optionButtons = this.selectOptions.querySelectorAll('.select-option');
+                
+                switch(e.code) {
+                    case 'ArrowUp':
+                        this.highlightedOptionIndex = Math.max(0, this.highlightedOptionIndex - 1);
+                        this.updateOptionHighlight();
+                        break;
+                        
+                    case 'ArrowDown':
+                        this.highlightedOptionIndex = Math.min(optionButtons.length - 1, this.highlightedOptionIndex + 1);
+                        this.updateOptionHighlight();
+                        break;
+                        
+                    case 'Enter':
+                        const highlightedOption = optionButtons[this.highlightedOptionIndex];
+                        if (highlightedOption) {
+                            const value = highlightedOption.getAttribute('data-value');
+                            const text = highlightedOption.textContent;
+                            this.selectOption(value, text);
+                        }
+                        break;
+                        
+                    case 'ControlLeft':
+                    case 'ControlRight':
+                        this.closeSelectModal();
+                        break;
+                }
+            }
+
+            updateOptionHighlight() {
+                const optionButtons = this.selectOptions.querySelectorAll('.select-option');
+                optionButtons.forEach((button, index) => {
+                    button.classList.toggle('highlighted', index === this.highlightedOptionIndex);
+                });
+
+                // Scroll highlighted option into view
+                const highlightedOption = optionButtons[this.highlightedOptionIndex];
+                if (highlightedOption) {
+                    highlightedOption.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'nearest' 
+                    });
+                }
+            }
+
+            selectOption(value, text) {
+                if (!this.currentSelectTarget) return;
+
+                // Update the hidden select
+                this.currentSelectTarget.value = value;
+
+                // Update the display input
+                const displayInput = document.getElementById(this.currentSelectTarget.id + '-display');
+                if (displayInput) {
+                    displayInput.value = text;
+                    displayInput.classList.remove('is-invalid');
+                }
+
+                // Trigger change event
+                this.currentSelectTarget.dispatchEvent(new Event('change', { bubbles: true }));
+
+                this.closeSelectModal();
+
+                // Move to next field
+                setTimeout(() => {
+                    this.navigateToField('next');
+                }, 200);
+            }
+
+            closeSelectModal() {
+                if (!this.selectModalOpen) return;
+
+                this.selectModalOpen = false;
+                this.selectModal.classList.remove('show');
+                document.body.style.overflow = '';
+
+                // Remove modal keyboard events
+                document.removeEventListener('keydown', this.handleSelectModalKeydown.bind(this));
+
+                this.currentSelectTarget = null;
+                
+                // Return focus to the current field
+                setTimeout(() => {
+                    if (this.formFields[this.currentFieldIndex]) {
+                        this.formFields[this.currentFieldIndex].focus();
+                    }
+                }, 100);
+            }
+
+            updateSelectDisplays() {
+                // Update display for sexo
+                const sexoSelect = document.getElementById('sexo');
+                const sexoDisplay = document.getElementById('sexo-display');
+                if (sexoSelect && sexoDisplay && sexoSelect.value) {
+                    const selectedOption = sexoSelect.querySelector(`option[value="${sexoSelect.value}"]`);
+                    if (selectedOption) {
+                        sexoDisplay.value = selectedOption.textContent;
+                    }
+                }
+
+                // Update display for escolaridade
+                const escolaridadeSelect = document.getElementById('escolaridade');
+                const escolaridadeDisplay = document.getElementById('escolaridade-display');
+                if (escolaridadeSelect && escolaridadeDisplay && escolaridadeSelect.value) {
+                    const selectedOption = escolaridadeSelect.querySelector(`option[value="${escolaridadeSelect.value}"]`);
+                    if (selectedOption) {
+                        escolaridadeDisplay.value = selectedOption.textContent;
+                    }
+                }
+            }
+
+            // Cookie management functions
+            setCookie(name, value, days = 1) {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+            }
+
+            clearSavedVaga() {
+                document.cookie = `totem_current_vaga=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+
+            saveCurrentVaga() {
+                // Save the current vaga ID when entering candidature
+                const vagaId = "{{ vaga.id }}";
+                if (vagaId) {
+                    this.setCookie('totem_current_vaga', vagaId);
+                }
+            }
+
+            showLoading(show) {
+                if (show) {
+                    this.loadingOverlay.classList.add('show');
+                } else {
+                    this.loadingOverlay.classList.remove('show');
+                }
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.totemForm = new TotemCandidatureForm();
+        });
+
+        // Prevent form resubmission on page reload
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+</body>
+</html>

@@ -1,38 +1,1923 @@
-{% extends 'base_site.html' %} {% load static %} 
-{% block title %}Painel Administrativo{% endblock %} 
-{% block css %} {{block.super}} {% endblock%}
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Painel Administrativo{% endblock %}
+{% block css %} 
+{{block.super}} 
+<link rel="stylesheet" href="{% static 'vagas/css/dashboard.css' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock%}
+{% block main %}
+<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
-{% block head_js %}
-<script src="{% static 'assets/js/modal.js' %}"></script>
-{% endblock %}
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  {% include 'vagas/includes/sidebar_admin.html' %}
 
-{% block main_conteudo %}
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-tachometer-alt me-2"></i>
+          Dashboard Administrativo
+        </h1>
+        <p class="page-subtitle">Visão geral e controle do sistema</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <button class="btn-action" title="Atualizar dados">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
 
-<div class="row">
-  <div class="col">
-    <h1 class="text-start mb-0 pb-0">
-      Painel Administrativo
-    </h1>
+    <!-- Dashboard Stats Grid -->
+    <!-- Período de filtro: formulário no topo (salva em session) -->
+    <div class="dashboard-filter" style="margin-top: 1rem; margin-bottom: 1rem; display:flex; gap:1rem; align-items:center;">
+      <form method="post" action="" style="display:flex; gap:0.5rem; align-items:center;">
+        {% csrf_token %}
+        <label style="font-weight:600; color:#4a5568;">Período:</label>
+        <input type="date" name="data_inicio" value="" style="padding:0.4rem; border-radius:6px; border:1px solid #e2e8f0;" />
+        <span style="color:#718096; font-weight:600;">até</span>
+        <input type="date" name="data_fim" value="" style="padding:0.4rem; border-radius:6px; border:1px solid #e2e8f0;" />
+        <button type="submit" class="btn btn-primary" style="padding:0.45rem 0.75rem; border-radius:6px;">Aplicar</button>
+      </form>
+      <div style="margin-left:auto; display:flex; gap:0.5rem; align-items:center;">
+        {% if filtro_aplicado %}
+          <div style="background:#f1f5f9; padding:0.4rem 0.6rem; border-radius:6px; color:#334155; font-weight:600;">Período aplicado: {{ periodo_descricao }}</div>
+          <a href="?limpar_filtros=1" class="btn btn-secondary" style="padding:0.35rem 0.6rem; border-radius:6px;">Limpar filtro</a>
+        {% else %}
+          <div style="color:#94a3b8; font-weight:600;">Sem filtro — exibindo todo o período</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div>
+      <!-- <div class="row">
+        <div class="col stats-section-header pt-5">
+        <h3><i class="fas fa-chart-line me-2"></i>Indicadores do Sistema</h3>
+        <p>Comparativo entre dados totais e performance dos últimos 31 dias</p>
+      </div>
+      </div> -->
+      
+      <div class="stats-grid">
+
+      
+      <!-- Vagas Ativas - 31 Dias -->
+      <div class="metric-card metric-primary">
+        <div class="metric-period-badge recent-badge">
+          <i class="fas fa-calendar-day"></i>
+          <span>31 DIAS</span>
+        </div>
+        <div class="metric-icon">
+          <i class="fas fa-briefcase"></i>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ vagas_ativas_31_dias }}</div>
+          <div class="metric-label">Cargos Ativos</div>
+          <div class="metric-detail">Últimos 31 dias</div>
+        </div>
+      </div>
+
+      
+      <!-- Empresas Ativas - 31 Dias -->
+      <div class="metric-card metric-success">
+        <div class="metric-period-badge recent-badge">
+          <i class="fas fa-calendar-day"></i>
+          <span>31 DIAS</span>
+        </div>
+        <div class="metric-icon">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ empresas_ativas_31_dias }}</div>
+          <div class="metric-label">Vagas Ativas</div>
+          <div class="metric-detail">Últimos 31 dias</div>
+        </div>
+      </div>
+      
+      <!-- Candidatos - 31 Dias -->
+      <div class="metric-card metric-info">
+        <div class="metric-period-badge recent-badge">
+          <i class="fas fa-calendar-day"></i>
+          <span>31 DIAS</span>
+        </div>
+        <div class="metric-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ candidatos_31_dias }}</div>
+          <div class="metric-label">Novos Candidatos</div>
+          <div class="metric-detail">
+            <span class="metric-success">{{ candidatos_online_31_dias }} online</span> • 
+            <span class="metric-danger">{{ candidatos_balcao_31_dias }} balcão</span>
+          </div>
+        </div>
+      </div>
+
+       <!-- Candidatos - Total -->
+      <div class="metric-card metric-info">
+        <div class="metric-period-badge total-badge">
+          <i class="fas fa-infinity"></i>
+          <span>TOTAL</span>
+        </div>
+        <div class="metric-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="metric-content">
+          <div class="metric-value">{{ total_candidatos }}</div>
+          <div class="metric-label">Total Candidatos</div>
+          <div class="metric-detail">
+            <span class="metric-success">{{ candidatos_online }} online</span> • 
+            <span class="metric-danger">{{ candidatos_balcao }} balcão</span>
+          </div>
+        </div>
+      </div>
+
+      </div>
+
+      <!-- Nova Seção: Métricas Avançadas -->
+      <div class="section-title mt-3">
+        <h2><i class="fas fa-chart-line me-2"></i>Métricas Avançadas</h2>
+        <p>Indicadores de performance e qualidade dos serviços</p>
+      </div>
+
+      <div class="stats-grid">
+        
+        <!-- Tempo Médio de Aprovação -->
+        <div class="stat-card warning">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-clock"></i>
+            <span>TEMPO</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ tempo_medio_aprovacao }}h</div>
+            <div class="stat-label">Tempo Médio Aprovação</div>
+            <div class="stat-sublabel">Formulários para vagas</div>
+          </div>
+        </div>
+
+
+
+        <!-- Ciclo de Vida -->
+        <div class="stat-card secondary">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-calendar-alt"></i>
+            <span>CICLO</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ ciclo_vida_medio }}</div>
+            <div class="stat-label">Dias Médios Vaga</div>
+            <div class="stat-sublabel">Criação até encerramento</div>
+          </div>
+        </div>
+
+        <!-- Formulários Status -->
+        <div class="stat-card">
+          <div class="stat-period-badge metric-badge">
+            <i class="fas fa-file-alt"></i>
+            <span>FORM.</span>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ total_formularios }}</div>
+            <div class="stat-label">Total Formulários</div>
+            <div class="stat-sublabel">
+              <span class="text-success">{{ formularios_aprovados }} aprovados</span> | 
+              <span class="text-warning">{{ formularios_pendentes }} pendentes</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Seção Entrada e Saída de Vagas -->
+    <div class="section-title">
+      <h2><i class="fas fa-exchange-alt me-2"></i>Movimentação de Vagas</h2>
+      <p>{% if filtro_aplicado %}Entrada e saída de vagas no período selecionado{% else %}Entrada e saída de vagas no mês atual{% endif %}</p>
+    </div>
+    
+    <div class="stats-grid">
+      
+      <!-- Vagas Entraram - Registros -->
+      <div class="stat-card success">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-plus-circle"></i>
+          <span>ENTRADA</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vagas_entraram_registros }}</div>
+          <div class="stat-label">Vagas Criadas</div>
+          <div class="stat-sublabel">Número de registros de vaga</div>
+        </div>
+      </div>
+
+      <!-- Posições Entraram -->
+      <div class="stat-card success">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-briefcase"></i>
+          <span>POSIÇÕES</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vagas_entraram_posicoes }}</div>
+          <div class="stat-label">Posições Abertas</div>
+          <div class="stat-sublabel">Total de posições criadas</div>
+        </div>
+      </div>
+
+      <!-- Vagas Saíram - Registros -->
+      <div class="stat-card danger">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-minus-circle"></i>
+          <span>SAÍDA</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vagas_sairam_registros }}</div>
+          <div class="stat-label">Vagas Encerradas</div>
+          <div class="stat-sublabel">Número de registros encerrados</div>
+        </div>
+      </div>
+
+      <!-- Posições Saíram -->
+      <div class="stat-card danger">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-times-circle"></i>
+          <span>POSIÇÕES</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vagas_sairam_posicoes }}</div>
+          <div class="stat-label">Posições Encerradas</div>
+          <div class="stat-sublabel">Total de posições encerradas</div>
+        </div>
+      </div>
+
+      <!-- Saldo Vagas -->
+      <div class="stat-card {% if saldo_vagas_registros >= 0 %}primary{% else %}warning{% endif %}">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-balance-scale"></i>
+          <span>SALDO</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{% if saldo_vagas_registros >= 0 %}+{% endif %}{{ saldo_vagas_registros }}</div>
+          <div class="stat-label">Saldo de Vagas</div>
+          <div class="stat-sublabel">{% if saldo_vagas_registros >= 0 %}Crescimento{% else %}Redução{% endif %} líquida</div>
+        </div>
+      </div>
+
+      <!-- Saldo Posições -->
+      <div class="stat-card {% if saldo_vagas_posicoes >= 0 %}primary{% else %}warning{% endif %}">
+        <div class="stat-period-badge metric-badge">
+          <i class="fas fa-chart-line"></i>
+          <span>SALDO</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{% if saldo_vagas_posicoes >= 0 %}+{% endif %}{{ saldo_vagas_posicoes }}</div>
+          <div class="stat-label">Saldo Posições</div>
+          <div class="stat-sublabel">{% if saldo_vagas_posicoes >= 0 %}Crescimento{% else %}Redução{% endif %} líquida</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Principais Bairros Section -->
+    <div class="section-title mt-5">
+      <h2><i class="fas fa-map-marker-alt me-2"></i>Distribuição Geográfica</h2>
+      <p>Análise completa por bairros - candidatos e vagas do sistema</p>
+    </div>
+    
+    <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+      <!-- Card Candidatos por Bairro -->
+      <div class="stat-card info" style="display: flex; flex-direction: column; min-height: 600px;">
+        <div class="stat-content" style="flex: 1; display: flex; flex-direction: column; width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e9ecef;">
+            <div>
+              <div class="stat-label" style="font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem;">
+                <i class="fas fa-users" style="margin-right: 0.5rem; color: #3182ce;"></i>
+                Candidatos por Bairro
+              </div>
+              <div class="stat-sublabel">Distribuição de todos os candidatos</div>
+            </div>
+            <span style="background: linear-gradient(45deg, #3182ce, #2c5282); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+              {{ candidatos_por_bairro|length }} bairros
+            </span>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; margin-bottom: 1rem;">
+            {% for bairro in candidatos_por_bairro %}
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; margin-bottom: 0.5rem; background: {% if forloop.counter0|divisibleby:2 %}#f8f9fa{% else %}#ffffff{% endif %}; border-radius: 8px; border-left: 4px solid {% if forloop.counter <= 3 %}#38a169{% elif forloop.counter <= 5 %}#3182ce{% else %}#667eea{% endif %}; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s ease;">
+                <div style="display: flex; align-items: center;">
+                  <span style="background: {% if forloop.counter <= 3 %}linear-gradient(45deg, #38a169, #48bb78){% elif forloop.counter <= 5 %}linear-gradient(45deg, #3182ce, #4299e1){% else %}linear-gradient(45deg, #667eea, #764ba2){% endif %}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; margin-right: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">#{{ forloop.counter }}</span>
+                  <span style="color: #2d3748; font-weight: 500; font-size: 1rem;">{{ bairro.bairro }}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="background: #e2e8f0; color: #4a5568; padding: 0.3rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;">{{ bairro.total }}</span>
+                  <span style="background: linear-gradient(45deg, #38a169, #48bb78); color: white; padding: 0.3rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem; min-width: 45px; text-align: center;">{{ bairro.percentual }}%</span>
+                </div>
+              </div>
+            {% empty %}
+              <div style="text-align: center; padding: 3rem; color: #a0aec0;">
+                <i class="fas fa-map" style="font-size: 3rem; margin-bottom: 1rem; color: #e2e8f0;"></i>
+                <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">Nenhum candidato registrado ainda</p>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Mini gráfico dos top 5 bairros por candidatos -->
+          <div style="background: #f7fafc; padding: 1rem; border-radius: 8px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <canvas id="miniBairrosChart" width="300" height="150"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Bairros por Vagas -->
+      <div class="stat-card info" style="display: flex; flex-direction: column; min-height: 600px;">
+        <div class="stat-content" style="flex: 1; display: flex; flex-direction: column;  width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e9ecef;">
+            <div>
+              <div class="stat-label" style="font-size: 1.2rem; font-weight: 600; color: #2d3748; margin-bottom: 0.5rem;">
+                <i class="fas fa-briefcase" style="margin-right: 0.5rem; color: #3182ce;"></i>
+                Vagas por Bairro
+              </div>
+              <div class="stat-sublabel">Oportunidades de emprego por região</div>
+            </div>
+            <span style="background: linear-gradient(45deg, #3182ce, #2c5282); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+              {{ bairros_por_vaga|length }} bairros
+            </span>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; margin-bottom: 1rem;">
+            {% for bairro in bairros_por_vaga %}
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; margin-bottom: 0.5rem; background: {% if forloop.counter0|divisibleby:2 %}#f8f9fa{% else %}#ffffff{% endif %}; border-radius: 8px; border-left: 4px solid {% if forloop.counter <= 3 %}#38a169{% elif forloop.counter <= 5 %}#3182ce{% else %}#667eea{% endif %}; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s ease;">
+                <div style="display: flex; align-items: center;">
+                  <span style="background: {% if forloop.counter <= 3 %}linear-gradient(45deg, #38a169, #48bb78){% elif forloop.counter <= 5 %}linear-gradient(45deg, #3182ce, #4299e1){% else %}linear-gradient(45deg, #667eea, #764ba2){% endif %}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.85rem; margin-right: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">#{{ forloop.counter }}</span>
+                  <span style="color: #2d3748; font-weight: 500; font-size: 1rem;">{{ bairro.bairro }} <span style="color: #718096; font-size: 0.8rem;">({{ bairro.total_empresas }} empresa{{ bairro.total_empresas|pluralize }})</span></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="background: #e2e8f0; color: #4a5568; padding: 0.3rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem;">{{ bairro.total_vagas }}</span>
+                  <span style="background: linear-gradient(45deg, #38a169, #48bb78); color: white; padding: 0.3rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.85rem; min-width: 45px; text-align: center;">{{ bairro.percentual }}%</span>
+                </div>
+              </div>
+            {% empty %}
+              <div style="text-align: center; padding: 3rem; color: #a0aec0;">
+                <i class="fas fa-briefcase" style="font-size: 3rem; margin-bottom: 1rem; color: #e2e8f0;"></i>
+                <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">Nenhuma vaga registrada ainda</p>
+              </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Mini gráfico dos top 5 bairros por vagas -->
+          <div style="background: #f7fafc; padding: 1rem; border-radius: 8px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <canvas id="miniBairrosVagasChart" width="300" height="150"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Responsive CSS for mobile devices -->
+    <style>
+      @media (max-width: 768px) {
+        /* Responsivo para seção de bairros */
+        .stats-grid[style*="grid-template-columns: 1fr 1fr"] {
+          grid-template-columns: 1fr !important;
+          gap: 1.5rem !important;
+        }
+        
+        /* Cards de bairros em mobile */
+        .stat-card[style*="min-height: 600px"] {
+          min-height: 400px !important;
+        }
+        
+        .bairros-section h2 {
+          font-size: 1.5rem !important;
+        }
+        
+        .bairros-section .stat-grid {
+          grid-template-columns: 1fr 1fr !important;
+        }
+        
+        .bairros-section .bairro-item {
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          gap: 0.5rem !important;
+        }
+        
+        .bairros-section .bairro-item > div:last-child {
+          align-self: flex-end !important;
+        }
+      }
+    </style>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="section-title">
+        <h2>Análises e Relatórios</h2>
+        <p>Visualizações detalhadas dos dados do sistema</p>
+      </div>
+      
+      <div class="charts-grid d-flex flex-wrap">
+        <!-- Top Cargos Charts - Side by Side (ocupam uma linha) -->
+        <div class="chart-card top15cargos">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-bar"></i>
+              Top 15 Cargos 
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="topCargosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donuts na esquerda e Top Empresas na direita -->
+        <div class="chart-card chart-donuts d-flex flex-column">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-pie"></i>
+              Distribuição de Candidatos
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="m-auto chart-body chart-donuts-container">
+            <div class="donut-chart">
+              <h5>Online vs Balcão - Total</h5>
+              <div class="chart-container-fluid">
+                <canvas id="candidatosChart"></canvas>
+              </div>
+            </div>
+            <div class="m-auto donut-chart">
+              <h5>Online vs Balcão - 31 Dias</h5>
+              <div class="chart-container-fluid">
+                <canvas id="candidatos31DiasChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card chart-empresas">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-line"></i>
+              Top 10 Empresas
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body chart-empresas-container">
+            <!-- <div class="empresa-chart">
+              <h5>Total Geral</h5>
+              <canvas id="topEmpresasChart"></canvas>
+            </div> -->
+            <div class="empresa-chart">
+              <!-- <h5>Últimos 31 Dias</h5> -->
+              <div class="chart-container-fluid">
+                <canvas id="topEmpresas31DiasChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Mapa de Calor Geográfico -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-map"></i>
+              Mapa de Calor - Candidatos por Bairro
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="bairrosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção de Dados Históricos Gerais -->
+        <div class="section-title mt-4">
+          <h2><i class="fas fa-history me-2"></i>Dados Históricos</h2>
+          <p>Informações completas do sistema sem aplicação de filtros de período</p>
+        </div>
+
+        <!-- Candidatos por Mês Chart - Full Width -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-area"></i>
+              Evolução Mensal - Últimos 13 Meses
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="candidatosMesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Sazonalidade por Cargo -->
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-line"></i>
+              Sazonalidade - Vagas por Cargo (12 meses)
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="btn-chart-action" title="Expandir">
+                <i class="fas fa-expand"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="sazonalidadeChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novo: Picos de Demanda -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">
+              <i class="fas fa-chart-area"></i>
+              Picos de Demanda - Candidatos
+            </div>
+            <div class="chart-actions">
+              <button class="btn-chart-action" title="Exportar">
+                <i class="fas fa-download"></i>
+              </button>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div class="chart-container-fluid">
+              <canvas id="picosDemandaChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="actions-section">
+      <div class="section-title">
+        <h2>Ações Rápidas</h2>
+        <p>Funcionalidades administrativas do sistema</p>
+      </div>
+      
+      <div class="actions-grid">
+        <a href="{% url 'vagas:vagas_com_candidatos' %}" class="action-card">
+          <div class="action-icon primary">
+            <i class="fas fa-list-alt"></i>
+          </div>
+          <div class="action-content">
+            <h3>Vagas com Candidatos</h3>
+            <p>Visualizar vagas que possuem candidatos inscritos</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+
+        <a href="{% url 'vagas:pesquisar_candidatos' %}" class="action-card">
+          <div class="action-icon success">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="action-content">
+            <h3>Procurar Candidato</h3>
+            <p>Buscar candidatos por nome ou CPF</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+
+        <a href="{% url 'vagas:empresa_info' %}" class="action-card">
+          <div class="action-icon info">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="action-content">
+            <h3>Procurar Empresa</h3>
+            <p>Buscar informações de empresas</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+
+        <a href="{% url 'vagas:candidatosporfuncionario' %}" class="action-card">
+          <div class="action-icon warning">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="action-content">
+            <h3>Candidatos por Funcionário</h3>
+            <p>Relatório de encaminhamentos</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+
+        <a href="{% url 'vagas:emails' %}" class="action-card">
+          <div class="action-icon primary">
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div class="action-content">
+            <h3>Listar E-mails</h3>
+            <p>Exportar lista de e-mails</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+
+        <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="action-card danger">
+          <div class="action-icon danger">
+            <i class="fas fa-trash"></i>
+          </div>
+          <div class="action-content">
+            <h3>Excluir CPF</h3>
+            <p>Remover candidato do sistema</p>
+          </div>
+          <div class="action-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </a>
+      </div>
+    </div>
   </div>
 </div>
-<div id="painelMenu" class="col">
-  <a class="btn btn-primary" href="{% url 'vagas:vagas_com_candidatos' %}"><i class="fas fa-th-list me-2"></i><span class="mobile_hidden">Vagas com Candidatos</span></a>  
-  <a class="btn btn-primary" href="{% url 'vagas:pesquisar_candidatos' %}"><i class="fas fa-search me-2"></i><span class="mobile_hidden">Procurar candidato</span></a>  
-  <a class="btn btn-primary" href="{% url 'vagas:empresa_info' %}"><i class="fas fa-search me-2"></i><span class="mobile_hidden">Procurar empresa</span></a>
-  <a class="btn btn-primary" href="{% url 'vagas:painel_administrativo_excluir_cpf' %}"><i class="fas fa-trash me-2"></i><span class="mobile_hidden">Excluir CPF</span></a>  
-  <a class="btn btn-primary" href="{% url 'vagas:indicadores'%}"><i class="fas fa-chart-pie me-2"></i><span class="mobile_hidden">Indicadores</span></a>    
-  <a class="btn btn-primary" href="{% url 'vagas:emails'%}"><i class="fas fa-envelope me-2"></i><span class="mobile_hidden">Listar emails</span></a>    
-  <a class="btn btn-primary" href="{% url 'vagas:candidatosporfuncionario'%}"><i class="fas fa-user me-2"></i><span class="mobile_hidden">Candidatos por funcionário</span></a>    
-  <a class="btn btn-primary" style="color: rgb(236, 170, 170);" href="{% url 'vagas:backup_database'%}"><i class="fas fa-database me-2"></i><span class="mobile_hidden">Download backup MySQL</span></a>      
-</div>
+            
+
 <style>
-  #painelMenu .btn{
-    width: 300px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    margin-bottom: 5px;    
+/* Dashboard-specific styles following the template_new pattern */
+
+.dashboard-stat-card {
+  border-left: 4px solid var(--jobs-primary-color) !important;
+}
+
+.dashboard-badge-primary {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+}
+
+.dashboard-badge-success {
+  background: linear-gradient(135deg, #27ae60, #229954) !important;
+}
+
+.dashboard-badge-info {
+  background: linear-gradient(135deg, #17a2b8, #138496) !important;
+}
+
+.chart-container-fluid {
+  position: relative;
+  height: 80vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .chart-container-fluid {
+    height: 50vh;
+  }
+}
+
+.dashboard-badge-warning {
+  background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+}
+
+.dashboard-stat-number {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  color: var(--jobs-primary-color) !important;
+  margin: 0 !important;
+}
+
+.dashboard-stat-label {
+  font-size: 1rem !important;
+  color: #6c757d !important;
+  font-weight: 500 !important;
+}
+
+.dashboard-charts-section {
+  margin-top: 2rem;
+}
+
+.chart-container {
+  padding: 1rem;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chart-donuts .chart-body{
+  height: auto;
+}
+.chart-empresas .chart-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.chart-empresas .chart-empresas-container {
+  display: flex;
+  flex-direction: column;
+}
+.chart-empresas .empresa-chart {
+  height: 100% !important;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.chart-empresas .empresa-chart h5 {
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.chart-empresas canvas {
+  flex: 1 !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+.top15cargos {
+  width: 100%;
+}
+.chart-empresas {
+  width: 68%;
+} 
+.chart-wide{
+  width: 100%;
+}
+.chart-card .jobs-list {
+  padding: 0;
+}
+
+.dashboard-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.dashboard-action-card {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--jobs-primary-color);
+}
+
+.dashboard-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboard-action-card.danger {
+  border-left-color: #e74c3c;
+}
+
+.dashboard-action-card.danger:hover {
+  border-left-color: #c0392b;
+}
+
+.dashboard-action-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* Estilos para os cards avançados */
+.stat-card {
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* .stat-card.primary {
+  border-left: 4px solid #2c3e50;
+}
+
+.stat-card.success {
+  border-left: 4px solid #27ae60;
+}
+
+.stat-card.info {
+  border-left: 4px solid #17a2b8;
+}
+
+.stat-card.warning {
+  border-left: 4px solid #f39c12;
+}
+
+.stat-card.secondary {
+  border-left: 4px solid #6c757d;
+} */
+
+.stat-card.gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.stat-card.gradient .stat-number {
+  color: white !important;
+}
+
+.stat-card.gradient .stat-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-subtitle {
+  font-size: 0.8rem;
+  color: #95a5a6;
+  font-style: italic;
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-actions-grid {
+    grid-template-columns: 1fr;
   }
   
+  .dashboard-stat-number {
+    font-size: 2rem !important;
+  }
+  
+  .stat-number {
+    font-size: 1.8rem;
+  }
+  
+  .stat-card {
+    padding: 15px;
+  }
+}
+
+/* Novos estilos otimizados para metric-card */
+.dashboard-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e3e6f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.metric-card:hover::before {
+  width: 6px;
+}
+
+/* .metric-card.metric-primary::before {
+  background: linear-gradient(180deg, #4e73df 0%, #224abe 100%);
+}
+
+.metric-card.metric-success::before {
+  background: linear-gradient(180deg, #1cc88a 0%, #13855c 100%);
+}
+
+.metric-card.metric-info::before {
+  background: linear-gradient(180deg, #36b9cc 0%, #258391 100%);
+}
+
+.metric-card.metric-warning::before {
+  background: linear-gradient(180deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.metric-card.metric-orange::before {
+  background: linear-gradient(180deg, #fd7e14 0%, #e55a00 100%);
+} */
+
+.metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  flex-shrink: 0;
+  font-size: 24px;
+  color: white;
+}
+
+.metric-primary .metric-icon {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.metric-success .metric-icon {
+  background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.metric-info .metric-icon {
+  background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.metric-warning .metric-icon {
+  background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+}
+
+.metric-orange .metric-icon {
+  background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%);
+}
+
+.metric-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-value {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 600;
+  margin: 4px 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-detail {
+  font-size: 0.85rem;
+  color: #858796;
+  line-height: 1.4;
+}
+
+.metric-success {
+  color: #1cc88a !important;
+  font-weight: 600;
+}
+
+.metric-danger {
+  color: #e74a3b !important;
+  font-weight: 600;
+}
+
+.metric-warning {
+  color: #f6c23e !important;
+  font-weight: 600;
+}
+
+.metric-muted {
+  color: #6c757d !important;
+}
+
+.metric-period-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.1);
+  color: #6c757d;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .metric-card {
+    padding: 20px;
+  }
+  
+  .metric-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+  }
+  
+  .metric-label {
+    font-size: 0.8rem;
+  }
+}
 </style>
+
+<!-- Chart.js Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuração de cores padrão
+    const colors = {
+        primary: '#2c3e50',
+        secondary: '#3498db',
+        success: '#27ae60',
+        warning: '#f39c12',
+        danger: '#e74c3c',
+        info: '#17a2b8'
+    };
+
+    // 1. Top 15 Cargos Chart - Total
+    const topCargosCtx = document.getElementById('topCargosChart').getContext('2d');
+    new Chart(topCargosCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for cargo in top_cargos_total %}
+                '{{ cargo.vaga__cargo__nome|truncatechars:20 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos (Total)',
+                data: [
+                    {% for cargo in top_cargos_total %}
+                    {{ cargo.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: '#e9ecef'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 5,
+                    right: 5,
+                    top: 5,
+                    bottom: 5
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+    // 3. Candidatos Online vs Balcão Chart - Total
+    const candidatosCtx = document.getElementById('candidatosChart').getContext('2d');
+    new Chart(candidatosCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Online', 'Balcão'],
+            datasets: [{
+                data: [{{ candidatos_online_total }}, {{ candidatos_balcao_total }}],
+                backgroundColor: [colors.success, colors.danger],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 8,
+                        usePointStyle: true,
+                        font: {
+                            size: 9
+                        },
+                        boxWidth: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            cutout: '65%',
+            animation: {
+                animateRotate: true,
+                duration: 1000
+            },
+            layout: {
+                padding: 5
+            }
+        }
+    });
+
+    // 4. Candidatos Online vs Balcão Chart - 31 Dias
+    const candidatos31DiasCtx = document.getElementById('candidatos31DiasChart').getContext('2d');
+    new Chart(candidatos31DiasCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Online', 'Balcão'],
+            datasets: [{
+                data: [{{ candidatos_online_31_dias }}, {{ candidatos_balcao_31_dias }}],
+                backgroundColor: [colors.success, colors.danger],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 8,
+                        usePointStyle: true,
+                        font: {
+                            size: 9
+                        },
+                        boxWidth: 12
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            cutout: '65%',
+            animation: {
+                animateRotate: true,
+                duration: 1000
+            },
+            layout: {
+                padding: 5
+            }
+        }
+    });
+
+    // 5. Top Empresas Chart - Total
+    // const topEmpresasCtx = document.getElementById('topEmpresasChart').getContext('2d');
+    // new Chart(topEmpresasCtx, {
+    //     type: 'bar',
+    //     data: {
+    //         labels: [
+    //             {% for empresa in top_empresas_total %}
+    //             '{{ empresa.empresa__nome|truncatechars:25 }}',
+    //             {% endfor %}
+    //         ],
+    //         datasets: [{
+    //             label: 'Vagas (Total)',
+    //             data: [
+    //                 {% for empresa in top_empresas_total %}
+    //                 {{ empresa.total }},
+    //                 {% endfor %}
+    //             ],
+    //             backgroundColor: colors.info,
+    //             borderColor: colors.info,
+    //             borderWidth: 1,
+    //             borderRadius: 4,
+    //             barThickness: 20,
+    //             maxBarThickness: 25
+    //         }]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         maintainAspectRatio: false,
+    //         indexAxis: 'y',
+    //         layout: {
+    //             padding: {
+    //                 left: 10,
+    //                 right: 10,
+    //                 top: 10,
+    //                 bottom: 10
+    //             }
+    //         },
+    //         plugins: {
+    //             legend: {
+    //                 display: false
+    //             }
+    //         },
+    //         scales: {
+    //             x: {
+    //                 beginAtZero: true,
+    //                 max: function(context) {
+    //                     const data = context.chart.data.datasets[0].data;
+    //                     if (data.length === 0) return 10;
+    //                     const maxValue = Math.max(...data);
+    //                     return Math.ceil(maxValue * 1.1);
+    //                 },
+    //                 ticks: {
+    //                     stepSize: 1
+    //                 },
+    //                 grid: {
+    //                     display: true,
+    //                     color: '#e9ecef'
+    //                 }
+    //             },
+    //             y: {
+    //                 type: 'category',
+    //                 position: 'left',
+    //                 grid: {
+    //                     display: false
+    //                 },
+    //                 ticks: {
+    //                     maxTicksLimit: 10,
+    //                     font: {
+    //                         size: 11
+    //                     },
+    //                     maxRotation: 0,
+    //                     minRotation: 0
+    //                 }
+    //             }
+    //         },
+    //         elements: {
+    //             bar: {
+    //                 borderWidth: 1,
+    //                 borderRadius: 4
+    //             }
+    //         },
+    //         animation: {
+    //             duration: 800,
+    //             easing: 'easeInOutQuart'
+    //         },
+    //         interaction: {
+    //             intersect: false
+    //         }
+    //     }
+    // });
+
+    // 6. Top Empresas Chart - 31 Dias
+    const topEmpresas31DiasCtx = document.getElementById('topEmpresas31DiasChart').getContext('2d');
+    new Chart(topEmpresas31DiasCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for empresa in top_empresas_31_dias %}
+                '{{ empresa.empresa__nome|truncatechars:25 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Vagas (31 dias)',
+                data: [
+                    {% for empresa in top_empresas_31_dias %}
+                    {{ empresa.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: colors.warning,
+                borderColor: colors.warning,
+                borderWidth: 1,
+                borderRadius: 4,
+                barThickness: 18,
+                maxBarThickness: 18
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 0,
+                    bottom: 0
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: function(context) {
+                        const data = context.chart.data.datasets[0].data;
+                        const maxValue = Math.max(...data);
+                        return Math.ceil(maxValue * 1.1);
+                    },
+                    ticks: {
+                        stepSize: 0.3
+                    },
+                    grid: {
+                        display: true,
+                        color: '#e9ecef'
+                    }
+                },
+                y: {
+                    type: 'category',
+                    position: 'left',
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        maxTicksLimit: 10,
+                        font: {
+                            size: 12
+                        },
+                        maxRotation: 0,
+                        minRotation: 0
+                    }
+                }
+            },
+            elements: {
+                bar: {
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            },
+            animation: {
+                duration: 800,
+                easing: 'easeInOutQuart'
+            },
+            interaction: {
+                intersect: false
+            },
+            categoryPercentage: 0.9,
+            barPercentage: 0.8
+        }
+    });
+  
+    // 7. Candidatos por Mês Chart - 13 Meses
+    const candidatosMesCtx = document.getElementById('candidatosMesChart').getContext('2d');
+    new Chart(candidatosMesCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for item in candidatos_por_mes %}
+                '{{ item.mes }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos por Mês',
+                data: [
+                    {% for item in candidatos_por_mes %}
+                    {{ item.total }},
+                    {% endfor %}
+                ],
+                borderColor: colors.secondary,
+                backgroundColor: colors.secondary + '20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: colors.secondary,
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 10
+                        }
+                    },
+                    grid: {
+                        color: '#e9ecef'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        font: {
+                            size: 9
+                        }
+                    },
+                    grid: {
+                        color: '#e9ecef'
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 10,
+                    top: 10,
+                    bottom: 10
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            },
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+
+    // ========== NOVOS GRÁFICOS AVANÇADOS ==========
+
+    // Mapa de Calor - Candidatos por Bairro
+    const bairrosCtx = document.getElementById('bairrosChart').getContext('2d');
+    const bairrosChart = new Chart(bairrosCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for bairro in candidatos_por_bairro %}
+                '{{ bairro.bairro|truncatechars:15 }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos por Bairro',
+                data: [
+                    {% for bairro in candidatos_por_bairro %}
+                    {{ bairro.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Top 20 Bairros com Mais Candidatos'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // Sazonalidade por Cargo
+    const sazonalidadeCtx = document.getElementById('sazonalidadeChart').getContext('2d');
+    const cores = [
+        'rgba(255, 99, 132, 0.8)',
+        'rgba(54, 162, 235, 0.8)',
+        'rgba(255, 205, 86, 0.8)',
+        'rgba(75, 192, 192, 0.8)',
+        'rgba(153, 102, 255, 0.8)'
+    ];
+    
+    const sazonalidadeChart = new Chart(sazonalidadeCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% if vagas_por_cargo_mes %}
+                    {% for mes_data in vagas_por_cargo_mes.0.dados %}
+                    '{{ mes_data.mes }}',
+                    {% endfor %}
+                {% endif %}
+            ],
+            datasets: [
+                {% for cargo_data in vagas_por_cargo_mes %}
+                {
+                    label: '{{ cargo_data.cargo|truncatechars:20 }}',
+                    data: [
+                        {% for mes_data in cargo_data.dados %}
+                        {{ mes_data.total }},
+                        {% endfor %}
+                    ],
+                    borderColor: cores[{{ forloop.counter0 }} % cores.length],
+                    backgroundColor: cores[{{ forloop.counter0 }} % cores.length].replace('0.8', '0.1'),
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                title: {
+                    display: true,
+                    text: 'Evolução de Vagas por Cargo - 12 Meses'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    // Picos de Demanda - Candidatos
+    const picosDemandaCtx = document.getElementById('picosDemandaChart').getContext('2d');
+    const picosDemandaChart = new Chart(picosDemandaCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for pico in picos_demanda_candidatos %}
+                '{{ pico.mes }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Candidatos por Mês',
+                data: [
+                    {% for pico in picos_demanda_candidatos %}
+                    {{ pico.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: function(context) {
+                    const value = context.parsed.y;
+                    const max = Math.max(...context.dataset.data);
+                    const intensity = value / max;
+                    return `rgba(75, 192, 192, ${0.3 + intensity * 0.7})`;
+                },
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Variação Mensal de Candidatos'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // ========== FIM NOVOS GRÁFICOS ==========
+
+    // Auto-refresh functionality
+    const refreshBtn = document.querySelector('.btn-action[title="Atualizar dados"]');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            location.reload();
+        });
+    }
+
+    // Chart animations on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all chart cards
+    document.querySelectorAll('.chart-card, .action-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+
+    // Add smooth transitions to stat numbers
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            element.innerHTML = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // Mini gráfico dos top 5 bairros
+    const miniBairrosCtx = document.getElementById('miniBairrosChart');
+    if (miniBairrosCtx && {{ candidatos_por_bairro|length }} > 0) {
+        new Chart(miniBairrosCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for bairro in candidatos_por_bairro|slice:":5" %}
+                    '{{ bairro.bairro|truncatechars:12 }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for bairro in candidatos_por_bairro|slice:":5" %}
+                        {{ bairro.total }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        '#667eea',
+                        '#764ba2', 
+                        '#f093fb',
+                        '#f5576c',
+                        '#4facfe'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Top 5 Candidatos',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Mini gráfico dos top 5 bairros por vagas
+    const miniBairrosVagasCtx = document.getElementById('miniBairrosVagasChart');
+    if (miniBairrosVagasCtx && {{ bairros_por_vaga|length }} > 0) {
+        new Chart(miniBairrosVagasCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for bairro in bairros_por_vaga|slice:":5" %}
+                    '{{ bairro.bairro|truncatechars:12 }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    data: [
+                        {% for bairro in bairros_por_vaga|slice:":5" %}
+                        {{ bairro.total_vagas }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        '#38a169',
+                        '#3182ce', 
+                        '#667eea',
+                        '#48bb78',
+                        '#4299e1'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 10,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Top 5 Bairros por Vagas',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Animate stat numbers on page load
+    // setTimeout(() => {
+    //     document.querySelectorAll('.stat-number').forEach(stat => {
+    //         const finalValue = parseInt(stat.textContent);
+    //         stat.textContent = '0';
+    //         animateValue(stat, 0, finalValue, 1500);
+    //     });
+    // }, 500);
+});
+</script>
 
 {% endblock %}

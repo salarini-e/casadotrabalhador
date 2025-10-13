@@ -1,0 +1,568 @@
+{% extends 'template_new.html' %}
+{% load static %}
+{% block title %}Relação de Empresas e Responsáveis{% endblock %}
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock%}
+
+{% block head_js %}
+<script src="{% static 'assets/js/modal.js' %}"></script>
+{% endblock %}
+
+{% block main %}
+
+<!-- Professional Dashboard Layout -->
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ user.first_name|default:user.username }}</span>
+          <span class="user-role">Administrador</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-building me-2"></i>
+          Relação de Empresas e Responsáveis
+        </h1>
+        <p class="page-subtitle">Visualizar empresas e seus respectivos responsáveis</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <a class="btn btn-dark" href="{% url 'vagas:empresa_info' %}" title="Ver lista de empresas">            
+            Voltar
+          </a>
+        </div>
+      </div>
+    </div>
+
+<div class="row">
+  <div class="col p-5">
+  <div class="row">
+    <div class="col d-flex">
+      <input type="search" name="search" id="search" class="form-control" placeholder="Procurar...">
+    </div>
+  </div>
+  
+  <!-- Results Section -->
+  
+  <!-- Empresas e Responsáveis Table -->
+  <div class="table-section mt-4">
+      <div class="modern-card">
+          <div class="card-header p-4 d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">
+                  <i class="fas fa-users-cog me-2"></i>Empresas e Responsáveis <span class="text-gray">({{empresas.count}})</span>
+              </h5>
+              <div class="table-actions">
+                  
+              </div>
+          </div>
+          <div class="card-body p-0">
+              <div class="table-responsive">
+                  <table class="table table-hover modern-table mb-0">
+                      <thead class="table-light">
+                          <tr>
+                              <th style="width: 60px; text-align: center;" class="sortable" data-column="id">
+                                  <i class="fas fa-hashtag me-1"></i>ID <i class="fas fa-sort ms-1"></i>
+                              </th>
+                              <th style="min-width: 180px;" class="sortable" data-column="nome">
+                                  <i class="fas fa-building me-1"></i>Empresa <i class="fas fa-sort ms-1"></i>
+                              </th>
+                              <th style="min-width: 180px;" data-column="responsavel">
+                                  <i class="fas fa-user-tie me-1"></i>Responsável
+                              </th>
+                              <th style="width: 150px;" data-column="cargo">
+                                  <i class="fas fa-briefcase me-1"></i>Cargo
+                              </th>
+                              <th style="width: 150px;" data-column="telefone">
+                                  <i class="fas fa-phone me-1"></i>Telefone
+                              </th>
+                              <th style="width: 80px; text-align: center;" data-column="status">
+                                  <i class="fas fa-circle me-1"></i>Status
+                              </th>
+                              <th style="width: 140px;" class="text-center">
+                                  <i class="fas fa-cog me-1"></i>Ações
+                              </th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for empresa in empresas %}
+                              {% for responsavel in empresa.responsaveis.all %}
+                              <tr class="empresa-row align-middle">
+                                  <td class="text-center">
+                                      <span class="">{{ empresa.id }}</span>
+                                  </td>
+                                  <td>
+                                      <div class="company-info">
+                                          <div class="company-name">
+                                              <a href="{% url 'vagas:empresa_profile' empresa.id %}" class="text-decoration-none">
+                                                  {{ empresa.nome }}
+                                              </a>
+                                          </div>
+                                          {% if empresa.endereco %}
+                                          <small class="text-muted">{{ empresa.endereco }}</small>
+                                          {% endif %}
+                                      </div>
+                                  </td>
+                                  <td>
+                                      <div class="d-flex align-items-center">
+                                          <div class="avatar-circle me-2" title="{{ responsavel.nome }}">
+                                              {{ responsavel.nome|first }}
+                                          </div>
+                                          <div>
+                                              <div class="fw-medium">{{ responsavel.nome }}</div>
+                                              <div class="small text-muted">{{ responsavel.email }}</div>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  <td>
+                                      {{ responsavel.cargo|default:"Não informado" }}
+                                  </td>
+                                  <td>
+                                      {{ responsavel.telefone|default:"Não informado" }}
+                                  </td>
+                                  <td class="text-center">
+                                      {% if responsavel.ativo %}
+                                          <span class="badge bg-success rounded-pill">Ativo</span>
+                                      {% else %}
+                                          <span class="badge bg-secondary rounded-pill">Inativo</span>
+                                      {% endif %}
+                                  </td>
+                                  <td class="text-center">
+                                      <div class="btn-group" role="group">
+                                          <a href="{% url 'vagas:empresa_profile' empresa.id %}" 
+                                             class="btn btn-sm btn-outline-primary rounded-pill me-1"
+                                             title="Ver perfil da empresa">
+                                              <i class="fas fa-eye"></i>
+                                          </a>
+                                          
+                                          <a href="{% url 'vagas:gerenciar_responsaveis_empresa' empresa.id %}" 
+                                             class="btn btn-sm btn-outline-info rounded-pill"
+                                             title="Gerenciar responsáveis">
+                                              <i class="fas fa-users-cog"></i>
+                                          </a>
+                                      </div>
+                                  </td>
+                              </tr>
+                              {% empty %}
+                              <tr class="empresa-row align-middle">
+                                  <td class="text-center">
+                                      <span class="">{{ empresa.id }}</span>
+                                  </td>
+                                  <td colspan="2">
+                                      <div class="company-info">
+                                          <div class="company-name">
+                                              <a href="{% url 'vagas:empresa_profile' empresa.id %}" class="text-decoration-none">
+                                                  {{ empresa.nome }}
+                                              </a>
+                                          </div>
+                                          {% if empresa.endereco %}
+                                          <small class="text-muted">{{ empresa.endereco }}</small>
+                                          {% endif %}
+                                      </div>
+                                  </td>
+                                  <td colspan="3" class="text-center text-muted">
+                                      <em>Nenhum responsável cadastrado</em>
+                                  </td>
+                                  <td class="text-center">
+                                      <div class="btn-group" role="group">
+                                          <a href="{% url 'vagas:empresa_profile' empresa.id %}" 
+                                             class="btn btn-sm btn-outline-primary rounded-pill me-1"
+                                             title="Ver perfil da empresa">
+                                              <i class="fas fa-eye"></i>
+                                          </a>
+                                          
+                                          <a href="{% url 'vagas:gerenciar_responsaveis_empresa' empresa.id %}" 
+                                             class="btn btn-sm btn-outline-info rounded-pill"
+                                             title="Gerenciar responsáveis">
+                                              <i class="fas fa-users-cog"></i>
+                                          </a>
+                                      </div>
+                                  </td>
+                              </tr>
+                              {% endfor %}
+                          {% empty %}
+                          <tr>
+                              <td colspan="7" class="text-center py-5">
+                                  <div class="empty-state">
+                                      <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                                      <h5 class="text-muted">Nenhuma empresa encontrada</h5>
+                                      <p class="text-muted mb-0">Não há empresas cadastradas no sistema.</p>
+                                  </div>
+                              </td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+  </div>
+  </div>
+
+</div>
+<style>
+  #painelMenu .btn{
+    width: 300px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 5px;    
+  }
+
+  .results-section {
+    margin-top: 2rem;
+  }
+
+  .modern-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .modern-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  .stat-card {
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  .modern-table {
+    font-size: 0.9rem;
+  }
+
+  .modern-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background-color: #f8f9fa !important;
+  }
+
+  .modern-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+  }
+
+  .modern-table th.sortable:hover {
+    background-color: #e9ecef !important;
+    color: #0056b3;
+  }
+
+  .modern-table th.sortable i.fa-sort,
+  .modern-table th.sortable i.fa-sort-up,
+  .modern-table th.sortable i.fa-sort-down {
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+  }
+
+  .modern-table th.sortable:hover i.fa-sort,
+  .modern-table th.sortable:hover i.fa-sort-up,
+  .modern-table th.sortable:hover i.fa-sort-down {
+    opacity: 1;
+  }
+
+  .modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+  }
+
+  .modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+
+  .company-info {
+    line-height: 1.4;
+  }
+
+  .company-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+  }
+
+  .empty-state {
+    padding: 2rem;
+  }
+
+  .card-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  .btn-outline-success.rounded-pill,
+  .btn-outline-primary.rounded-pill,
+  .btn-outline-info.rounded-pill {
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-outline-success.rounded-pill:hover,
+  .btn-outline-primary.rounded-pill:hover,
+  .btn-outline-info.rounded-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #104a74;
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+  
+  .search-stats {
+    animation: fadeInUp 0.6s ease;
+  }
+
+  .table-section {
+    animation: fadeInUp 0.8s ease;
+  }
+
+  @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+  }
+  
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    const totalEmpresas = {{empresas|length}};
+    
+    $("#search").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        let visibleCount = 0;
+        
+        $(".empresa-row").filter(function() {
+            const isVisible = $(this).text().toLowerCase().indexOf(value) > -1;
+            $(this).toggle(isVisible);
+            if (isVisible) visibleCount++;
+            return true;
+        });
+        
+        // Show empty state if no results
+        if (visibleCount === 0 && value.length > 0) {
+            if ($(".no-results-message").length === 0) {
+                $("tbody").append(`
+                    <tr class="no-results-message">
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">Nenhum resultado encontrado</h5>
+                                <p class="text-muted mb-0">Tente ajustar os termos da pesquisa.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            }
+        } else {
+            $(".no-results-message").remove();
+        }
+    });
+
+    // Sidebar toggle functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+
+    // Table sorting functionality
+    let sortDirection = {};
+    
+    $('.sortable').click(function() {
+        const column = $(this).data('column');
+        const table = $(this).closest('table');
+        const rows = table.find('tbody tr:not(.no-results-message)').toArray();
+        
+        // Initialize direction for this column if not exists
+        if (!sortDirection[column]) {
+            sortDirection[column] = 'asc';
+        } else {
+            sortDirection[column] = sortDirection[column] === 'asc' ? 'desc' : 'asc';
+        }
+        
+        // Update sort icons
+        $('.sortable i.fas').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+        const icon = $(this).find('i.fas').last();
+        icon.removeClass('fa-sort').addClass(sortDirection[column] === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+        
+        rows.sort(function(a, b) {
+            let aVal, bVal;
+            
+            switch(column) {
+                case 'id':
+                    aVal = parseInt($(a).find('td:eq(0)').text().trim());
+                    bVal = parseInt($(b).find('td:eq(0)').text().trim());
+                    break;
+                case 'nome':
+                    aVal = $(a).find('.company-name').text().trim().toLowerCase();
+                    bVal = $(b).find('.company-name').text().trim().toLowerCase();
+                    break;
+                default:
+                    aVal = $(a).find('td:eq(' + $(this).index() + ')').text().trim().toLowerCase();
+                    bVal = $(b).find('td:eq(' + $(this).index() + ')').text().trim().toLowerCase();
+            }
+            
+            if (sortDirection[column] === 'asc') {
+                return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+            } else {
+                return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+            }
+        });
+        
+        table.find('tbody').append(rows);
+    });
+});
+</script>
+
+  </div>
+</div>
+
+{% endblock %}

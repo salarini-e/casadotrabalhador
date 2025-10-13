@@ -1,0 +1,371 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Selecionar Candidato - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .confirmation-header {
+        background: linear-gradient(135deg, #104a74 0%, #1a6ba6 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 30px;
+    }
+    
+    .candidato-card {
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .candidato-avatar {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #104a74 0%, #1a6ba6 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 2rem;
+        margin-right: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        flex: 0 0 30%;
+    }
+    
+    .info-value {
+        flex: 1;
+        text-align: right;
+        font-weight: 500;
+    }
+    
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .success-icon {
+        font-size: 3rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-large {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+    
+    .card-header {
+        background-color: #f9fafc;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .card-header h5 {
+        margin: 0;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card-header h5 i {
+        margin-right: 0.5rem;
+        color: #104a74;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .links-uteis {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-outline-primary {
+        border-color: #104a74;
+        color: #104a74;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #104a74;
+        color: white;
+    }
+    
+    .btn-outline-info {
+        border-color: #0dcaf0;
+        color: #0dcaf0;
+    }
+    
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+    {% include 'vagas/includes/sidebar_empresa.html' with active_page='candidatos' %}
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/seletor_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}">Vagas</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}">{{ vaga.cargo.nome }}</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Selecionar Candidato</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1>
+                <i class="fas fa-user-check me-2"></i>Selecionar Candidato
+            </h1>
+            <p>Confirme a seleção do candidato para a vaga</p>
+        </div>
+
+       
+
+        <div class="row justify-content-center mt-3">
+            <div class="col-md-12 row">
+                <!-- Informações da Vaga -->
+                <div class="card candidato-card col-md-5 me-1 ms-auto">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-briefcase me-2"></i>Informações da Vaga
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-item">
+                            <span class="info-label">Cargo:</span>
+                            <span class="info-value text-primary fw-bold">{{ vaga.cargo.nome }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Empresa:</span>
+                            <span class="info-value">{{ empresa.nome_fantasia }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Salário:</span>
+                            <span class="info-value text-success fw-bold">R$ {{ vaga.salario|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Vagas Totais:</span>
+                            <span class="info-value">{{ vaga.quantidadeVagas }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Candidatos Contratados:</span>
+                            <span class="info-value text-success">{{ candidatos_contratados }}</span>
+                        </div>
+                        
+                        <div class="info-item">
+                            <span class="info-label">Vagas Restantes:</span>
+                            <span class="info-value text-primary fw-bold">{{ vagas_restantes }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações do Candidato -->
+                <div class="card candidato-card col-md-6 me-auto ms-2">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user me-2"></i>Candidato Selecionado
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="candidato-avatar">
+                                {{ candidato.nome|first|upper }}
+                            </div>
+                            <div>
+                                <h3 class="mb-1">{{ candidato.nome }}</h3>
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-id-card me-1"></i>CPF: {{ candidato.cpf }}
+                                </p>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Candidatura em {{ candidato.dt_inclusao|date:"d/m/Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% if candidato.telefone %}
+                                <div class="info-item">
+                                    <span class="info-label">Telefone:</span>
+                                    <span class="info-value">{{ candidato.telefone }}</span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if candidato.email %}
+                                <div class="info-item">
+                                    <span class="info-label">E-mail:</span>
+                                    <span class="info-value">{{ candidato.email }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <span class="info-label">Tipo:</span>
+                                    <span class="info-value">
+                                        {% if candidato.candidato_online %}
+                                            <span class="badge bg-info">Candidatura Online</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Encaminhamento</span>
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                
+                                {% if not candidato.candidato_online and candidato.funcionario_responsavel %}
+                                <div class="info-item">
+                                    <span class="info-label">Encaminhado por:</span>
+                                    <span class="info-value">{{ candidato.funcionario_responsavel.get_full_name|default:candidato.funcionario_responsavel.username }}</span>
+                                </div>
+                                {% endif %}
+                                <!-- Links Úteis -->
+                <div class="links-uteis">                    
+                    
+                    {% if candidato.curriculo_user_id %}
+                    <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                       class="btn btn-outline-info btn-sm" target="_blank">
+                        <i class="fas fa-file-pdf me-1"></i>Ver Currículo
+                    </a>
+                    {% endif %}
+                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aviso sobre a Seleção -->
+                <div class="warning-box col-11 mx-auto">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Atenção - Seleção de Candidato</h6>
+                            <p class="mb-0">
+                                Ao confirmar, este candidato será marcado como <strong>contratado</strong> para esta vaga. 
+                                {% if vagas_restantes == 1 %}
+                                    Como esta será a última vaga preenchida, ela será automaticamente <strong>inativada</strong> após a seleção.
+                                {% elif vagas_restantes > 1 %}
+                                    Após esta seleção, restarão <strong>{{ vagas_restantes|add:"-1" }} vaga{{ vagas_restantes|add:"-1"|pluralize }}</strong> disponívei{{ vagas_restantes|add:"-1"|pluralize }}.
+                                {% else %}
+                                    Esta vaga já possui todos os candidatos necessários contratados.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulário de Confirmação -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="action-buttons">
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' vaga.id %}" 
+                           class="btn btn-outline-secondary btn-large">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        
+                        <button type="submit" class="btn btn-success btn-large">
+                            <i class="fas fa-check me-2"></i>Confirmar Seleção
+                        </button>
+                    </div>
+                </form>
+                                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Confirmação adicional antes de enviar
+    $('form').on('submit', function(e) {
+        if (!confirm('Tem certeza que deseja selecionar este candidato? Esta ação não pode ser desfeita.')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Animação dos cards
+    function animateElements() {
+        const cards = document.querySelectorAll('.candidato-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            }, index * 150);
+        });
+    }
+    
+    // Executar animação quando a página carregar
+    animateElements();
+});
+</script>
+{% endblock %}

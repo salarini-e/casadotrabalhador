@@ -1,0 +1,551 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Editar Vaga - {{ vaga.cargo.nome }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+<style>
+.form-card {
+  /* border-left: 4px solid #4e73df; */
+  transition: all 0.3s ease;
+}
+
+.form-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.required-field::after {
+  content: ' *';
+  color: #e74a3b;
+}
+
+.info-box {
+  background: #f8f9fc;
+  border: 1px solid #e3e6f0;
+  border-radius: 0.35rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-box h6 {
+  color: #5a5c69;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.info-box .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.info-item .label {
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.info-item .value {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.btn-action {
+  min-width: 120px;
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #28a745;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="dashboard-content mt-4">
+    <div class="container-fluid">
+      
+      <!-- Breadcrumb -->
+      <div class="row mb-4">
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:admin_vagas_list' %}">Vagas</a>
+              </li>
+              <li class="breadcrumb-item">
+                <a href="{% url 'vagas:candidatos_vaga' vaga.id %}">REF #{{ vaga.id }} - {{ vaga.cargo.nome }}</a>
+              </li>
+              <li class="breadcrumb-item active">Editar</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Informações Atuais -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="info-box">
+            <h6><i class="fas fa-info-circle me-2"></i>Informações Atuais</h6>
+            <div class="info-item">
+              <span class="label">REF:</span>
+              <span class="value">#{{ vaga.id }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Empresa:</span>
+              <span class="value">{{ vaga.empresa.nome }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Criada em:</span>
+              <span class="value">{{ vaga.dt_inclusao|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% if vaga.dt_atualizacao %}
+            <div class="info-item">
+              <span class="label">Última atualização:</span>
+              <span class="value">{{ vaga.dt_atualizacao|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="info-box">
+            <h6><i class="fas fa-chart-bar me-2"></i>Estatísticas</h6>
+            <div class="info-item">
+              <span class="label">Total de candidatos:</span>
+              <span class="value">{{ total_candidatos }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Contratados:</span>
+              <span class="value text-success">{{ candidatos_contratados }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Posições restantes:</span>
+              <span class="value text-warning">{{ vaga.quantidadeVagas|add:"-"|add:candidatos_contratados }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário de Edição -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card form-card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-edit me-2"></i>Editar Vaga
+              </h5>
+            </div>
+            
+            <form method="post" id="editVagaForm">
+              {% csrf_token %}
+              <div class="card-body">
+                <div class="row">
+                  
+                  <!-- Cargo -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Cargo</label>
+                      <select class="form-select" name="cargo_id" required>
+                        {% for cargo in cargos %}
+                          <option value="{{ cargo.id }}" {% if cargo.id == vaga.cargo.id %}selected{% endif %}>
+                            {{ cargo.nome }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Escolaridade -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Escolaridade</label>
+                      <select class="form-select" name="escolaridade" required>
+                        {% for escolaridade in escolaridades %}
+                          <option value="{{ escolaridade.id }}" {% if escolaridade.id == vaga.escolaridade.id %}selected{% endif %}>
+                            {{ escolaridade.nome }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Quantidade de Vagas -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Quantidade de Vagas</label>
+                      <input type="number" 
+                             class="form-control" 
+                             name="quantidadeVagas" 
+                             value="{{ vaga.quantidadeVagas }}"
+                             min="1" 
+                             max="999"
+                             required>
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Atenção: Já existem {{ candidatos_contratados }} candidatos contratados para esta vaga.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tipo de Vaga -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Tipo de Vaga</label>
+                      <select class="form-select" name="tipo_de_vaga">
+                        <option value="NML" {% if vaga.tipo_de_vaga == 'NML' %}selected{% endif %}>Padrão</option>
+                        <option value="JAP" {% if vaga.tipo_de_vaga == 'JAP' %}selected{% endif %}>Jovem Aprendiz</option>
+                        <option value="PED" {% if vaga.tipo_de_vaga == 'PED' %}selected{% endif %}>Pessoa com Deficiência</option>
+                        <option value="EST" {% if vaga.tipo_de_vaga == 'EST' %}selected{% endif %}>Estágio</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Salário -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Salário</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="salario" 
+                             value="{{ vaga.salario }}"
+                             placeholder="Ex: R$ 1.500,00 ou A combinar">
+                    </div>
+                  </div>
+
+                  <!-- Carga Horária -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Carga Horária</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="carga_horaria" 
+                             value="{{ vaga.carga_horaria }}"
+                             placeholder="Ex: 44h semanais, Segunda à Sexta das 8h às 18h">
+                    </div>
+                  </div>
+
+                  <!-- Regime -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Regime de Contratação</label>
+                      <input type="text" 
+                             class="form-control" 
+                             name="regime" 
+                             value="{{ vaga.regime }}"
+                             placeholder="Ex: CLT, PJ, Terceirizado">
+                    </div>
+                  </div>
+
+                  <!-- Experiência -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label class="required-field">Experiência</label>
+                      <select class="form-select" name="experiencia" required>
+                        <option value="Sim" {% if vaga.experiencia == 'Sim' %}selected{% endif %}>Sim</option>
+                        <option value="Não" {% if vaga.experiencia == 'Não' %}selected{% endif %}>Não</option>
+                        <option value="Des" {% if vaga.experiencia == 'Des' %}selected{% endif %}>Desejável</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Email para Encaminhamento -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <label>Email para Encaminhamento</label>
+                      <input type="email" 
+                             class="form-control" 
+                             name="email" 
+                             value="{{ vaga.email }}"
+                             placeholder="email@empresa.com">
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Email específico para receber currículos desta vaga (opcional).
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Destaque -->
+                  <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                      <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="destaque" {% if vaga.destaque %}checked{% endif %}>
+                        <label class="form-check-label">
+                          <strong>Vaga em Destaque</strong>
+                        </label>
+                        <div class="form-text">
+                          <i class="fas fa-star me-1"></i>
+                          Vagas em destaque aparecem primeiro na listagem.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Status da Vaga -->
+                  <div class="col-12 mb-3">
+                    <div class="form-group">
+                      <label>Status da Vaga</label>
+                      <div class="status-toggle">
+                        <label class="switch">
+                          <input type="checkbox" name="ativo" {% if vaga.ativo %}checked{% endif %}>
+                          <span class="slider"></span>
+                        </label>
+                        <span class="fw-medium">
+                          <span id="statusText">{{ vaga.ativo|yesno:"Ativa,Inativa" }}</span>
+                        </span>
+                      </div>
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Vagas inativas não aparecem para candidatos se inscreverem.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Observações -->
+                  <div class="col-12 mb-3">
+                    <div class="form-group">
+                      <label>Observações</label>
+                      <textarea class="form-control" 
+                                name="observacao" 
+                                rows="4" 
+                                placeholder="Informações adicionais sobre a vaga...">{{ vaga.observacao }}</textarea>
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Essas observações são visíveis para candidatos e na interface externa da empresa.
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Atribuições -->
+                  <div class="col-12 mb-3">
+                    <div class="form-group">
+                      <label>Atribuições do Cargo</label>
+                      <textarea class="form-control" 
+                                name="atribuicoes" 
+                                rows="4" 
+                                placeholder="Descreva as principais atividades e responsabilidades do cargo...">{{ vaga.atribuicoes }}</textarea>
+                      <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Detalhe as principais funções que o candidato exercerá no cargo.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+              
+              <div class="card-footer">
+                <div class="row">
+                  <div class="col">
+                    <a href="{% url 'vagas:candidatos_vaga' vaga.id %}" class="btn btn-secondary">
+                      <i class="fas fa-arrow-left me-2"></i>Cancelar
+                    </a>
+                  </div>
+                  <div class="col-auto">
+                    <button type="submit" class="btn btn-primary btn-action">
+                      <i class="fas fa-save me-2"></i>Salvar Alterações
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle status text
+    const statusCheckbox = document.querySelector('input[name="ativo"]');
+    const statusText = document.getElementById('statusText');
+    
+    if (statusCheckbox && statusText) {
+        statusCheckbox.addEventListener('change', function() {
+            statusText.textContent = this.checked ? 'Ativa' : 'Inativa';
+        });
+    }
+    
+    // Form validation
+    const form = document.getElementById('editVagaForm');
+    const quantidadeInput = document.querySelector('input[name="quantidade_vagas"]');
+    const candidatosContratados = {{ candidatos_contratados }};
+    
+    if (form && quantidadeInput) {
+        form.addEventListener('submit', function(e) {
+            const quantidade = parseInt(quantidadeInput.value);
+            
+            if (quantidade < candidatosContratados) {
+                e.preventDefault();
+                alert(`Erro: A quantidade de vagas (${quantidade}) não pode ser menor que o número de candidatos já contratados (${candidatosContratados}).`);
+                quantidadeInput.focus();
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

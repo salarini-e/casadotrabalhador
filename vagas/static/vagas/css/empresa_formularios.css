@@ -1,0 +1,52 @@
+/* Estilos adicionais para empresa_formularios.html */
+
+/* Status pendente para cards de requisição */
+.status-pendente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Cores de borda por status */
+.vaga-card.pendente {
+    border-top-color: #ffc107 !important; /* Amarelo para pendente */
+    border-top-width: 4px !important;
+}
+
+.vaga-card.aguardando {
+    border-top-color: #17a2b8 !important; /* Azul para aguardando */
+    border-top-width: 4px !important;
+}
+
+.vaga-card.rejeitada {
+    border-top-color: #dc3545 !important; /* Vermelho para rejeitada */
+    border-top-width: 4px !important;
+}
+
+.vaga-card.aguardando-encerramento {
+    border-top-color: #17a2b8 !important; /* Azul para aguardando encerramento */
+    border-top-width: 4px !important;
+}
+
+.vaga-card.encerrada {
+    border-top-color: #dc3545 !important; /* Vermelho para encerrada */
+    border-top-width: 6px !important; /* Borda mais espessa para destacar */
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15) !important; /* Sombra vermelha sutil */
+}
+
+.vaga-card.ativa {
+    border-top-color: #28a745 !important; /* Verde para ativa */
+    border-top-width: 4px !important;
+}
+
+.vaga-card.inativa {
+    border-top-color: #dc3545 !important; /* Vermelho para inativa */
+    border-top-width: 4px !important;
+}
+
+/* Animação dos cards */
+.vaga-card {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 1;
+    transform: translateY(20px);
+    border-top-style: solid;
+}

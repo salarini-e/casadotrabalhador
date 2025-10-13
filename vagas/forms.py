@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm, ValidationError
 from .models import *
-from .validations import validate_CNPJ
+from .validations import validate_CNPJ, validate_CPF, validate_TELEFONE
 
 class CadastroInternoVagasForm(ModelForm):    
     class Meta:
@@ -71,7 +71,7 @@ class Form_Candidato(ModelForm):
             'celular': forms.TextInput(attrs={'class': 'form-control mb-2', 'onkeydown':'mascara(this, icelular)'}),
             'bairro': forms.TextInput(attrs={'class': 'form-control mb-2'}),
             'escolaridade': forms.Select(attrs={'class': 'form-control mb-2'}),
-            'candidato_online': forms.HiddenInput(),
+            'candidato_online': forms.HiddenInput(),            
         }
         exclude = ['dt_inclusao', 'candidato_ativo', 'conseguiu_vaga','dt_aquisicao', 'funcionario_encaminhamento', 'dt_atualizacao']
 

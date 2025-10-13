@@ -1,0 +1,197 @@
+<!-- Sidebar Menu -->
+<div class="dashboard-sidebar">
+    <div class="sidebar-backdrop"></div>
+    <div class="sidebar-header d-flex">
+        <div class="brand-logo">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Admin Panel</span>
+        </div>
+        <button class="sidebar-toggle m-auto" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <h6 class="nav-section-title">Principal</h6>
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.resolver_match.url_name == 'painel_administrativo' %}active{% endif %}" title="Dashboard">
+                    <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'admin_vagas_list' %}active{% endif %}" title="Vagas">
+                    <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+                        <i class="fas fa-briefcase"></i>
+                        <span>Vagas</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'pesquisar_candidatos' %}active{% endif %}" title="Candidatos">
+                    <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+                        <i class="fas fa-users"></i>
+                        <span>Candidatos</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'empresa_info' %}active{% endif %}" title="Empresas">
+                    <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+                        <i class="fas fa-building"></i>
+                        <span>Empresas</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'admin_formularios_list' %}active{% endif %}" title="Formulários">
+                    <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Formulários</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="nav-section">
+            <h6 class="nav-section-title">Relatórios</h6>
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.resolver_match.url_name == 'indicadores' %}active{% endif %}" title="Indicadores">
+                    <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Indicadores</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'vagas_com_candidatos' %}active{% endif %}" title="Vagas com Candidatos">
+                    <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+                        <i class="fas fa-list-alt"></i>
+                        <span>Vagas com Candidatos</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'candidatosporfuncionario' or request.resolver_match.url_name == 'funcionarios_encaminhados' %}active{% endif %}" title="Por Funcionário">
+                    <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Por Funcionário</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'emails' %}active{% endif %}" title="E-mails">
+                    <a href="{% url 'vagas:emails' %}" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>E-mails</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="nav-section">
+            <h6 class="nav-section-title">Sistema</h6>
+            <ul class="nav-menu">
+                <li class="nav-item {% if request.resolver_match.url_name == 'backup_database' %}active{% endif %}" title="Backup">
+                    <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+                        <i class="fas fa-database"></i>
+                        <span>Backup</span>
+                    </a>
+                </li>
+                <li class="nav-item {% if request.resolver_match.url_name == 'painel_administrativo_excluir_cpf' %}active{% endif %}" title="Excluir CPF">
+                    <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+                        <i class="fas fa-trash"></i>
+                        <span>Excluir CPF</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    
+</div>
+
+<script>
+// Sidebar toggle functionality
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    const content = document.querySelector('.dashboard-content');
+    const backdrop = document.querySelector('.sidebar-backdrop');
+    
+    function toggleSidebar() {
+        if (window.innerWidth <= 768) {
+            // Comportamento mobile
+            if (sidebar.classList.contains('collapsed')) {
+                // Expandir sidebar
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.add('show');
+                document.body.classList.add('sidebar-open');
+            } else {
+                // Colapsar sidebar
+                sidebar.classList.add('collapsed');
+                sidebar.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            }
+        } else {
+            // Comportamento desktop
+            sidebar.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                content.style.marginLeft = '80px';
+            } else {
+                content.style.marginLeft = '280px';
+            }
+        }
+    }
+    
+    // Sidebar toggle click
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSidebar();
+        });
+    }
+    
+    // Backdrop click to close sidebar on mobile
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                sidebar.classList.remove('show');
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+    }
+    
+    // Check screen width and adjust sidebar
+    const checkWidth = () => {
+        if (window.innerWidth <= 768) {
+            // Mobile: começar sempre colapsado
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+                document.body.classList.remove('sidebar-open');
+            }
+            sidebar.classList.remove('show');
+        } else {
+            // Desktop: remover classes mobile
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+            
+            // Ajustar margem do conteúdo
+            if (sidebar.classList.contains('collapsed')) {
+                content.style.marginLeft = '80px';
+            } else {
+                content.style.marginLeft = '280px';
+            }
+        }
+    };
+    
+    // Add click event to menu links for mobile - fechar sidebar ao clicar
+    const menuLinks = document.querySelectorAll('.nav-link');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
+                setTimeout(() => {
+                    sidebar.classList.add('collapsed');
+                    sidebar.classList.remove('show');
+                    document.body.classList.remove('sidebar-open');
+                }, 100);
+            }
+        });
+    });
+    
+    // Initial check and on window resize
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+});
+</script>

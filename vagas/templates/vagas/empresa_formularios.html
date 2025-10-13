@@ -1,0 +1,347 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Requisições de Vagas - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<link href="{% static 'vagas/css/empresa_formularios.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper pb-5">
+    <!-- Sidebar Menu -->
+    <div class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <i class="fas fa-building"></i>
+                <span>Painel Empresarial</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h6 class="nav-section-title">Principal</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}" class="nav-link">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="nav-link">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Vagas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'vagas:empresa_formularios' %}" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Requisições de Vagas</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <h6 class="nav-section-title">Empresa</h6>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="{% url 'vagas:empresa_perfil' %}" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            <span>Perfil da Empresa</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-content">
+        {% include 'vagas/includes/sidebar_empresa.html' %}
+        
+        <!-- Breadcrumb -->
+         {% include 'vagas/includes/seletor_empresa.html' %}
+        <div class="breadcrumb-nav">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'vagas:dashboard_empresa' %}">
+                            <i class="fas fa-home me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Requisições de Vagas</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- Content Header -->
+        <div class="content-header">
+            <h1 class="mb-2">
+                <i class="fas fa-file-alt me-2"></i>Requisições de Vagas
+            </h1>
+            <p class="mb-0 opacity-75">{{ empresa.nome_fantasia }} - Acompanhe suas requisições para abertura de vagas</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-card">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="status" class="form-label fw-bold">
+                        <i class="fas fa-filter me-1"></i>Filtrar por Status
+                    </label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos os status</option>
+                        <option value="PE" {% if status_filter == 'PE' %}selected{% endif %}>Pendente</option>
+                        <option value="AP" {% if status_filter == 'AP' %}selected{% endif %}>Aprovado</option>
+                        <option value="RE" {% if status_filter == 'RE' %}selected{% endif %}>Rejeitado</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpar
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-end">
+                        <span class="badge bg-primary fs-6 p-2">
+                            <i class="fas fa-file-alt me-1"></i>
+                            {{ formularios|length }} requisição(ões) de vaga
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Estatísticas de Requisições -->
+        {% if formularios %}
+        <div class="stats-summary">
+            <h6 class="mb-3">
+                <i class="fas fa-chart-bar me-2"></i>Status das Requisições de Vagas
+            </h6>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios|length }}</div>
+                    <div class="stat-label">Total de Requisições</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_pendentes }}</div>
+                    <div class="stat-label">Pendentes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_aprovados }}</div>
+                    <div class="stat-label">Aprovadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ formularios_rejeitados }}</div>
+                    <div class="stat-label">Rejeitadas</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ação Rápida para Nova Requisição -->
+        {% if not formularios %}
+        <div class="quick-action-card">
+            <div class="action-icon">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h4 class="mb-3">Crie sua primeira requisição de vaga</h4>
+            <p class="text-muted mb-4">
+                Para publicar vagas em nossa plataforma, você precisa enviar uma requisição de vaga que será analisada por nossa equipe.
+            </p>
+            <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-file-plus me-2"></i>Criar Requisição
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Lista de Requisições de Vagas -->
+        {% if formularios %}
+        <div class="vagas-grid">
+            {% for formulario in formularios %}
+            <div id="formulario-{{ formulario.id }}" class="vaga-card {{ formulario.status_display_class }}">
+                <div class="vaga-header">
+                    <div class="d-flex justify-content-between align-items-start w-100">
+                        <h6 class="vaga-title">                            
+                            {{ formulario.cargo_ofertado }}
+                        </h6>
+                        <span class="vaga-status status-{{ formulario.status_display_class }}">
+                            #{{ formulario.id }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="vaga-body">
+                    <!-- Estatísticas da Vaga -->
+                    <div class="vaga-stats">
+                        <div class="vaga-stat">
+                            <div class="stat-number">{{ formulario.quantidade_de_vagas }}</div>
+                            <div class="stat-text">Vaga{{ formulario.quantidade_de_vagas|pluralize }}</div>
+                        </div>
+                        <div class="vaga-stat">
+                            <div class="stat-number">
+                                {% if formulario.faixa_salarial == 'VALOR' %}
+                                    {{ formulario.valor_salario }}
+                                {% elif formulario.faixa_salarial == 'MIN' %}
+                                    Mínimo
+                                {% else %}
+                                    À combinar
+                                {% endif %}
+                            </div>
+                            <div class="stat-text">Salário</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalhes da Requisição -->
+                    <div class="vaga-details">
+                        <div class="detail-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Criada em {{ formulario.dt_inclusao|date:"d/m/Y" }}</span>
+                        </div>
+                        {% if formulario.escolaridade %}
+                        <div class="detail-item">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>{{ formulario.escolaridade }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span>
+                                {% if formulario.carga_horaria == '40' %}
+                                    40h semanais
+                                {% elif formulario.carga_horaria == '44' %}
+                                    44h semanais
+                                {% else %}
+                                    {{ formulario.outra_carga_horaria }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-tag"></i>
+                            <span>
+                                {% if formulario.status_requisicao == 'AG' %}
+                                    <span class="badge bg-secondary">Aguardando</span>
+                                {% elif formulario.status_requisicao == 'PE' %}
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                {% elif formulario.status_requisicao == 'AP' %}
+                                    {% if formulario.is_vaga_encerrada %}
+                                        <span class="badge bg-danger">Encerrada</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Aprovada</span>
+                                    {% endif %}
+                                {% elif formulario.status_requisicao == 'RE' %}
+                                    <span class="badge bg-danger">Rejeitada</span>
+                                {% elif formulario.status_requisicao == 'AE' %}
+                                    <span class="badge bg-info">Aguardando Encerramento</span>
+                                {% elif formulario.status_requisicao == 'EN' %}
+                                    <span class="badge bg-dark">Encerrada</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Descrição da Requisição -->
+                    {% if formulario.observacao %}
+                    <div class="vaga-description">
+                        {{ formulario.observacao|truncatechars:120 }}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Informações sobre Vaga Criada -->                    
+                    
+                    <!-- Ações -->
+                    <div class="vaga-actions w-100 d-flex flex-column">
+                        <a href="{% url 'vagas:empresa_formulario_detalhes' formulario.id %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-eye me-1"></i>Ver Detalhes
+                        </a>
+                        
+                        {% if formulario.status_requisicao == 'AP' and formulario.get_vaga %}
+                        <a href="{% url 'vagas:empresa_vaga_detalhes' formulario.get_vaga.id %}" class="mt-2 btn btn-outline-primary w-100">
+                            <i class="fas fa-briefcase me-1"></i>Ver Vaga Criada
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Ação para Novo Formulário -->
+        <!-- <div class="text-center mt-4">
+            <a href="{% url 'vagas:empresa_formulario_criar' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-file-plus me-2"></i>Nova Requisição de Vaga
+            </a>
+        </div> -->
+        
+        {% else %}
+        <!-- Estado Vazio com Filtros -->
+        {% if status_filter %}
+        <div class="empty-state">
+            <i class="fas fa-search"></i>
+            <h5>Nenhuma requisição encontrada</h5>
+            <p>Não há requisições de vaga com o status selecionado.</p>
+            <a href="{% url 'vagas:empresa_formularios' %}" class="btn btn-outline-primary">
+                <i class="fas fa-eye me-1"></i>Ver todas as requisições
+            </a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit do formulário de filtro quando mudar o select
+    document.getElementById('status').addEventListener('change', function() {
+        this.closest('form').submit();
+    });
+    
+    // Forçar redraw para resolver problemas de layout
+    const vagasGrid = document.querySelector('.vagas-grid');
+    if (vagasGrid) {
+        vagasGrid.style.display = 'none';
+        // Forçar reflow
+        void vagasGrid.offsetHeight;
+        vagasGrid.style.display = 'grid';
+    }
+    
+    // Animação das vagas com verificação de existência
+    const vagas = document.querySelectorAll('.vaga-card');
+    if (vagas.length > 0) {
+        vagas.forEach((vaga, index) => {
+            // Garantir que todos os cards estejam visíveis primeiro
+            vaga.style.opacity = '0';
+            vaga.style.transform = 'translateY(20px)';
+            vaga.style.display = 'flex';
+            
+            // Aplicar animação com um pequeno atraso
+            setTimeout(() => {
+                vaga.style.opacity = '1';
+                vaga.style.transform = 'translateY(0)';
+            }, 50 + (80 * index)); // Timing mais rápido para melhor UX
+        });
+        
+        // Log para debug
+        console.log(`Total de requisições renderizadas: ${vagas.length}`);
+    }
+    
+    // Tooltip para informações adicionais
+    if (typeof bootstrap !== 'undefined') {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+    }
+});
+</script>
+{% endblock %}

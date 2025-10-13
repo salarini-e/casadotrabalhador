@@ -1,0 +1,195 @@
+/* CSS específico para a página de detalhes do formulário */
+
+/* Texto com gradiente */
+.text-highlight {
+    background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+/* Etiquetas e valores dos detalhes */
+.detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    flex: 0 0 40%;
+}
+
+.detail-value {
+    flex: 1;
+    text-align: right;
+}
+
+/* Estilização da timeline de histórico */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:before {
+    content: '';
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    background: #104a74;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+/* Estilização dos cards de conteúdo */
+.content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+}
+
+.content-card:hover {
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.content-card .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f2f5;
+    background: #f9fafc;
+}
+
+.content-card .card-body {
+    padding: 1.5rem;
+}
+
+.content-card .card-header h5 {
+    margin: 0;
+    color: #104a74;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.content-card .card-header h5 i {
+    margin-right: 0.5rem;
+}
+
+/* Cabeçalho do formulário com gradiente */
+.formulario-header-card {
+    background: linear-gradient(135deg, #104a74 0%, #24364F 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 1.8rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.formulario-header-card::before {
+    content: '';
+    position: absolute;
+    right: -50px;
+    top: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.formulario-header-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Status badges para diferentes estados */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.status-pendente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-aprovado {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-rejeitado {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-vaga-ativa {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-vaga-inativa {
+    background: #f5c6cb;
+    color: #721c24;
+}
+
+/* Item de detalhe com layout flexível */
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+/* Animação dos cards */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .detail-value {
+        text-align: left;
+        margin-top: 0.25rem;
+    }
+}

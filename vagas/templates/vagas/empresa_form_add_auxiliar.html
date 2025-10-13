@@ -1,0 +1,122 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Adicionar Auxiliar - {{ empresa.nome }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vagas/css/empresa_perfil.css' %}">
+<link href="{% static 'vagas/css/painel_empresarial_standardized.css' %}" rel="stylesheet">
+<style>
+    .form-auxiliar {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 0.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .breadcrumb {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'vagas:dashboard_empresa' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'vagas:empresa_perfil' %}">Perfil da Empresa</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Adicionar Auxiliar</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Adicionar Novo Auxiliar</h5>
+        </div>
+        <div class="card-body">
+            <p class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Adicione um usuário auxiliar para ajudar na gestão das vagas da empresa. 
+                Auxiliares terão acesso ao painel empresarial, mas com permissões limitadas.
+            </p>
+
+            <form action="{% url 'vagas:empresa_add_auxiliar' %}" method="POST" class="form-auxiliar">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="nome" class="form-label required-field">Nome completo</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="cpf" class="form-label required-field">CPF</label>
+                        <input type="text" class="form-control" id="cpf" name="cpf" required 
+                               placeholder="000.000.000-00" data-mask="000.000.000-00">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="email" class="form-label required-field">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <small class="text-muted">Este e-mail será usado para acessar o sistema</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="telefone" class="form-label required-field">Telefone</label>
+                        <input type="text" class="form-control" id="telefone" name="telefone" required 
+                               placeholder="(00) 00000-0000" data-mask="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cargo" class="form-label required-field">Cargo na empresa</label>
+                    <input type="text" class="form-control" id="cargo" name="cargo" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="observacoes" class="form-label">Observações</label>
+                    <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'vagas:empresa_perfil' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-1"></i>Adicionar Auxiliar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+    $(document).ready(function(){
+        // Aplicar máscaras nos campos
+        $('#cpf').mask('000.000.000-00', {reverse: true});
+        $('#telefone').mask('(00) 00000-0000');
+    });
+</script>
+{% endblock %}

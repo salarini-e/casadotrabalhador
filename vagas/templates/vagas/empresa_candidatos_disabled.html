@@ -1,0 +1,433 @@
+{% extends 'template_empresa.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Candidatos - {{ empresa.nome_fantasia }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .nav-empresa {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .nav-empresa .nav-link {
+        color: white;
+        font-weight: 500;
+        border-radius: 8px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-empresa .nav-link:hover {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    .nav-empresa .nav-link.active {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+    
+    .candidato-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .candidato-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .candidato-contratado {
+        border-left: 5px solid #28a745;
+    }
+    
+    .candidato-online {
+        border-left: 5px solid #007bff;
+    }
+    
+    .candidato-balcao {
+        border-left: 5px solid #6c757d;
+    }
+    
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-contratado {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-online {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    .status-balcao {
+        background: #e2e3e5;
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .vaga-highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+    }
+    
+    .candidato-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .stats-overview {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    {% include 'vagas/includes/seletor_empresa.html' %}
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Candidatos</h1>
+            <p class="text-muted">{{ empresa.nome_fantasia }}</p>
+        </div>
+        <div>
+            <a href="{% url 'vagas:dashboard_empresa' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Navegação do Painel -->
+    <ul class="nav nav-pills nav-empresa p-3 mb-4">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'vagas:dashboard_empresa' %}">
+                <i class="fas fa-chart-line me-2"></i>Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'vagas:empresa_formularios' %}">
+                <i class="fas fa-file-alt me-2"></i>Formulários
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'vagas:empresa_vagas' %}">
+                <i class="fas fa-briefcase me-2"></i>Vagas
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="{% url 'vagas:empresa_candidatos' %}">
+                <i class="fas fa-users me-2"></i>Candidatos
+            </a>
+        </li>
+    </ul>
+
+    <!-- Estatísticas Resumidas -->
+    <div class="stats-overview">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ candidatos.count }}</span>
+                    <span class="stat-label">Total de Candidatos</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ candidatos_contratados }}</span>
+                    <span class="stat-label">Contratados</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ candidatos_online }}</span>
+                    <span class="stat-label">Candidaturas Online</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-item">
+                    <span class="stat-number">{{ candidatos_balcao }}</span>
+                    <span class="stat-label">Encaminhamentos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-section">
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Nota:</strong> Para vagas encerradas, são exibidos apenas os candidatos selecionados. 
+            Para vagas ativas, todos os candidatos são mostrados.
+        </div>
+        
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="vaga" class="form-label fw-bold">Vaga</label>
+                <select name="vaga" id="vaga" class="form-select">
+                    <option value="">Todas as vagas</option>
+                    {% for vaga_opt in vagas_empresa %}
+                    <option value="{{ vaga_opt.id }}" {% if vaga_filter == vaga_opt.id|stringformat:"s" %}selected{% endif %}>
+                        {{ vaga_opt.cargo.nome }} ({{ vaga_opt.candidato_set.count }} candidatos)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label fw-bold">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos os status</option>
+                    <option value="contratados" {% if status_filter == 'contratados' %}selected{% endif %}>Contratados</option>
+                    <option value="online" {% if status_filter == 'online' %}selected{% endif %}>Candidatura Online</option>
+                    <option value="balcao" {% if status_filter == 'balcao' %}selected{% endif %}>Encaminhamento</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter me-2"></i>Filtrar
+                </button>
+                <a href="{% url 'vagas:empresa_candidatos' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>Limpar
+                </a>
+            </div>
+            <div class="col-md-3 text-end">
+                <span class="badge bg-primary fs-6 p-2">
+                    {{ candidatos.count }} candidato{{ candidatos.count|pluralize }}
+                </span>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Candidatos -->
+    <div class="row">
+        {% for candidato in candidatos %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card candidato-card h-100 
+                {% if candidato.conseguiu_vaga %}candidato-contratado
+                {% elif candidato.candidato_online %}candidato-online
+                {% else %}candidato-balcao{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="candidato-avatar me-3">
+                            {{ candidato.nome|first|upper }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">{{ candidato.nome }}</h5>
+                            <p class="text-muted small mb-0">{{ candidato.cpf }}</p>
+                        </div>
+                        <div>
+                            {% if candidato.conseguiu_vaga %}
+                                <span class="status-badge status-contratado">
+                                    <i class="fas fa-check-circle me-1"></i>Contratado
+                                </span>
+                            {% elif candidato.candidato_online %}
+                                <span class="status-badge status-online">
+                                    <i class="fas fa-laptop me-1"></i>Online
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-balcao">
+                                    <i class="fas fa-user-tie me-1"></i>Encaminhado
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="vaga-highlight mb-1">{{ candidato.vaga.cargo.nome }}</h6>
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-briefcase me-1"></i>
+                            Vaga #{{ candidato.vaga.id }}
+                        </p>
+                    </div>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="p-2">
+                                <small class="text-muted d-block">Data</small>
+                                <strong>{{ candidato.dt_inclusao|date:"d/m/Y" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2">
+                                <small class="text-muted d-block">Horário</small>
+                                <strong>{{ candidato.dt_inclusao|date:"H:i" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if candidato.telefone %}
+                    <p class="text-muted small mb-1">
+                        <i class="fas fa-phone me-1"></i>
+                        {{ candidato.telefone }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if candidato.email %}
+                    <p class="text-muted small mb-1">
+                        <i class="fas fa-envelope me-1"></i>
+                        {{ candidato.email|truncatechars:25 }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if not candidato.candidato_online and candidato.funcionario_responsavel %}
+                    <p class="text-muted small mb-1">
+                        <i class="fas fa-user me-1"></i>
+                        Encaminhado por: {{ candidato.funcionario_responsavel.get_full_name|default:candidato.funcionario_responsavel.username }}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer bg-transparent border-0">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'vagas:visualizar_candidato' candidato.id %}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye me-2"></i>Ver Perfil Completo
+                        </a>
+                        {% if candidato.curriculo_user_id %}
+                        <a href="{% url 'cv:curriculo_por_cpf' candidato.cpf %}" 
+                           class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Ver Currículo
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum candidato encontrado</h5>
+                    <p class="text-muted">
+                        {% if vaga_filter or status_filter %}
+                            Não há candidatos com os filtros selecionados.
+                        {% else %}
+                            Suas vagas ainda não receberam candidaturas.
+                        {% endif %}
+                    </p>
+                    {% if vaga_filter or status_filter %}
+                    <a href="{% url 'vagas:empresa_candidatos' %}" class="btn btn-outline-primary">
+                        Ver todos os candidatos
+                    </a>
+                    {% else %}
+                    <div class="mt-3">
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-briefcase me-2"></i>Ver Vagas Ativas
+                        </a>
+                        <small class="text-muted d-block mt-2">
+                            Verifique se suas vagas estão ativas e visíveis para candidatos
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Resumo por Vaga -->
+    {% if candidatos and not vaga_filter %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Candidatos por Vaga
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for vaga in vagas_empresa %}
+                        {% if vaga.candidato_set.count > 0 %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ vaga.cargo.nome }}</h6>
+                                    <h4 class="text-primary mb-1">{{ vaga.candidato_set.count }}</h4>
+                                    <small class="text-muted">candidato{{ vaga.candidato_set.count|pluralize }}</small>
+                                    <div class="mt-2">
+                                        <a href="{% url 'vagas:empresa_candidatos' %}?vaga={{ vaga.id }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            Ver Candidatos
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit do formulário de filtro quando mudar os selects
+    $('#vaga, #status').on('change', function() {
+        $(this).closest('form').submit();
+    });
+    
+    // Tooltip para informações adicionais
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle text-success fa-4x mb-3"></i>
+                    <h3 class="card-title">Solicitação Enviada com Sucesso!</h3>
+                    <p class="card-text">
+                        Sua solicitação de desativação foi enviada e será analisada pelos administradores.
+                        Você receberá uma notificação quando ela for processada.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{% url 'vagas:empresa_solicitacoes_desativacao' %}" class="btn btn-primary">
+                            Ver Minhas Solicitações
+                        </a>
+                        <a href="{% url 'vagas:empresa_vagas' %}" class="btn btn-secondary">
+                            Voltar para Vagas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

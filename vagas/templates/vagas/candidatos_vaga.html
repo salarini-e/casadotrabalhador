@@ -1,0 +1,403 @@
+{% extends 'template_new.html' %}
+{% load static %}
+
+{% block title %}Candidatos - {{ vaga.cargo.nome }}{% endblock %}
+
+{% block css %}
+{{block.super}}
+<link href="{% static 'vagas/css/dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main %}
+<div class="dashboard-wrapper">
+  <!-- Sidebar Menu -->
+  <div class="dashboard-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Admin Panel</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h6 class="nav-section-title">Principal</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo' %}" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem == 'vagas' %}active{% endif %}">
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="nav-link">
+              <i class="fas fa-briefcase"></i>
+              <span>Vagas</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:pesquisar_candidatos' %}" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem == 'empresa' %}active{% endif %}">
+            <a href="{% url 'vagas:empresa_info' %}" class="nav-link">
+              <i class="fas fa-building"></i>
+              <span>Empresas</span>
+            </a>
+          </li>
+          <li class="nav-item {% if origem != 'empresa' and origem != 'vagas' %}active{% endif %}">
+            <a href="{% url 'vagas:admin_formularios_list' %}" class="nav-link">
+              <i class="fas fa-file-alt"></i>
+              <span>Formulários</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Relatórios</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:indicadores' %}" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Indicadores</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:vagas_com_candidatos' %}" class="nav-link">
+              <i class="fas fa-list-alt"></i>
+              <span>Vagas com Candidatos</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:candidatosporfuncionario' %}" class="nav-link">
+              <i class="fas fa-user-tie"></i>
+              <span>Por Funcionário</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:emails' %}" class="nav-link">
+              <i class="fas fa-envelope"></i>
+              <span>E-mails</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="nav-section">
+        <h6 class="nav-section-title">Sistema</h6>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="{% url 'vagas:backup_database' %}" class="nav-link">
+              <i class="fas fa-database"></i>
+              <span>Backup</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'vagas:painel_administrativo_excluir_cpf' %}" class="nav-link danger">
+              <i class="fas fa-trash"></i>
+              <span>Excluir CPF</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Top Bar -->
+    <div class="dashboard-topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">
+          <i class="fas fa-users me-2"></i>
+          Candidatos da Vaga
+        </h1>
+        <p class="page-subtitle">{{ vaga.cargo.nome }} - {{ vaga.empresa.nome }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="quick-actions">
+          <!-- Botão para alternar status da vaga -->
+          {% if request.user.is_staff %}
+            <form method="post" action="{% url 'vagas:admin_toggle_vaga_status' vaga.id %}" class="d-inline me-2">
+              {% csrf_token %}
+              {% if vaga.ativo %}
+                <button type="submit" class="btn btn-warning" 
+                        title="Desativar vaga"
+                        onclick="return confirm('Tem certeza que deseja desativar esta vaga?')">
+                  <i class="fas fa-pause me-2"></i>Desativar Vaga
+                </button>
+              {% else %}
+                <button type="submit" class="btn btn-success" 
+                        title="Reativar vaga"
+                        onclick="return confirm('Tem certeza que deseja reativar esta vaga?')">
+                  <i class="fas fa-play me-2"></i>Reativar Vaga
+                </button>
+              {% endif %}
+            </form>
+          {% endif %}
+          
+          {% if origem == 'empresa' and empresa_id %}
+            <a href="{% url 'vagas:empresa_profile' empresa_id %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar ao Perfil da Empresa
+            </a>
+          {% elif origem == 'vagas' %}
+            <a href="{% url 'vagas:admin_vagas_list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar às Vagas
+            </a>
+          {% elif vaga.requisicao_vaga %}
+            <a href="{% url 'vagas:admin_formularios_detail' vaga.requisicao_vaga.pk %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar ao Formulário
+            </a>
+          {% else %}
+            <a href="{% url 'vagas:painel_administrativo' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-arrow-left me-2"></i>Voltar
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="stats-container px-4 py-4">
+      <!-- Estatísticas -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">Total de Candidatos</h6>
+                  <h2 class="mb-0">{{ total_candidatos }}</h2>
+                </div>
+                <div class="ms-3">
+                  <i class="fas fa-users fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">Candidatos Ativos</h6>
+                  <h2 class="mb-0">{{ candidatos_ativos }}</h2>
+                </div>
+                <div class="ms-3">
+                  <i class="fas fa-user-check fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">Contratados</h6>
+                  <h2 class="mb-0">{{ candidatos_contratados }}</h2>
+                </div>
+                <div class="ms-3">
+                  <i class="fas fa-user-tie fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-warning text-white">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                  <h6 class="card-title mb-0">Vagas Disponíveis</h6>
+                  <h2 class="mb-0">{{ vaga.quantidadeVagas }}</h2>
+                </div>
+                <div class="ms-3">
+                  <i class="fas fa-briefcase fa-2x opacity-75"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informações da Vaga -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                Informações da Vaga
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <strong>Cargo:</strong><br>
+                  {{ vaga.cargo.nome }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Empresa:</strong><br>
+                  {{ vaga.empresa.nome }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Escolaridade:</strong><br>
+                  {{ vaga.escolaridade.nome }}
+                </div>
+                <div class="col-md-3">
+                  <strong>Experiência:</strong><br>
+                  {{ vaga.get_experiencia_display }}
+                </div>
+                {% if vaga.salario %}
+                  <div class="col-md-3">
+                    <strong>Salário:</strong><br>
+                    {{ vaga.salario }}
+                  </div>
+                {% endif %}
+                {% if vaga.carga_horaria %}
+                  <div class="col-md-3">
+                    <strong>Carga Horária:</strong><br>
+                    {{ vaga.carga_horaria }}
+                  </div>
+                {% endif %}
+                <div class="col-md-3">
+                  <strong>Status:</strong><br>
+                  {% if vaga.ativo %}
+                    <span class="badge bg-success">Ativa</span>
+                  {% else %}
+                    <span class="badge bg-danger">Inativa</span>
+                  {% endif %}
+                </div>
+                <div class="col-md-3">
+                  <strong>Criada em:</strong><br>
+                  {{ vaga.dt_inclusao|date:"d/m/Y H:i" }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Candidatos -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Lista de Candidatos
+              </h5>
+            </div>
+            <div class="card-body">
+              {% if candidatos %}
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Idade</th>
+                        <th>Contato</th>
+                        <th>Bairro</th>
+                        <th>Escolaridade</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for candidato in candidatos %}
+                        <tr>
+                          <td>
+                            <div class="d-flex align-items-center">
+                              <div class="me-3">
+                                {% if candidato.sexo == 'm' %}
+                                  <i class="fas fa-user text-primary"></i>
+                                {% elif candidato.sexo == 'f' %}
+                                  <i class="fas fa-user text-pink"></i>
+                                {% else %}
+                                  <i class="fas fa-user text-secondary"></i>
+                                {% endif %}
+                              </div>
+                              <div>
+                                <div class="fw-bold">{{ candidato.nome }}</div>
+                                <small class="text-muted">{{ candidato.get_cpf }}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{{ candidato.idade }} anos</td>
+                          <td>
+                            <div class="small">
+                              <div><i class="fas fa-phone me-1"></i>{{ candidato.celular }}</div>
+                              {% if candidato.email %}
+                                <div><i class="fas fa-envelope me-1"></i>{{ candidato.email }}</div>
+                              {% endif %}
+                            </div>
+                          </td>
+                          <td>{{ candidato.bairro|default:"-" }}</td>
+                          <td>{{ candidato.escolaridade.nome }}</td>
+                          <td>
+                            {% if candidato.conseguiu_vaga %}
+                              <span class="badge bg-success">Contratado</span>
+                            {% elif candidato.candidato_ativo %}
+                              <span class="badge bg-info">Ativo</span>
+                            {% else %}
+                              <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                          </td>
+                          <td>{{ candidato.dt_inclusao|date:"d/m/Y" }}</td>
+                          <td>
+                            <div class="btn-group" role="group">
+                              <button type="button" class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                              </button>
+                              {% if not candidato.conseguiu_vaga %}
+                                <button type="button" class="btn btn-sm btn-outline-success" title="Marcar como contratado">
+                                  <i class="fas fa-check"></i>
+                                </button>
+                              {% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <div class="text-center py-5">
+                  <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted">Nenhum candidato encontrado</h5>
+                  <p class="text-muted">Ainda não há candidatos encaminhados para esta vaga.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Sidebar toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+        });
+    }
+});
+</script>
+
+{% endblock %}
