@@ -19,8 +19,8 @@ urlpatterns = [
 
     path('alterar-vaga/alt0x#<id>001', views.alterar_vaga, name='alterar_vaga'),    
     path('alterar-empresa/alt0x#<id>001', views.alterar_empresa, name='alterar_empresa'),    
-    path('alterar-escolaridade/alt0x#<id>001', views.alterar_escolaridade, name='alterar_escolaridade'),    
-    path('alterar-cargo/alt0x#<id>001', views.alterar_cargo, name='alterar_cargo'),    
+    path('alterar-escolaridade/alt1x#<id>001', views.alterar_escolaridade, name='alterar_escolaridade'),    
+    path('alterar-cargo/alt1x#<id>001', views.alterar_cargo, name='alterar_cargo'),    
 
     path('visualizar-vaga/<id>', views.visualizar_vaga, name='visualizar_vaga'),    
     path('remover-vaga/alt0x#<id>001', views.remover_vaga, name='remover_vaga'),    

@@ -259,11 +259,17 @@ def cadastrar_empresa(request):
 def alterar_empresa(request, id):
     empresa = Empresa.objects.get(id=id)
     if request.method == 'POST':
-        form = Form_Empresa(request.POST, instance=empresa)
+        request_POST = request.POST.copy()
+        request_POST['user'] = request.user.id
+        form = Form_Empresa(request_POST, instance=empresa)
         if form.is_valid():
             form.save()
             # Redireciona de volta para o perfil da empresa com mensagem de sucesso
-            return redirect(f'/vagas/empresa/{empresa.id}/?success=1')
+            messages.success(request, 'Empresa alterada com sucesso!')
+            return redirect(f'/empresa/profile/{empresa.id}/')
+        else:
+            print(form.errors)
+            messages.error(request, 'Erro ao alterar empresa. Verifique os dados e tente novamente.')
     else:
         form = Form_Empresa(instance=empresa)
     
@@ -303,7 +309,11 @@ def alterar_cargo(request, id):
         form = Form_Cargo(request.POST, instance=cargo)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Cargo alterado com sucesso!')
             return redirect('vagas:listar_cargos')
+        else:
+            print(form.errors)
+            messages.error(request, 'Erro ao alterar cargo. Verifique os dados e tente novamente.')
     else:
         form = Form_Cargo(instance=cargo)
     context = {
@@ -338,7 +348,11 @@ def alterar_escolaridade(request, id):
         form = Form_Escolaridade(request.POST, instance=escolaridade)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Escolaridade alterada com sucesso!')
             return redirect('vagas:escolaridades')
+        else:
+            print(form.errors)
+            messages.error(request, 'Erro ao alterar escolaridade. Verifique os dados e tente novamente.')
     else:
         form = Form_Escolaridade(instance=escolaridade)
     context = {
