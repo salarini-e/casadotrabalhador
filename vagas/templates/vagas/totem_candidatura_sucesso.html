@@ -457,7 +457,7 @@
             <div class="print-instruction">
                 <div class="help-instruction">
                     <i class="fas fa-keyboard"></i>
-                    <span>Pressione <kbd>Enter</kbd> para imprimir o encaminhamento</span>
+                    <span>Pressione <kbd>Enter</kbd> para imprimir seu comprovante</span>
                 </div>
             </div>
             <div class="candidate-info">
@@ -501,15 +501,15 @@
                 <ul class="steps-list">
                     <li class="step-item">
                         <div class="step-number">1</div>
-                        <div>Sua candidatura foi registrada e está sendo processada pela nossa equipe</div>
+                        <div>Sua candidatura foi registrada, busque entrar em contato conforme necessário.</div>
                     </li>
                     <li class="step-item">
                         <div class="step-number">2</div>
-                        <div>Aguarde o contato da Casa do Trabalhador no telefone <strong>{{ candidato.celular }}</strong></div>
+                        <div>Aguarde o contato da Casa do Trabalhador no telefone <strong>(22) 2525-9205</strong></div>
                     </li>
                     <li class="step-item">
                         <div class="step-number">3</div>
-                        <div>Mantenha seus documentos atualizados e prepare-se para possíveis entrevistas</div>
+                        <div>Mantenha seus documentos atualizados</div>
                     </li>
                     <li class="step-item">
                         <div class="step-number">4</div>
@@ -521,7 +521,7 @@
             <div class="actions">
                 <button type="button" class="btn btn-warning" id="printBtn">
                     <i class="fas fa-print"></i>
-                    Imprimir Encaminhamento
+                    Imprimir comprovante com mais informações
                 </button>
                 <a href="{% url 'vagas:totem_v1' %}" class="btn btn-primary" id="backBtn">
                     <i class="fas fa-home"></i>
@@ -563,46 +563,46 @@
                 <img src="/static/images/SUBSECRETARIA.png" style="width: 500px; height: auto; margin-left:0px; margin-right: 0px; margin-top: auto; margin-bottom: auto; margin-left: auto;" alt="">            
             </header>
             <main style="padding: 0 100px; width: 800px; display: flex; flex-direction: column; padding-top: 60px; margin: auto;"> 
-                <h1 style="margin: auto;">ENCAMINHAMENTO</h1>
+                <h1 style="margin: auto;">CANDIDATURA TOTEM</h1>
 
                 <span style="margin-top: 40px;">Prezado(a),</span>
                 <p>
                     A CASA DO TRABALHADOR, no exercício de suas atribuições legais e regimentais,  
-                    encaminha pelo presente o candidato <b>{{ candidato.nome }}</b>, portador do cpf de nº <b>{{ candidato.get_cpf }}</b>, 
+                    registra pelo presente o candidato <b>{{ candidato.nome }}</b>, portador do cpf de nº <b>{{ candidato.get_cpf }}</b>, 
                     interessado na vaga de <b>{{ vaga.cargo.nome }}</b>{% if vaga.empresa_fantasia %},
                     à empresa <b>{{ vaga.empresa_fantasia }}</b>{% endif %}.
                 </p>
                 
                 <p>Pedimos ao candidato que busque fazer contato:</p>
                 
-                {% if vaga.contato_presencial %}
+                {% if vaga.empresa.contato_presencial %}
                 <p style="margin: 0 30px;">                
                 De forma presencial, munido de seu currículo e com este encaminhamento em mãos, no endereço: <br>
                 <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.empresa_endereco }}</span></p>
                 {% endif %}
                 
-                {% if vaga.contato_telefone %}
+                {% if vaga.empresa.contato_telefone %}
                 <p style="margin: 10px 30px;">                
                 Por telefone: <br>
-                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_telefone }}</span></p>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.empresa.telefone }}</span></p>
                 {% endif %}
                 
-                {% if vaga.contato_whatsapp %}
+                {% if vaga.empresa.contato_whatsapp %}
                 <p style="margin: 10px 30px;">                
                     O candidato deve enviar o seu currículo digital para o whatsapp abaixo: <br>
-                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.contato_whatsapp }}</span></p>
+                <span style="text-decoration: underline; margin: 0px 30px;" data-phone>{{ vaga.empresa.whatsapp }}</span></p>
                 {% endif %}
                 
-                {% if vaga.contato_email %}
+                {% if vaga.empresa.contato_email %}
                 <p style="margin: 0 30px;">                
                 Por email, com seu currículo em anexo, ao endereço: <br>
-                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_email }}</span></p>
+                <span style="text-decoration: underline; margin: 0px 30px;">{% if vaga.email %}{{vaga.email}}{% else %}{{vaga.empresa.email}}{% endif %}</span></p>
                 {% endif %}
                 
-                {% if vaga.contato_link %}
+                {% if vaga.empresa.contato_link %}
                 <p style="margin: 0 30px;">                
                 Pelo endereço eletrônico: <br>
-                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.contato_link }}</span></p>
+                <span style="text-decoration: underline; margin: 0px 30px;">{{ vaga.empresa.link }}</span></p>
                 {% endif %}
                 
                 <p style="margin-top: 30px;">
@@ -610,14 +610,14 @@
                     {% if vaga.observacao %}{{ vaga.observacao }}{% else %}As informações presentes nesta são de responsabilidade do candidato.{% endif %}
                 </p>
                 
-                <p style="margin-top: 0;">
-                    Desde já agradecemos e continuamos a disposição de V. srª para maiores
-                    informações no telefone (22)2525-9205.                 
-                </p>
                 
-                <p style="margin-bottom: 0; text-indent: 0; text-align: center;">                    
+                <p style="margin-top: 0;; text-indent: 0; text-align: center;">                    
                     <span>Documento gerado automaticamente pelo</span><br>
                     <span><b>TOTEM DA CASA DO TRABALHADOR</b></span>
+                </p>
+                <p style="margin-top: 0; margin-bottom: 0">
+                    Desde já agradecemos e continuamos a disposição de V. srª para maiores                    
+                    informações<br>no telefone <b>(22)2525-9205</b> ou pelo whatsapp <b>022 99793-5451</b>.          
                 </p>
                 
                 <p style="text-align: center; margin-top: 40px; text-indent: 0;">

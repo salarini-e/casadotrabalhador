@@ -11,4 +11,5 @@ urlpatterns = [
        path('token/', obtain_auth_token, name="api_token_auth"),
        path('vagas/', views.Listar_Vagas.as_view()),
        path('cargos/', views.Listar_Cargos.as_view()),
+       path('indicadores/', views.IndicadoresDashboard.as_view(), name='indicadores_dashboard'),
 ]
