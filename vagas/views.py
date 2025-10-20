@@ -1603,8 +1603,25 @@ def painel_administrativo(request):
     candidatos_por_mes.reverse()
     
     
+    vagas_ = Vaga_Emprego.objects.filter(ativo=True).select_related('cargo', 'empresa').order_by('cargo__nome')
+    
+    # Criar dicionário para agrupar vagas por cargo
+    vagas_por_cargo_ = {}
+    for vaga in vagas_:
+        cargo_nome = vaga.cargo.nome
+        if cargo_nome not in vagas_por_cargo_:
+            vagas_por_cargo_[cargo_nome] = []
+        vagas_por_cargo_[cargo_nome].append(vaga)
+
+    vagas_em_destaque = vagas_.filter(destaque=True)
+
+    # Contar total de vagas
+    total_vagas_ = sum(vaga.quantidadeVagas for vaga in vagas_)
+    
     
     context = {
+        'qnt_cargos': len(vagas_por_cargo_),
+        'qnt_vagas': total_vagas_,
         'total_vagas_ativas': total_vagas_ativas,
         'total_posicoes_abertas': total_posicoes_abertas,
         'total_empresas_ativas': total_empresas_ativas,
