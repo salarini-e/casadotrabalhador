@@ -1603,7 +1603,7 @@ def painel_administrativo(request):
     candidatos_por_mes.reverse()
     
     
-    vagas_ = Vaga_Emprego.objects.filter(ativo=True).select_related('cargo', 'empresa').order_by('cargo__nome')
+    vagas_ = Vaga_Emprego.objects.filter(ativo=True, dt_inclusao__range=[data_inicio, data_fim]).select_related('cargo', 'empresa').order_by('cargo__nome')
     
     # Criar dicionário para agrupar vagas por cargo
     vagas_por_cargo_ = {}
