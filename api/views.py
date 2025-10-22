@@ -44,38 +44,54 @@ class IndicadoresDashboard(APIView):
     
     def get(self, request):
         try:
-            # Período para análise (último ano)
-            data_limite = timezone.now() - timedelta(days=365)
+            # Parâmetros opcionais para filtros
+            periodo_dias = int(request.GET.get('periodo_dias', 30))  # Para novos candidatos
+            top_limit = int(request.GET.get('top_limit', 10))  # Para top cargos/empresas
             
-            # 1. ESTATÍSTICAS GERAIS
-            estatisticas_gerais = {
-                'total_vagas_ativas': Vaga_Emprego.objects.filter(ativo=True).count(),
-                'total_vagas_inativas': Vaga_Emprego.objects.filter(ativo=False).count(),
-                'total_empresas': Empresa.objects.count(),
-                'total_candidatos': Candidato.objects.count(),
-                'total_candidatos_unicos': Candidato.objects.values('cpf').distinct().count(),
-                'total_requisicoes': RequisicaoVaga.objects.count(),
-                'requisicoes_aprovadas': RequisicaoVaga.objects.filter(status_requisicao='AP').count(),
-                'candidatos_selecionados': CandidatoSelecionado.objects.filter(status_selecao='AP').count(),
+            # Datas de referência
+            data_limite_novos = timezone.now() - timedelta(days=periodo_dias)
+            data_30_dias = timezone.now() - timedelta(days=30)
+            
+            # 1. ESTATÍSTICAS BÁSICAS PRINCIPAIS
+            estatisticas_basicas = {
+                # Cargos ativos (que possuem vagas ativas)
+                'cargos_ativos': Cargo.objects.filter(vaga_emprego__ativo=True).distinct().count(),
+                
+                # Vagas ativas
+                'vagas_ativas': Vaga_Emprego.objects.filter(ativo=True).count(),
+                
+                # Novos candidatos (no período especificado)
+                'novos_candidatos_absoluto': Candidato.objects.filter(dt_inclusao__gte=data_limite_novos).count(),
+                'novos_candidatos_online': Candidato.objects.filter(
+                    dt_inclusao__gte=data_limite_novos, 
+                    candidato_online=True
+                ).count(),
+                'novos_candidatos_balcao': Candidato.objects.filter(
+                    dt_inclusao__gte=data_limite_novos, 
+                    candidato_online=False
+                ).count(),
+                
+                # Total de candidatos
+                'total_candidatos_absoluto': Candidato.objects.count(),
+                'total_candidatos_online': Candidato.objects.filter(candidato_online=True).count(),
+                'total_candidatos_balcao': Candidato.objects.filter(candidato_online=False).count(),
+                
+                # Total de empresas parceiras
+                'total_empresas_parceiras': Empresa.objects.count(),
             }
             
-            # 2. VAGAS POR MÊS - Método simplificado para evitar problemas de timezone
-            vagas_por_mes = []
-            for i in range(12):
-                data_inicio = timezone.now().replace(day=1) - timedelta(days=30*i)
-                data_fim = data_inicio + timedelta(days=31)
-                total = Vaga_Emprego.objects.filter(
-                    dt_inclusao__gte=data_inicio,
-                    dt_inclusao__lt=data_fim
-                ).count()
-                vagas_por_mes.append({
-                    'mes': data_inicio.strftime('%Y-%m'),
-                    'total': total
-                })
-            vagas_por_mes.reverse()
+            # 2. TOP CARGOS (flexível por parâmetro)
+            top_cargos = list(
+                Vaga_Emprego.objects
+                .values('cargo__nome')
+                .annotate(quantidade=Count('id'))
+                .order_by('-quantidade')[:top_limit]
+                .values_list('cargo__nome', 'quantidade')
+            )
+            top_cargos_dados = [{'titulo': nome, 'quantidade': qtd} for nome, qtd in top_cargos]
             
-            # 3. CANDIDATOS POR MÊS - Método simplificado
-            candidatos_por_mes = []
+            # 3. EVOLUÇÃO MENSAL DE CANDIDATOS (últimos 12 meses)
+            evolucao_mensal_candidatos = []
             for i in range(12):
                 data_inicio = timezone.now().replace(day=1) - timedelta(days=30*i)
                 data_fim = data_inicio + timedelta(days=31)
@@ -83,134 +99,152 @@ class IndicadoresDashboard(APIView):
                     dt_inclusao__gte=data_inicio,
                     dt_inclusao__lt=data_fim
                 ).count()
-                candidatos_por_mes.append({
+                evolucao_mensal_candidatos.append({
                     'mes': data_inicio.strftime('%Y-%m'),
                     'total': total
                 })
-            candidatos_por_mes.reverse()
+            evolucao_mensal_candidatos.reverse()
             
-            # 4. REQUISIÇÕES POR STATUS
-            requisicoes_por_status = (
-                RequisicaoVaga.objects
-                .values('status_requisicao')
+            # 4. CANDIDATOS POR BAIRRO
+            candidatos_por_bairro = list(
+                Candidato.objects
+                .exclude(bairro__isnull=True)
+                .exclude(bairro__exact='')
+                .values('bairro')
                 .annotate(total=Count('id'))
-                .order_by('-total')
+                .order_by('-total')[:20]  # Top 20 bairros
             )
             
-            # 5. TOP 10 CARGOS MAIS DEMANDADOS
-            top_cargos = (
+            # 5. VAGAS POR BAIRRO (baseado no bairro da empresa)
+            vagas_por_bairro = list(
                 Vaga_Emprego.objects
-                .values('cargo__nome')
-                .annotate(total_vagas=Count('id'))
-                .order_by('-total_vagas')[:10]
+                .exclude(empresa__bairro__isnull=True)
+                .exclude(empresa__bairro__exact='')
+                .values('empresa__bairro')
+                .annotate(total=Count('id'))
+                .order_by('-total')[:20]  # Top 20 bairros
             )
             
-            # 6. TOP 10 EMPRESAS COM MAIS VAGAS
-            top_empresas = (
-                Vaga_Emprego.objects
-                .values('empresa__nome')
-                .annotate(total_vagas=Count('id'))
-                .order_by('-total_vagas')[:10]
+            # 6. CANDIDATOS POR FUNCIONÁRIO (quem fez o encaminhamento)
+            candidatos_por_funcionario = list(
+                Candidato.objects
+                .filter(funcionario_encaminhamento__isnull=False)
+                .values('funcionario_encaminhamento__first_name', 'funcionario_encaminhamento__last_name')
+                .annotate(total=Count('id'))
+                .order_by('-total')[:10]
+            )
+            # Formatando nome completo
+            candidatos_por_funcionario = [
+                {
+                    'funcionario': f"{item['funcionario_encaminhamento__first_name']} {item['funcionario_encaminhamento__last_name']}".strip(),
+                    'total': item['total']
+                } for item in candidatos_por_funcionario
+            ]
+            
+            # 7. TOP EMPRESAS (com mais candidatos)
+            top_empresas = list(
+                Empresa.objects
+                .annotate(total_candidatos=Count('vaga_emprego__candidato'))
+                .filter(total_candidatos__gt=0)
+                .order_by('-total_candidatos')[:top_limit]
+                .values('nome', 'total_candidatos')
             )
             
-            # 7. ESCOLARIDADE MAIS REQUISITADA
-            escolaridade_requisitada = (
-                Vaga_Emprego.objects
+            # 8. CANDIDATOS POR ESCOLARIDADE
+            candidatos_por_escolaridade = list(
+                Candidato.objects
                 .values('escolaridade__nome')
                 .annotate(total=Count('id'))
                 .order_by('-total')
             )
             
-            # 8. DISTRIBUIÇÃO POR TIPO DE VAGA
-            tipos_vaga = (
+            # 9. RELAÇÃO CANDIDATOS ONLINE/BALCÃO POR MÊS (últimos 12 meses)
+            relacao_online_balcao_mensal = []
+            for i in range(12):
+                data_inicio = timezone.now().replace(day=1) - timedelta(days=30*i)
+                data_fim = data_inicio + timedelta(days=31)
+                
+                online = Candidato.objects.filter(
+                    dt_inclusao__gte=data_inicio,
+                    dt_inclusao__lt=data_fim,
+                    candidato_online=True
+                ).count()
+                
+                balcao = Candidato.objects.filter(
+                    dt_inclusao__gte=data_inicio,
+                    dt_inclusao__lt=data_fim,
+                    candidato_online=False
+                ).count()
+                
+                relacao_online_balcao_mensal.append({
+                    'mes': data_inicio.strftime('%Y-%m'),
+                    'online': online,
+                    'balcao': balcao
+                })
+            relacao_online_balcao_mensal.reverse()
+            
+            # 10. ÚLTIMAS VAGAS A ENTRAR (últimas 10)
+            ultimas_vagas_entrar = list(
                 Vaga_Emprego.objects
-                .values('tipo_de_vaga')
-                .annotate(total=Count('id'))
-                .order_by('-total')
+                .select_related('empresa', 'cargo')
+                .order_by('-dt_inclusao')[:10]
+                .values(
+                    'id', 'empresa__nome', 'cargo__nome', 
+                    'dt_inclusao', 'quantidadeVagas', 'ativo'
+                )
             )
             
-            # 9. EXPERIÊNCIA REQUISITADA
-            experiencia_requisitada = (
+            # 11. ÚLTIMAS VAGAS A SAIR (últimas 10 desativadas com contagem de candidatos)
+            ultimas_vagas_sair = []
+            vagas_desativadas = (
                 Vaga_Emprego.objects
-                .values('experiencia')
-                .annotate(total=Count('id'))
-                .order_by('-total')
+                .filter(ativo=False, dt_desativacao__isnull=False)
+                .select_related('empresa', 'cargo')
+                .order_by('-dt_desativacao')[:10]
             )
             
-            # 10. INDICADORES DE CONVERSÃO
-            total_vagas = Vaga_Emprego.objects.count()
-            total_candidatos_count = Candidato.objects.count()
-            total_requisicoes_count = RequisicaoVaga.objects.count()
-            
-            conversao = {
-                'taxa_aprovacao_requisicoes': round(
-                    (RequisicaoVaga.objects.filter(status_requisicao='AP').count() / 
-                     max(total_requisicoes_count, 1)) * 100, 2
-                ),
-                'media_candidatos_por_vaga': round(
-                    total_candidatos_count / max(total_vagas, 1), 2
-                ),
-                'vagas_com_candidatos': Vaga_Emprego.objects.filter(candidato__isnull=False).distinct().count(),
-                'percentual_vagas_com_candidatos': round(
-                    (Vaga_Emprego.objects.filter(candidato__isnull=False).distinct().count() / 
-                     max(total_vagas, 1)) * 100, 2
-                )
-            }
-            
-            # 11. ÚLTIMAS ATIVIDADES (últimos 30 dias)
-            data_30_dias = timezone.now() - timedelta(days=30)
-            atividades_recentes = {
-                'novas_vagas': Vaga_Emprego.objects.filter(dt_inclusao__gte=data_30_dias).count(),
-                'novos_candidatos': Candidato.objects.filter(dt_inclusao__gte=data_30_dias).count(),
-                'novas_requisicoes': RequisicaoVaga.objects.filter(dt_inclusao__gte=data_30_dias).count(),
-                'vagas_desativadas': Vaga_Emprego.objects.filter(
-                    dt_desativacao__gte=data_30_dias
-                ).count(),
-            }
-            
-            # 12. EMPRESAS MAIS ATIVAS
-            empresas_ativas = (
-                Empresa.objects
-                .annotate(
-                    total_candidatos=Count('vaga_emprego__candidato'),
-                    vagas_ativas=Count('vaga_emprego', filter=Q(vaga_emprego__ativo=True))
-                )
-                .filter(total_candidatos__gt=0)
-                .order_by('-total_candidatos')[:10]
-                .values('nome', 'total_candidatos', 'vagas_ativas')
-            )
+            for vaga in vagas_desativadas:
+                ultimas_vagas_sair.append({
+                    'id': vaga.id,
+                    'empresa__nome': vaga.empresa.nome,
+                    'cargo__nome': vaga.cargo.nome,
+                    'dt_desativacao': vaga.dt_desativacao,
+                    'quantidadeVagas': vaga.quantidadeVagas,
+                    'total_candidatos': vaga.candidato_set.count()
+                })
             
             # Formatação dos dados para JSON
             response_data = {
-                'estatisticas_gerais': estatisticas_gerais,
+                # Estatísticas principais
+                'estatisticas_basicas': estatisticas_basicas,
+                
+                # Gráficos e dados estruturados
                 'graficos': {
-                    'vagas_por_mes': vagas_por_mes,
-                    'candidatos_por_mes': candidatos_por_mes,
-                    'requisicoes_por_status': [
-                        {
-                            'status': dict(RequisicaoVaga.STATUS_CHOICES).get(item['status_requisicao'], item['status_requisicao']),
-                            'total': item['total']
-                        } for item in requisicoes_por_status
-                    ],
-                    'top_cargos': list(top_cargos),
-                    'top_empresas': list(top_empresas),
-                    'escolaridade_requisitada': list(escolaridade_requisitada),
-                    'tipos_vaga': [
-                        {
-                            'tipo': dict(Vaga_Emprego.TIPO_DE_VAGA_CHOICES).get(item['tipo_de_vaga'], item['tipo_de_vaga']),
-                            'total': item['total']
-                        } for item in tipos_vaga
-                    ],
-                    'experiencia_requisitada': [
-                        {
-                            'experiencia': dict(Vaga_Emprego.EXPERIENCIA_CHOICES).get(item['experiencia'], item['experiencia']),
-                            'total': item['total']
-                        } for item in experiencia_requisitada
-                    ]
+                    'top_cargos': top_cargos_dados,
+                    'evolucao_mensal_candidatos': evolucao_mensal_candidatos,
+                    'candidatos_por_bairro': candidatos_por_bairro,
+                    'vagas_por_bairro': vagas_por_bairro,
+                    'candidatos_por_funcionario': candidatos_por_funcionario,
+                    'relacao_online_balcao_mensal': relacao_online_balcao_mensal,
                 },
-                'conversao': conversao,
-                'atividades_recentes': atividades_recentes,
-                'empresas_ativas': list(empresas_ativas),
+                
+                # Rankings e listas
+                'rankings': {
+                    'top_empresas': top_empresas,
+                    'candidatos_por_escolaridade': candidatos_por_escolaridade,
+                },
+                
+                # Atividades recentes
+                'atividades_recentes': {
+                    'ultimas_vagas_entrar': ultimas_vagas_entrar,
+                    'ultimas_vagas_sair': ultimas_vagas_sair,
+                },
+                
+                # Metadados
+                'parametros': {
+                    'periodo_novos_candidatos_dias': periodo_dias,
+                    'top_limit': top_limit,
+                },
                 'data_atualizacao': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
@@ -221,11 +255,11 @@ class IndicadoresDashboard(APIView):
             return Response({
                 'error': 'Erro ao gerar indicadores',
                 'message': str(e),
-                'estatisticas_gerais': {
-                    'total_vagas_ativas': Vaga_Emprego.objects.filter(ativo=True).count(),
-                    'total_vagas_inativas': Vaga_Emprego.objects.filter(ativo=False).count(),
-                    'total_empresas': Empresa.objects.count(),
-                    'total_candidatos': Candidato.objects.count(),
+                'estatisticas_basicas': {
+                    'cargos_ativos': 0,
+                    'vagas_ativas': Vaga_Emprego.objects.filter(ativo=True).count(),
+                    'total_candidatos_absoluto': Candidato.objects.count(),
+                    'total_empresas_parceiras': Empresa.objects.count(),
                 },
                 'data_atualizacao': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
             }, status=500)
