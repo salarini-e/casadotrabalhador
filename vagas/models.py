@@ -129,7 +129,7 @@ class Vaga_Emprego(models.Model):
     email=models.CharField(max_length=254, verbose_name="Email p/ encaminhamento", blank=True, null=True)     
     cargo=models.ForeignKey(Cargo, on_delete=models.CASCADE)
     requisicao_vaga=models.ForeignKey('RequisicaoVaga', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Requisição de Vaga', help_text='Requisição que originou esta vaga')
-    quantidadeVagas=models.IntegerField(blank=False, null=False, verbose_name='Quantidade de vagas')
+    quantidadeVagas=models.IntegerField(blank=True, null=False, verbose_name='Quantidade de vagas')
     tipo_de_vaga=models.CharField(max_length=3, choices=TIPO_DE_VAGA_CHOICES, default='NML')
     escolaridade=models.ForeignKey(Escolaridade, on_delete=models.CASCADE)
     salario=models.CharField(max_length=50, default='', blank=True, verbose_name='Salário')
@@ -161,10 +161,76 @@ class Vaga_Emprego(models.Model):
         """Retorna email para encaminhamento: prioriza email da vaga, depois da empresa"""
         return self.email if self.email else self.empresa.email
     
+    def criar_historico_alteracao(self, tipo_alteracao, valor):
+        historico = Historico_Vaga_Emprego(
+            vaga=self,
+            tipo=tipo_alteracao,
+            quantidadeVagas=valor
+        )
+        historico.save()
+
+    def movimentacoes_de_vaga(self):
+        """Retorna todas as movimentações de vaga (histórico)"""
+        return Historico_Vaga_Emprego.objects.filter(vaga=self).order_by('-dt_alteracao')
+    
+    def vagas_iniciais(self):
+        """Retorna a quantidade inicial de vagas (criação da vaga)"""
+        criacao = Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='0').first()
+        return criacao.quantidadeVagas if criacao else 0
+    
     def save(self, *args, **kwargs):
         if self.dt_inclusao:
             self.dt_atualizacao = timezone.now()
+
+            # Verificar se a quantidade de vagas foi alterada
+            if self.pk:  # Se a vaga já existe (não é uma criação)
+                old_vaga = Vaga_Emprego.objects.get(pk=self.pk)
+                if old_vaga.quantidadeVagas < self.quantidadeVagas:
+                    self.criar_historico_alteracao('+', self.quantidadeVagas - old_vaga.quantidadeVagas)
+                elif old_vaga.quantidadeVagas > self.quantidadeVagas:
+                    self.criar_historico_alteracao('-', old_vaga.quantidadeVagas - self.quantidadeVagas)
+                else:
+                    pass 
+                if self.ativo == False and old_vaga.ativo == True:
+                    self.dt_desativacao = timezone.now()  
+                    self.quantidadeVagas = 0
+                    if Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='0').exists() == False:
+                        if not Historico_Vaga_Emprego.objects.filter(vaga=self).exists():
+                            self.criar_historico_alteracao('0', self.quantidadeVagas)
+                        elif Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='-').exists() or Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='+').exists():
+                            historicos_positivos = Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='-')
+                            historicos_negativos = Historico_Vaga_Emprego.objects.filter(vaga=self, tipo='+')
+                            total_positivo = sum([h.quantidadeVagas for h in historicos_positivos])
+                            total_negativo = sum([h.quantidadeVagas for h in historicos_negativos])
+                            self.criar_historico_alteracao('0', total_positivo - total_negativo)
+                    self.criar_historico_alteracao('-', old_vaga.quantidadeVagas)                         
         super(Vaga_Emprego, self).save(*args, **kwargs)
+        
+class Historico_Vaga_Emprego(models.Model):
+    tipo_alteracao_choices = (
+        ('0', 'Criação da vaga'),
+        ('+', 'Aumento'),
+        ('-', 'Diminuição'),
+    )
+    vaga=models.ForeignKey(Vaga_Emprego, on_delete=models.CASCADE)
+    tipo=models.CharField(max_length=1, choices=tipo_alteracao_choices, verbose_name='Tipo de alteração')
+    quantidadeVagas=models.IntegerField(blank=False, null=False, verbose_name='Quantidade de vagas')    
+    dt_alteracao = models.DateTimeField(auto_now_add=True, verbose_name='Dt. Alteração')
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Vaga_Emprego)
+def criar_historico_criacao(sender, instance, created, **kwargs):
+    """
+    Cria histórico de criação da vaga assim que ela é criada.
+    """
+    if created:
+        Historico_Vaga_Emprego.objects.create(
+            vaga=instance,
+            tipo='0',  # Criação da vaga
+            quantidadeVagas=instance.quantidadeVagas
+        )
 
 #ENCAMINHAMENTOS
 class Candidato(models.Model):

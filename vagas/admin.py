@@ -3,6 +3,16 @@ from .models import *
 
 
 # Register your models here.
+@admin.register(Historico_Vaga_Emprego)
+class HistoricoVagaEmpregoAdmin(admin.ModelAdmin):
+    list_display = ('vaga', 'get_tipo_display', 'quantidadeVagas', 'dt_alteracao')
+    list_filter = ('tipo', 'dt_alteracao')
+    search_fields = ('vaga__cargo__nome', 'vaga__empresa__nome')
+    
+    # Ordenação padrão: mais recentes primeiro
+    ordering = ('-dt_alteracao',)
+    
+    readonly_fields = ('dt_alteracao',)
 
 @admin.register(Vaga_Emprego)
 class VagaEmpregoAdmin(admin.ModelAdmin):
