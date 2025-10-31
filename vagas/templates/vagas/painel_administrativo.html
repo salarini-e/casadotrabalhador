@@ -70,15 +70,14 @@
       
       <!-- Vagas Ativas - 31 Dias -->
       <div class="metric-card metric-primary">
-        <div class="metric-period-badge recent-badge">
-          <i class="fas fa-calendar-day"></i>
-          <!-- <span>31 DIAS</span> -->
-        </div>
+        <!-- <div class="metric-period-badge recent-badge">
+          <i class="fas fa-calendar-day"></i>          
+        </div> -->
         <div class="metric-icon">
           <i class="fas fa-briefcase"></i>
         </div>
         <div class="metric-content">
-          <div class="metric-value">{{ qnt_cargos }}</div>
+          <div class="metric-value">{{ stats_gerais.total_cargos_ativos }}</div>
           <div class="metric-label">Cargos Ativos</div>
           <!-- <div class="metric-detail">Últimos 31 dias</div> -->
         </div>
@@ -88,16 +87,20 @@
       <!-- Empresas Ativas - 31 Dias -->
       <div class="metric-card metric-success">
         <div class="metric-period-badge recent-badge">
-          <i class="fas fa-calendar-day"></i>
+          <strong style="color: green;">{{ stats_gerais.total_vagas_ativas}} registros</strong>
           <!-- <span>31 DIAS</span> -->
         </div>
         <div class="metric-icon">
           <i class="fas fa-building"></i>
         </div>
         <div class="metric-content">
-          <div class="metric-value">{{ qnt_vagas }}</div>
+          <div class="metric-value">{{ stats_gerais.total_posicoes_abertas }}</div>
           <div class="metric-label">Vagas Ativas</div>
-          <!-- <div class="metric-detail">Últimos 31 dias</div> -->
+          <!-- <div class="metric-detail">
+            Nº de Registros: 
+            <strong style="color: green;">{{ stats_gerais.total_vagas_ativas}}</strong>
+
+          </div> -->
         </div>
       </div>
       
@@ -111,11 +114,11 @@
           <i class="fas fa-users"></i>
         </div>
         <div class="metric-content">
-          <div class="metric-value">{{ candidatos_31_dias }}</div>
+          <div class="metric-value">{{ stats_gerais.novos_candidatos }}</div>
           <div class="metric-label">Novos Candidatos</div>
           <div class="metric-detail">
-            <span class="metric-success">{{ candidatos_online_31_dias }} online</span> • 
-            <span class="metric-danger">{{ candidatos_balcao_31_dias }} balcão</span>
+            <span class="metric-success">{{ stats_gerais.novos_candidatos_online }} online</span> • 
+            <span class="metric-danger">{{ stats_gerais.novos_candidatos_balcao }} balcão</span>
           </div>
         </div>
       </div>
@@ -130,26 +133,24 @@
           <i class="fas fa-users"></i>
         </div>
         <div class="metric-content">
-          <div class="metric-value">{{ total_candidatos }}</div>
+          <div class="metric-value">{{ stats_gerais.total_candidatos }}</div>
           <div class="metric-label">Total Candidatos</div>
           <div class="metric-detail">
-            <span class="metric-success">{{ candidatos_online }} online</span> • 
-            <span class="metric-danger">{{ candidatos_balcao }} balcão</span>
+            <span class="metric-success">{{ stats_gerais.candidatos_online }} online</span> • 
+            <span class="metric-danger">{{ stats_gerais.candidatos_balcao }} balcão</span>
           </div>
         </div>
       </div>
 
       </div>
 
-      <!-- Nova Seção: Métricas Avançadas -->
-      <div class="section-title mt-3">
+      
+      <!-- <div class="section-title mt-3">
         <h2><i class="fas fa-chart-line me-2"></i>Métricas Avançadas</h2>
         <p>Indicadores de performance e qualidade dos serviços</p>
       </div>
 
-      <div class="stats-grid">
-        
-        <!-- Tempo Médio de Aprovação -->
+      <div class="stats-grid">              
         <div class="stat-card warning">
           <div class="stat-period-badge metric-badge">
             <i class="fas fa-clock"></i>
@@ -161,10 +162,7 @@
             <div class="stat-sublabel">Formulários para vagas</div>
           </div>
         </div>
-
-
-
-        <!-- Ciclo de Vida -->
+        
         <div class="stat-card secondary">
           <div class="stat-period-badge metric-badge">
             <i class="fas fa-calendar-alt"></i>
@@ -176,8 +174,7 @@
             <div class="stat-sublabel">Criação até encerramento</div>
           </div>
         </div>
-
-        <!-- Formulários Status -->
+        
         <div class="stat-card">
           <div class="stat-period-badge metric-badge">
             <i class="fas fa-file-alt"></i>
@@ -193,18 +190,28 @@
           </div>
         </div>
 
-      </div>
+      </div> -->
 
     </div>
 
     <!-- Seção Entrada e Saída de Vagas -->
-    <div class="section-title">
+    <!-- <div class="section-title">
       <h2><i class="fas fa-exchange-alt me-2"></i>Movimentação de Vagas</h2>
       <p>{% if filtro_aplicado %}Entrada e saída de vagas no período selecionado{% else %}Entrada e saída de vagas no mês atual{% endif %}</p>
-    </div>
+    </div> -->
     
     <div class="stats-grid">
-      
+      <div class="stat-card success">
+        <div class="stat-period-badge metric-badge">
+          <!-- <i class="fas fa-briefcase"></i> -->
+          <!-- <span>Taxa de Candidatos por Vaga</span> -->
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats_advanced.taxa_candidatos_por_vaga }}</div>
+          <div class="stat-label">Taxa de Candidatos por Vaga</div>
+          <div class="stat-sublabel"></div>
+        </div>
+      </div>
       <!-- Vagas Entraram - Registros -->
       <div class="stat-card success">
         <div class="stat-period-badge metric-badge">
@@ -212,7 +219,7 @@
           <span>ENTRADA</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ vagas_entraram_registros }}</div>
+          <div class="stat-number">{{ stats_advanced.novas_vagas }}</div>
           <div class="stat-label">Vagas Criadas</div>
           <div class="stat-sublabel">Número de registros de vaga</div>
         </div>
@@ -225,7 +232,7 @@
           <span>POSIÇÕES</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ vagas_entraram_posicoes }}</div>
+          <div class="stat-number">{{ stats_advanced.novas_vagas_posicoes }}</div>
           <div class="stat-label">Posições Abertas</div>
           <div class="stat-sublabel">Total de posições criadas</div>
         </div>
@@ -238,7 +245,7 @@
           <span>SAÍDA</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ vagas_sairam_registros }}</div>
+          <div class="stat-number">{{ stats_advanced.vagas_encerradas }}</div>
           <div class="stat-label">Vagas Encerradas</div>
           <div class="stat-sublabel">Número de registros encerrados</div>
         </div>
@@ -251,7 +258,7 @@
           <span>POSIÇÕES</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{{ vagas_sairam_posicoes }}</div>
+          <div class="stat-number">{{ stats_advanced.vagas_encerradas_posicoes }}</div>
           <div class="stat-label">Posições Encerradas</div>
           <div class="stat-sublabel">Total de posições encerradas</div>
         </div>
@@ -264,7 +271,7 @@
           <span>SALDO</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{% if saldo_vagas_registros >= 0 %}+{% endif %}{{ saldo_vagas_registros }}</div>
+          <div class="stat-number">{% if saldo_vagas_registros >= 0 %}+{% endif %}{{ stats_advanced.saldo_vagas }}</div>
           <div class="stat-label">Saldo de Vagas</div>
           <div class="stat-sublabel">{% if saldo_vagas_registros >= 0 %}Crescimento{% else %}Redução{% endif %} líquida</div>
         </div>
@@ -277,7 +284,7 @@
           <span>SALDO</span>
         </div>
         <div class="stat-content">
-          <div class="stat-number">{% if saldo_vagas_posicoes >= 0 %}+{% endif %}{{ saldo_vagas_posicoes }}</div>
+          <div class="stat-number">{% if saldo_vagas_posicoes >= 0 %}+{% endif %}{{ stats_advanced.saldo_posicoes }}</div>
           <div class="stat-label">Saldo Posições</div>
           <div class="stat-sublabel">{% if saldo_vagas_posicoes >= 0 %}Crescimento{% else %}Redução{% endif %} líquida</div>
         </div>
@@ -467,12 +474,12 @@
                 <canvas id="candidatosChart"></canvas>
               </div>
             </div>
-            <div class="m-auto donut-chart">
+            <!-- <div class="m-auto donut-chart">
               <h5>Online vs Balcão - 31 Dias</h5>
               <div class="chart-container-fluid">
                 <canvas id="candidatos31DiasChart"></canvas>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -506,7 +513,7 @@
         </div>
 
         <!-- Novo: Mapa de Calor Geográfico -->
-        <div class="chart-card chart-wide">
+        <!-- <div class="chart-card chart-wide">
           <div class="chart-header">
             <div class="chart-title">
               <i class="fas fa-map"></i>
@@ -526,7 +533,7 @@
               <canvas id="bairrosChart"></canvas>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Seção de Dados Históricos Gerais -->
         <div class="section-title mt-4">
@@ -558,7 +565,7 @@
         </div>
 
         <!-- Novo: Sazonalidade por Cargo -->
-        <div class="chart-card chart-wide">
+        <!-- <div class="chart-card chart-wide">
           <div class="chart-header">
             <div class="chart-title">
               <i class="fas fa-chart-line"></i>
@@ -578,7 +585,7 @@
               <canvas id="sazonalidadeChart"></canvas>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Novo: Picos de Demanda -->
         <div class="chart-card">
@@ -1123,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: [
                 {% for cargo in top_cargos_total %}
-                '{{ cargo.vaga__cargo__nome|truncatechars:20 }}',
+                '{{ cargo.cargo|truncatechars:20 }}',
                 {% endfor %}
             ],
             datasets: [{
@@ -1199,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: ['Online', 'Balcão'],
             datasets: [{
-                data: [{{ candidatos_online_total }}, {{ candidatos_balcao_total }}],
+                data: [{{ stats_gerais.candidatos_online }}, {{ stats_gerais.candidatos_balcao }}],
                 backgroundColor: [colors.success, colors.danger],
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -1242,53 +1249,53 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 4. Candidatos Online vs Balcão Chart - 31 Dias
-    const candidatos31DiasCtx = document.getElementById('candidatos31DiasChart').getContext('2d');
-    new Chart(candidatos31DiasCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Online', 'Balcão'],
-            datasets: [{
-                data: [{{ candidatos_online_31_dias }}, {{ candidatos_balcao_31_dias }}],
-                backgroundColor: [colors.success, colors.danger],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 8,
-                        usePointStyle: true,
-                        font: {
-                            size: 9
-                        },
-                        boxWidth: 12
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                        }
-                    }
-                }
-            },
-            cutout: '65%',
-            animation: {
-                animateRotate: true,
-                duration: 1000
-            },
-            layout: {
-                padding: 5
-            }
-        }
-    });
+    // const candidatos31DiasCtx = document.getElementById('candidatos31DiasChart').getContext('2d');
+    // new Chart(candidatos31DiasCtx, {
+    //     type: 'doughnut',
+    //     data: {
+    //         labels: ['Online', 'Balcão'],
+    //         datasets: [{
+    //             data: [{{ candidatos_online_31_dias }}, {{ candidatos_balcao_31_dias }}],
+    //             backgroundColor: [colors.success, colors.danger],
+    //             borderWidth: 2,
+    //             borderColor: '#fff'
+    //         }]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         maintainAspectRatio: false,
+    //         plugins: {
+    //             legend: {
+    //                 position: 'bottom',
+    //                 labels: {
+    //                     padding: 8,
+    //                     usePointStyle: true,
+    //                     font: {
+    //                         size: 9
+    //                     },
+    //                     boxWidth: 12
+    //                 }
+    //             },
+    //             tooltip: {
+    //                 callbacks: {
+    //                     label: function(context) {
+    //                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
+    //                         const percentage = ((context.parsed / total) * 100).toFixed(1);
+    //                         return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+    //                     }
+    //                 }
+    //             }
+    //         },
+    //         cutout: '65%',
+    //         animation: {
+    //             animateRotate: true,
+    //             duration: 1000
+    //         },
+    //         layout: {
+    //             padding: 5
+    //         }
+    //     }
+    // });
 
     // 5. Top Empresas Chart - Total
     // const topEmpresasCtx = document.getElementById('topEmpresasChart').getContext('2d');
@@ -1387,15 +1394,15 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'bar',
         data: {
             labels: [
-                {% for empresa in top_empresas_31_dias %}
-                '{{ empresa.empresa__nome|truncatechars:25 }}',
+                {% for empresa in top_empresas %}
+                '{{ empresa.empresa|truncatechars:25 }}',
                 {% endfor %}
             ],
             datasets: [{
-                label: 'Vagas (31 dias)',
+                label: 'Vagas',
                 data: [
-                    {% for empresa in top_empresas_31_dias %}
-                    {{ empresa.total }},
+                    {% for empresa in top_empresas %}
+                    {{ empresa.total_vagas }},
                     {% endfor %}
                 ],
                 backgroundColor: colors.warning,
@@ -1572,59 +1579,59 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== NOVOS GRÁFICOS AVANÇADOS ==========
 
     // Mapa de Calor - Candidatos por Bairro
-    const bairrosCtx = document.getElementById('bairrosChart').getContext('2d');
-    const bairrosChart = new Chart(bairrosCtx, {
-        type: 'bar',
-        data: {
-            labels: [
-                {% for bairro in candidatos_por_bairro %}
-                '{{ bairro.bairro|truncatechars:15 }}',
-                {% endfor %}
-            ],
-            datasets: [{
-                label: 'Candidatos por Bairro',
-                data: [
-                    {% for bairro in candidatos_por_bairro %}
-                    {{ bairro.total }},
-                    {% endfor %}
-                ],
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Top 20 Bairros com Mais Candidatos'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: true,
-                        color: 'rgba(0,0,0,0.1)'
-                    }
-                },
-                x: {
-                    ticks: {
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                }
-            }
-        }
-    });
+    // const bairrosCtx = document.getElementById('bairrosChart').getContext('2d');
+    // const bairrosChart = new Chart(bairrosCtx, {
+    //     type: 'bar',
+    //     data: {
+    //         labels: [
+    //             {% for bairro in candidatos_por_bairro %}
+    //             '{{ bairro.bairro|truncatechars:15 }}',
+    //             {% endfor %}
+    //         ],
+    //         datasets: [{
+    //             label: 'Candidatos por Bairro',
+    //             data: [
+    //                 {% for bairro in candidatos_por_bairro %}
+    //                 {{ bairro.total }},
+    //                 {% endfor %}
+    //             ],
+    //             backgroundColor: 'rgba(54, 162, 235, 0.6)',
+    //             borderColor: 'rgba(54, 162, 235, 1)',
+    //             borderWidth: 1
+    //         }]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         maintainAspectRatio: false,
+    //         plugins: {
+    //             legend: {
+    //                 display: false
+    //             },
+    //             title: {
+    //                 display: true,
+    //                 text: 'Top 20 Bairros com Mais Candidatos'
+    //             }
+    //         },
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: true,
+    //                 grid: {
+    //                     display: true,
+    //                     color: 'rgba(0,0,0,0.1)'
+    //                 }
+    //             },
+    //             x: {
+    //                 ticks: {
+    //                     maxRotation: 45,
+    //                     minRotation: 45
+    //                 }
+    //             }
+    //         }
+    //     }
+    // });
 
     // Sazonalidade por Cargo
-    const sazonalidadeCtx = document.getElementById('sazonalidadeChart').getContext('2d');
+    // const sazonalidadeCtx = document.getElementById('sazonalidadeChart').getContext('2d');
     const cores = [
         'rgba(255, 99, 132, 0.8)',
         'rgba(54, 162, 235, 0.8)',
@@ -1633,67 +1640,67 @@ document.addEventListener('DOMContentLoaded', function() {
         'rgba(153, 102, 255, 0.8)'
     ];
     
-    const sazonalidadeChart = new Chart(sazonalidadeCtx, {
-        type: 'line',
-        data: {
-            labels: [
-                {% if vagas_por_cargo_mes %}
-                    {% for mes_data in vagas_por_cargo_mes.0.dados %}
-                    '{{ mes_data.mes }}',
-                    {% endfor %}
-                {% endif %}
-            ],
-            datasets: [
-                {% for cargo_data in vagas_por_cargo_mes %}
-                {
-                    label: '{{ cargo_data.cargo|truncatechars:20 }}',
-                    data: [
-                        {% for mes_data in cargo_data.dados %}
-                        {{ mes_data.total }},
-                        {% endfor %}
-                    ],
-                    borderColor: cores[{{ forloop.counter0 }} % cores.length],
-                    backgroundColor: cores[{{ forloop.counter0 }} % cores.length].replace('0.8', '0.1'),
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.4
-                }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Evolução de Vagas por Cargo - 12 Meses'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        display: true,
-                        color: 'rgba(0,0,0,0.1)'
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            }
-        }
-    });
+    // const sazonalidadeChart = new Chart(sazonalidadeCtx, {
+    //     type: 'line',
+    //     data: {
+    //         labels: [
+    //             {% if vagas_por_cargo_mes %}
+    //                 {% for mes_data in vagas_por_cargo_mes.0.dados %}
+    //                 '{{ mes_data.mes }}',
+    //                 {% endfor %}
+    //             {% endif %}
+    //         ],
+    //         datasets: [
+    //             {% for cargo_data in vagas_por_cargo_mes %}
+    //             {
+    //                 label: '{{ cargo_data.cargo|truncatechars:20 }}',
+    //                 data: [
+    //                     {% for mes_data in cargo_data.dados %}
+    //                     {{ mes_data.total }},
+    //                     {% endfor %}
+    //                 ],
+    //                 borderColor: cores[{{ forloop.counter0 }} % cores.length],
+    //                 backgroundColor: cores[{{ forloop.counter0 }} % cores.length].replace('0.8', '0.1'),
+    //                 borderWidth: 2,
+    //                 fill: false,
+    //                 tension: 0.4
+    //             }{% if not forloop.last %},{% endif %}
+    //             {% endfor %}
+    //         ]
+    //     },
+    //     options: {
+    //         responsive: true,
+    //         maintainAspectRatio: false,
+    //         plugins: {
+    //             legend: {
+    //                 display: true,
+    //                 position: 'top'
+    //             },
+    //             title: {
+    //                 display: true,
+    //                 text: 'Evolução de Vagas por Cargo - 12 Meses'
+    //             }
+    //         },
+    //         scales: {
+    //             y: {
+    //                 beginAtZero: true,
+    //                 grid: {
+    //                     display: true,
+    //                     color: 'rgba(0,0,0,0.1)'
+    //                 }
+    //             },
+    //             x: {
+    //                 grid: {
+    //                     display: false
+    //                 }
+    //             }
+    //         },
+    //         interaction: {
+    //             intersect: false,
+    //             mode: 'index'
+    //         }
+    //     }
+    // });
 
     // Picos de Demanda - Candidatos
     const picosDemandaCtx = document.getElementById('picosDemandaChart').getContext('2d');
