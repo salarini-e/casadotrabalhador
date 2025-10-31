@@ -8,6 +8,7 @@ urlpatterns = [
     path('totem/candidatar-se/<id>/', views.totem_candidatarse, name='totem_candidatarse'),
     path('totem/candidatura-sucesso/<id>/', views.totem_candidatura_sucesso, name='totem_candidatura_sucesso'),
     path('exportar-vagas/', views.exportar_vagas_excel, name='exportar_vagas'), 
+    path('relatorio-anual-excel/', views.relatorio_anual_excel, name='relatorio_anual_excel'), 
     path('meus-encaminhamentos/', views.meus_encaminhamentos, name='meus_encaminhamentos'),
     path('indicadores', views.indicadores, name='indicadores'),  
     

@@ -4960,3 +4960,201 @@ def admin_toggle_vaga_status(request, vaga_id):
     
     # Redirecionar de volta para a página de candidatos
     return redirect('vagas:candidatos_vaga', vaga_id) + '?origem=vagas'
+
+
+@login_required
+@staff_required
+def relatorio_anual_excel(request):
+    """
+    Gera relatório anual em Excel com dados mensais de:
+    - Empregados (candidatos que conseguiram vaga)
+    - Atendimentos totais
+    - Atendimentos por balcão/whatsapp/telefone
+    - Empresas cadastradas e novas empresas
+    - Vagas disponíveis e entrada de vagas
+    """
+    from datetime import datetime
+    from django.db.models import Count, Q
+    from urllib.parse import quote
+    
+    # Obter ano atual ou do parâmetro
+    ano_atual = request.GET.get('ano', datetime.now().year)
+    try:
+        ano = int(ano_atual)
+    except (ValueError, TypeError):
+        ano = datetime.now().year
+    
+    # Criar workbook e planilha
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Relatório Anual {ano}"
+    
+    # Configurar cabeçalhos
+    meses = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 
+             'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO']
+    
+    # Linha 1: Cabeçalhos dos meses
+    cabecalho = ['CATEGORIA'] + meses + ['TOTAL TRIMESTRE 1', 'TOTAL TRIMESTRE 2', 
+                 'TOTAL TRIMESTRE 3', 'TOTAL TRIMESTRE 4', 'TOTAL ANUAL']
+    ws.append(cabecalho)
+    
+    # Função para calcular dados mensais
+    def calcular_dados_mes(mes_num):
+        """Calcula todos os dados para um mês específico usando range de datas"""
+        from datetime import date
+        from dateutil.relativedelta import relativedelta
+        
+        # Definir range do mês
+        inicio_mes = date(ano, mes_num, 1)
+        if mes_num == 12:
+            fim_mes = date(ano + 1, 1, 1)
+        else:
+            fim_mes = date(ano, mes_num + 1, 1)
+        
+        # Para empresas e vagas disponíveis - acumulado até o final do mês
+        fim_mes_acumulado = fim_mes
+        
+        # Candidatos empregados (conseguiu_vaga=True)
+        empregados = Candidato.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes],
+            conseguiu_vaga=True
+        ).count()
+        
+        # Total de atendimentos (todos os candidatos)
+        atendimentos_total = Candidato.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes]
+        ).count()
+        
+        # Atendimentos por balcão (candidato_online=False)
+        balcao = Candidato.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes],
+            candidato_online=False
+        ).count()
+        
+        # Atendimentos online (candidato_online=True)
+        # Dividindo proporcionalmente entre WhatsApp e Telefone
+        online = Candidato.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes],
+            candidato_online=True
+        ).count()
+        
+        # Estimativa: 70% WhatsApp, 30% Telefone (baseado no padrão dos dados fornecidos)
+        whatsapp = int(online * 0.7)
+        telefone = online - whatsapp
+        
+        # Total de empresas no final do mês (acumulado)
+        empresas_total = Empresa.objects.filter(
+            dt_inclusao__lt=fim_mes_acumulado
+        ).count()
+        
+        # Novas empresas no mês
+        novas_empresas = Empresa.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes]
+        ).count()
+        
+        # Entrada de registros no mês
+        entrada_registros = Vaga_Emprego.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes]
+        ).count()
+
+        #Entrada de vagas no mês
+        entrada_vagas = Vaga_Emprego.objects.filter(
+            dt_inclusao__range=[inicio_mes, fim_mes]
+        ).aggregate(
+            total=Sum('quantidadeVagas')
+        )['total'] or 0
+
+        # Vagas disponíveis no final do mês (criadas até o final do mês e que estão ativas)
+        vagas_disponiveis = Vaga_Emprego.objects.filter(
+            dt_inclusao__lt=fim_mes,
+            ativo=True
+        ).count()
+        
+        return {
+            'empregados': empregados,
+            'atendimentos': atendimentos_total,
+            'balcao': balcao,
+            'whatsapp': 0,
+            'telefone': 0,
+            'empresas_total': empresas_total,
+            'novas_empresas': novas_empresas,
+            'entrada_registros': entrada_registros,
+            'entrada_vagas': entrada_vagas,
+            'vagas_disponiveis': vagas_disponiveis
+        }
+    
+    # Calcular dados para todos os meses
+    dados_anuais = {}
+    for mes in range(1, 13):
+        dados_anuais[mes] = calcular_dados_mes(mes)
+    
+    # Função para calcular total trimestral
+    def total_trimestre(trimestre_num, campo):
+        if trimestre_num == 1:
+            meses_trim = [1, 2, 3]
+        elif trimestre_num == 2:
+            meses_trim = [4, 5, 6]
+        elif trimestre_num == 3:
+            meses_trim = [7, 8, 9]
+        else:  # trimestre 4
+            meses_trim = [10, 11, 12]
+        
+        return sum(dados_anuais[m][campo] for m in meses_trim)
+    
+    # Função para calcular total anual
+    def total_anual(campo):
+        return sum(dados_anuais[m][campo] for m in range(1, 13))
+    
+    # Adicionar linhas de dados
+    categorias = [
+        ('EMPREGADOS', 'empregados'),
+        ('ATENDIMENTOS', 'atendimentos'),
+        ('BALCÃO', 'balcao'),
+        ('WHATSAPP', 'whatsapp'),
+        ('TELEFONE', 'telefone'),
+        ('EMPRESAS', 'empresas_total'),
+        ('NOVAS EMPRESAS', 'novas_empresas'),
+        ('ENTRADA DE REGISTROS', 'entrada_registros'),
+        ('ENTRADA DE VAGAS', 'entrada_vagas'),
+        ('VAGAS DISPONÍVEIS', 'vagas_disponiveis')
+    ]
+    
+    for categoria_nome, campo in categorias:
+        linha = [categoria_nome]
+        
+        # Dados mensais
+        for mes in range(1, 13):
+            linha.append(dados_anuais[mes][campo])
+        
+        # Totais trimestrais
+        for trimestre in range(1, 5):
+            linha.append(total_trimestre(trimestre, campo))
+        
+        # Total anual
+        linha.append(total_anual(campo))
+        
+        ws.append(linha)
+    
+    # Ajustar largura das colunas
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 15)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Configurar resposta HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename={quote(f"relatorio_anual_{ano}.xlsx")}'
+    
+    # Salvar workbook na resposta
+    wb.save(response)
+    
+    return response

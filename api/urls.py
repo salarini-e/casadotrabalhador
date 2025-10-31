@@ -12,4 +12,5 @@ urlpatterns = [
        path('vagas/', views.Listar_Vagas.as_view()),
        path('cargos/', views.Listar_Cargos.as_view()),
        path('indicadores/', views.IndicadoresDashboard.as_view(), name='indicadores_dashboard'),
+       path('indicadores/v2/', views.IndicadoresAvancadosDashboard.as_view(), name='indicadores_dashboard'),
 ]
