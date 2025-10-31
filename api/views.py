@@ -263,3 +263,92 @@ class IndicadoresDashboard(APIView):
                 },
                 'data_atualizacao': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
             }, status=500)
+
+from django.utils import timezone
+from datetime import timedelta
+
+from vagas.models import Vaga_Emprego, Candidato
+from vagas.functions.filters import processar_filtro_periodo
+from vagas.functions.stats_general import get_estatisticas_gerais
+from vagas.functions.stats_advanced import calcular_funil_vagas
+from vagas.functions.stats_temporal import gerar_series_candidatos_por_mes_com_filtro
+from vagas.functions.stats_geographic import (
+    candidatos_por_bairro,
+    bairros_por_vaga,
+    top_empresas_por_vagas,
+    top_cargos_por_candidatos,
+)
+
+class IndicadoresAvancadosDashboard(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # Processa o filtro de período (GET/POST/sessão)
+            data_inicio, data_fim, filtro_aplicado, limpar = processar_filtro_periodo(request)
+            if limpar:
+                return Response({'redirect': True})  # sinaliza que filtros foram limpos
+
+            # Fallback (últimos 90 dias)
+            if not data_inicio or not data_fim:
+                data_fim = timezone.now().date()
+                data_inicio = data_fim - timedelta(days=90)
+
+            # QuerySets principais filtrados
+            vagas_query = Vaga_Emprego.objects.filter(dt_inclusao__range=(data_inicio, data_fim))
+            candidatos_query = Candidato.objects.filter(dt_inclusao__range=(data_inicio, data_fim))
+
+            # Estatísticas gerais
+            estatisticas = get_estatisticas_gerais(vagas_query, candidatos_query)
+
+            # Funil de vagas (não sei porque dei o nome funil)
+            funil = calcular_funil_vagas(vagas_query, candidatos_query)
+
+            # Séries temporais (mensais)
+            series_candidatos = gerar_series_candidatos_por_mes_com_filtro(
+                candidatos_query,
+                data_inicio=data_inicio,
+                data_fim=data_fim,
+                max_meses=12
+            )
+
+            # Dados geográficos
+            total_candidatos = candidatos_query.count()
+            geo_candidatos = candidatos_por_bairro(candidatos_query, total_candidatos)
+            geo_vagas = bairros_por_vaga(vagas_query, filtro_aplicado=filtro_aplicado)
+
+            # Rankings e tops
+            top_empresas = top_empresas_por_vagas(vagas_query)
+            top_cargos = top_cargos_por_candidatos(candidatos_query)
+
+            # Estrutura de resposta
+            response_data = {
+                'filtros': {
+                    'data_inicio': data_inicio.strftime('%Y-%m-%d'),
+                    'data_fim': data_fim.strftime('%Y-%m-%d'),
+                    'filtro_aplicado': filtro_aplicado,
+                },
+                'estatisticas': estatisticas,
+                'funil': funil,
+                'series': {
+                    'candidatos_por_mes': series_candidatos,
+                },
+                'geografico': {
+                    'candidatos_por_bairro': geo_candidatos,
+                    'vagas_por_bairro': geo_vagas,
+                },
+                'rankings': {
+                    'top_empresas': top_empresas,
+                    'top_cargos': top_cargos,
+                },
+                'data_atualizacao': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            }
+
+            return Response(response_data)
+
+        except Exception as e:
+            return Response({
+                'error': 'Erro ao gerar indicadores avançados',
+                'message': str(e)
+            }, status=500)
